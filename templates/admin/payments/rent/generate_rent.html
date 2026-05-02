@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="max-width:700px; margin:20px auto; background:#111827; color:white; padding:24px; border-radius:12px;">
+    <h1 style="margin-bottom:15px;">Generate Monthly Rent</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label>Month:</label><br>
+        <select name="month" required style="margin-bottom:15px; padding:8px; width:100%;">
+            <option>January</option>
+            <option>February</option>
+            <option>March</option>
+            <option>April</option>
+            <option>May</option>
+            <option>June</option>
+            <option>July</option>
+            <option>August</option>
+            <option>September</option>
+            <option>October</option>
+            <option>November</option>
+            <option>December</option>
+        </select>
+
+        <label>Year:</label><br>
+        <input type="number" name="year" value="2026" required style="margin-bottom:20px; padding:8px; width:100%;">
+
+        <button type="submit" style="background:#16a34a; color:white; border:none; padding:12px 18px; border-radius:8px; cursor:pointer;">
+            Generate Rent
+        </button>
+
+        <a href="../" style="margin-left:10px; color:#93c5fd; text-decoration:none;">
+            Cancel
+        </a>
+    </form>
+</div>
+{% endblock %}

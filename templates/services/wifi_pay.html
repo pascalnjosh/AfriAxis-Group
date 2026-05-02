@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WiFi Payment</title>
+</head>
+<body>
+
+<h2>WiFi Payment - {{ customer.name }}</h2>
+
+<select id="package">
+{% for p in packages %}
+    <option value="{{ p.id }}">{{ p.name }} - {{ p.price }}</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<input type="text" id="phone" value="{{ customer.phone }}"/>
+
+<br><br>
+
+<button onclick="pay()">Pay Now</button>
+
+<p id="status"></p>
+
+<script>
+function pay(){
+    let pkg = document.getElementById("package").value;
+    let phone = document.getElementById("phone").value;
+
+    fetch("/services/wifi/{{ customer.id }}/stk-push/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            package_id: pkg,
+            phone_number: phone
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("status").innerText = "Payment started...";
+        checkStatus();
+    });
+}
+
+function checkStatus(){
+    setInterval(()=>{
+        fetch("/services/wifi/{{ customer.id }}/status/")
+        .then(res => res.json())
+        .then(data => {
+            if(data.active){
+                document.getElementById("status").innerText = "WiFi Active";
+            } else {
+                document.getElementById("status").innerText = "Waiting payment...";
+            }
+        });
+    },3000);
+}
+</script>
+
+</body>
+</html>

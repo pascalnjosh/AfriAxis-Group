@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{% static 'payments/management.css' %}">
+</head>
+<body>
+    <div class="dashboard-shell">
+        <aside class="sidebar">
+            <div class="brand">🏢 Service Admin</div>
+            <div class="role-badge">{{ role_name }}</div>
+            <nav class="side-links">
+                <a class="active" href="/md/">Overview</a>
+                <a href="/gm/">G.M</a>
+                <a href="/accounts/">Accounts</a>
+                <a href="/">Home</a>
+            </nav>
+        </aside>
+
+        <main class="main-panel">
+            <div class="header-row">
+                <div>
+                    <p class="eyebrow">{{ greeting }}</p>
+                    <h1>{{ page_title }}</h1>
+                    <p class="subtext">Executive view of revenue, occupancy and service performance.</p>
+                </div>
+                <div class="header-actions">
+                    <button>Export</button>
+                    <button>Approvals</button>
+                </div>
+            </div>
+
+            <section class="summary-grid four">
+                <div class="summary-card">
+                    <p>Total Revenue</p>
+                    <h3>{{ total_revenue }}</h3>
+                    <span>Monthly collection view</span>
+                </div>
+                <div class="summary-card">
+                    <p>Collection Rate</p>
+                    <h3>{{ collection_rate }}</h3>
+                    <span>Across all services</span>
+                </div>
+                <div class="summary-card">
+                    <p>Occupied Units</p>
+                    <h3>{{ occupied_units }}</h3>
+                    <span>Current active tenancy</span>
+                </div>
+                <div class="summary-card">
+                    <p>Vacant Units</p>
+                    <h3>{{ vacant_units }}</h3>
+                    <span>Available inventory</span>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <div class="panel large">
+                    <div class="panel-head">
+                        <h3>Executive Focus Areas</h3>
+                    </div>
+                    <div class="metric-list">
+                        <div class="metric-item">
+                            <strong>Rent Arrears</strong>
+                            <span>{{ rent_arrears }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>WiFi Active Accounts</strong>
+                            <span>{{ wifi_active }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>Agri Service Bookings</strong>
+                            <span>{{ agri_bookings }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>Maintenance Open</strong>
+                            <span>{{ maintenance_open }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>Monthly Target</strong>
+                            <span>{{ monthly_target }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <h3>Approvals Queue</h3>
+                    </div>
+                    <ul class="simple-list">
+                        <li>Budget approval for WiFi expansion</li>
+                        <li>Farm equipment servicing request</li>
+                        <li>Rent waiver review for unit A-12</li>
+                        <li>Yearly vendor contract renewal</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="summary-grid three">
+                <div class="tile soft-green">
+                    <h4>Housing</h4>
+                    <p>Occupancy, arrears and service requests.</p>
+                </div>
+                <div class="tile soft-blue">
+                    <h4>Connectivity</h4>
+                    <p>WiFi growth, uptime and support escalations.</p>
+                </div>
+                <div class="tile soft-yellow">
+                    <h4>Agriculture</h4>
+                    <p>Seasonal demand and operational utilization.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+.env
+staticfiles/
+*.xlsx
+*.bak
+temp_apps.txt

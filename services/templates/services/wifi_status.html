@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Status</title>
+    <script>
+        setInterval(() => {
+            location.reload();
+        }, 5000); // refresh every 5 sec
+    </script>
+</head>
+<body style="background:#111;color:white;text-align:center;padding:40px">
+
+<h2>{{ name }}</h2>
+
+<h3>Status: 
+    {% if active %}
+        <span style="color:#00e676">ACTIVE</span>
+    {% else %}
+        <span style="color:orange">WAITING PAYMENT...</span>
+    {% endif %}
+</h3>
+
+<p>Package: {{ package }}</p>
+<p>Expiry: {{ expiry_date }}</p>
+
+</body>
+</html>

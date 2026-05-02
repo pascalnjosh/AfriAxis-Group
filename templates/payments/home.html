@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Portal</title>
+    <link rel="stylesheet" href="{% static 'payments/management.css' %}">
+</head>
+<body>
+    <div class="portal-shell">
+        <div class="topbar">
+            <div>
+                <p class="eyebrow">{{ greeting }}</p>
+                <h1>Management Control Portal</h1>
+                <p class="subtext">Choose a dashboard to continue.</p>
+            </div>
+        </div>
+
+        <div class="hero-strip">
+            <div class="hero-text">
+                <p class="hero-label">Executive Access</p>
+                <h2>Rent, WiFi and Agri services oversight</h2>
+                <p>Monitor collections, operations and reporting from one system.</p>
+            </div>
+            <div class="hero-icon">📊</div>
+        </div>
+
+        <div class="role-grid">
+            <a class="role-card" href="/md/">
+                <div class="role-icon">👔</div>
+                <h3>M.D Dashboard</h3>
+                <p>Executive summary, performance and approvals.</p>
+            </a>
+
+            <a class="role-card" href="/gm/">
+                <div class="role-icon">🧭</div>
+                <h3>G.M Dashboard</h3>
+                <p>Operations, service delivery and issue follow-up.</p>
+            </a>
+
+            <a class="role-card" href="/accounts/">
+                <div class="role-icon">💰</div>
+                <h3>Accounts Dashboard</h3>
+                <p>Collections, arrears, reconciliation and reports.</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

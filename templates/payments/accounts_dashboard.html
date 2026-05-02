@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{% static 'payments/management.css' %}">
+</head>
+<body>
+    <div class="dashboard-shell">
+        <aside class="sidebar">
+            <div class="brand">🏢 Service Admin</div>
+            <div class="role-badge">{{ role_name }}</div>
+            <nav class="side-links">
+                <a href="/md/">M.D</a>
+                <a href="/gm/">G.M</a>
+                <a class="active" href="/accounts/">Accounts</a>
+                <a href="/">Home</a>
+            </nav>
+        </aside>
+
+        <main class="main-panel">
+            <div class="header-row">
+                <div>
+                    <p class="eyebrow">{{ greeting }}</p>
+                    <h1>{{ page_title }}</h1>
+                    <p class="subtext">Collections, arrears, pending items and reporting.</p>
+                </div>
+                <div class="header-actions">
+                    <button>Statements</button>
+                    <button>Reconcile</button>
+                </div>
+            </div>
+
+            <section class="summary-grid four">
+                <div class="summary-card">
+                    <p>Total Payments</p>
+                    <h3>{{ total_payments }}</h3>
+                    <span>All recorded transactions</span>
+                </div>
+                <div class="summary-card">
+                    <p>Successful</p>
+                    <h3>{{ successful_payments }}</h3>
+                    <span>Completed collections</span>
+                </div>
+                <div class="summary-card">
+                    <p>Pending</p>
+                    <h3>{{ pending_payments }}</h3>
+                    <span>Awaiting confirmation</span>
+                </div>
+                <div class="summary-card">
+                    <p>Failed</p>
+                    <h3>{{ failed_payments }}</h3>
+                    <span>Need review</span>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <div class="panel large">
+                    <div class="panel-head">
+                        <h3>Accounts Summary</h3>
+                    </div>
+                    <div class="metric-list">
+                        <div class="metric-item">
+                            <strong>Total Revenue</strong>
+                            <span>{{ total_revenue }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>Pending Revenue</strong>
+                            <span>{{ pending_revenue }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>Rent Arrears</strong>
+                            <span>{{ rent_arrears }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>Today Collections</strong>
+                            <span>{{ today_collections }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>Expenses</strong>
+                            <span>{{ expense_total }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <h3>Finance Tasks</h3>
+                    </div>
+                    <ul class="simple-list">
+                        <li>Reconcile M-PESA collections</li>
+                        <li>Prepare rent arrears report</li>
+                        <li>Verify WiFi subscription renewals</li>
+                        <li>Post agri service revenue summary</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="summary-grid three">
+                <div class="tile soft-yellow">
+                    <h4>Rent Accounts</h4>
+                    <p>Tenant balances, arrears and receipts.</p>
+                </div>
+                <div class="tile soft-blue">
+                    <h4>WiFi Accounts</h4>
+                    <p>Subscription renewals and service billing.</p>
+                </div>
+                <div class="tile soft-purple">
+                    <h4>Agri Accounts</h4>
+                    <p>Bookings, service charges and collections.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

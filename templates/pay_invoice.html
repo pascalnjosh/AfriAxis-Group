@@ -1,0 +1,84 @@
+<th>Action</th>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pay Invoice</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f8; padding: 30px; }
+        .card { background: white; padding: 25px; border-radius: 12px; max-width: 500px; margin: auto; box-shadow: 0 2px 8px #ddd; }
+        input, button { width: 100%; padding: 12px; margin-top: 12px; }
+        button { background: #0f172a; color: white; border: 0; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>AfriAxis Group</h1>
+    <h2>Pay Invoice</h2>
+
+    <p><b>Invoice:</b> {{ invoice.invoice_number }}</p>
+    <p><b>Total:</b> KES {{ invoice.total_amount }}</p>
+    <p><b>Paid:</b> KES {{ invoice.amount_paid }}</p>
+    <p><b>Balance:</b> KES {{ invoice.balance }}</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="phone" value="{{ invoice.tenant.phone }}" required>
+        <input type="number" name="amount" value="{{ invoice.balance }}" required>
+        <button type="submit">Pay Now</button>
+    </form>
+</div>
+
+</body>
+</html>
+<td>
+    <a href="/billing/invoice/{{ invoice.id }}/pay/">Pay</a>
+import pandas as pd
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+django.setup()
+
+from rentals.models import Apartment, House
+
+FILES = [
+    ("BLUEVALLEY UNITS.xlsx", "Blue Valley"),
+    ("GULF UNITS.xlsx", "Gulf"),
+    ("EASTWARD UNITS.xlsx", "Eastwards"),
+    ("MUTHAIGA UNITS.xlsx", "Muthaiga"),
+]
+
+for file_name, apartment_name in FILES:
+    print(f"Processing {file_name}...")
+
+    df = pd.read_excel(file_name)
+
+    apartment = Apartment.objects.filter(name=apartment_name).first()
+
+    if not apartment:
+        print(f"Apartment not found: {apartment_name}")
+        continue
+
+    created = 0
+
+    for _, row in df.iterrows():
+        unit = str(row.get("Unit") or row.get("House") or row.get("Unit Number")).strip()
+
+        if not unit:
+            continue
+
+        if House.objects.filter(house_number=unit, apartment=apartment).exists():
+            continue
+
+        House.objects.create(
+            house_number=unit,
+            rent_amount=8000,  # default (you can adjust later)
+            apartment=apartment
+        )
+
+        created += 1
+
+    print(f"{apartment_name}: {created} houses added\n")
+web: gunicorn core.wsgi:application
+</td>

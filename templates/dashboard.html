@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AfriAxis Group Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            padding: 30px;
+        }
+        .header {
+            background: #0f172a;
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #ddd;
+        }
+        .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #0f172a;
+        }
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 14px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+        th {
+            background: #0f172a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>{{ company_name }}</h1>
+    <p>Rent • WiFi • Water • M-Pesa Control Center</p>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h3>Total Revenue</h3>
+        <div class="value">KES {{ grand_total }}</div>
+    </div>
+
+    <div class="card">
+        <h3>Rent Revenue</h3>
+        <div class="value">KES {{ total_rent_revenue }}</div>
+    </div>
+
+    <div class="card">
+        <h3>WiFi Revenue</h3>
+        <div class="value">KES {{ total_wifi_revenue }}</div>
+    </div>
+
+    <div class="card">
+        <h3>Water Revenue</h3>
+        <div class="value">KES {{ total_water_revenue }}</div>
+    </div>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h3>Unpaid Rent</h3>
+        <div class="value">{{ unpaid_rents }}</div>
+    </div>
+
+    <div class="card">
+        <h3>Paid Rent</h3>
+        <div class="value">{{ paid_rents }}</div>
+    </div>
+
+    <div class="card">
+        <h3>Active WiFi</h3>
+        <div class="value">{{ active_wifi }}</div>
+    </div>
+
+    <div class="card">
+        <h3>Unpaid Water</h3>
+        <div class="value">{{ unpaid_water }}</div>
+    </div>
+</div>
+
+<h2>Apartments</h2>
+
+<table>
+    <tr>
+        <th>Apartment</th>
+        <th>Total Units</th>
+        <th>Houses</th>
+        <th>Tenants</th>
+        <th>Paid Rent</th>
+        <th>Unpaid Rent</th>
+    </tr>
+
+    {% for apt in apartments %}
+    <tr>
+        <td>{{ apt.name }}</td>
+        <td>{{ apt.units }}</td>
+        <td>{{ apt.houses }}</td>
+        <td>{{ apt.tenants }}</td>
+        <td>{{ apt.paid_rent }}</td>
+        <td>{{ apt.unpaid_rent }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>
+<div class="card">
+    <h3>Invoice Total</h3>
+    <div class="value">KES {{ invoice_total }}</div>
+</div>
+
+<div class="card">
+    <h3>Invoice Paid</h3>
+    <div class="value">KES {{ invoice_paid }}</div>
+</div>
+
+<div class="card">
+    <h3>Invoice Balance</h3>
+    <div class="value">KES {{ invoice_balance }}</div>
+</div>
+
+<div class="card">
+    <h3>Pending Invoices</h3>
+    <div class="value">{{ pending_invoices }}</div>
+</div>

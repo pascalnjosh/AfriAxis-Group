@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Packages</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            padding: 24px;
+        }
+        .wrap {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+        .top-link {
+            display: inline-block;
+            margin-bottom: 16px;
+            text-decoration: none;
+            color: #2563eb;
+            font-weight: 700;
+        }
+        .title {
+            margin-bottom: 18px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .card h3 {
+            margin-bottom: 8px;
+        }
+        .price {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        .meta {
+            color: #6b7280;
+            margin-bottom: 14px;
+        }
+        select, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+        button {
+            border: none;
+            background: #2563eb;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <a class="top-link" href="/">← Back to Dashboard</a>
+        <h1 class="title">WiFi Packages</h1>
+
+        <div class="grid">
+            {% for package in packages %}
+                <div class="card">
+                    <h3>{{ package.name }}</h3>
+                    <div class="price">Ksh {{ package.price }}</div>
+                    <div class="meta">
+                        {% if package.speed %}Speed: {{ package.speed }}<br>{% endif %}
+                        Duration: {{ package.duration_days }} day(s)
+                    </div>
+
+                    <select id="customer_{{ package.id }}">
+                        {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="button" onclick="goToPayment({{ package.id }})">Choose Package</button>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function goToPayment(packageId) {
+            const customerId = document.getElementById(`customer_${packageId}`).value;
+            window.location.href = `/services/wifi/${customerId}/?package_id=${packageId}`;
+        }
+    </script>
+</body>
+</html>

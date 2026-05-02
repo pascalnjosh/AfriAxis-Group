@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{% static 'payments/management.css' %}">
+</head>
+<body>
+    <div class="dashboard-shell">
+        <aside class="sidebar">
+            <div class="brand">🏢 Service Admin</div>
+            <div class="role-badge">{{ role_name }}</div>
+            <nav class="side-links">
+                <a href="/md/">M.D</a>
+                <a class="active" href="/gm/">Operations</a>
+                <a href="/accounts/">Accounts</a>
+                <a href="/">Home</a>
+            </nav>
+        </aside>
+
+        <main class="main-panel">
+            <div class="header-row">
+                <div>
+                    <p class="eyebrow">{{ greeting }}</p>
+                    <h1>{{ page_title }}</h1>
+                    <p class="subtext">Operations oversight for rent, WiFi and agri services.</p>
+                </div>
+                <div class="header-actions">
+                    <button>Schedule</button>
+                    <button>Tasks</button>
+                </div>
+            </div>
+
+            <section class="summary-grid four">
+                <div class="summary-card">
+                    <p>Maintenance Open</p>
+                    <h3>{{ maintenance_open }}</h3>
+                    <span>Needs team action</span>
+                </div>
+                <div class="summary-card">
+                    <p>WiFi Pending</p>
+                    <h3>{{ wifi_pending }}</h3>
+                    <span>Awaiting activation</span>
+                </div>
+                <div class="summary-card">
+                    <p>Agri Bookings</p>
+                    <h3>{{ agri_bookings }}</h3>
+                    <span>Active requests</span>
+                </div>
+                <div class="summary-card">
+                    <p>Today Collections</p>
+                    <h3>{{ today_collections }}</h3>
+                    <span>Operational cashflow</span>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <div class="panel large">
+                    <div class="panel-head">
+                        <h3>Operations Monitor</h3>
+                    </div>
+                    <div class="metric-list">
+                        <div class="metric-item">
+                            <strong>Occupied Units</strong>
+                            <span>{{ occupied_units }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>Vacant Units</strong>
+                            <span>{{ vacant_units }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>WiFi Active</strong>
+                            <span>{{ wifi_active }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>Pending Payments</strong>
+                            <span>{{ pending_payments }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <strong>Open Support Issues</strong>
+                            <span>{{ maintenance_open }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <h3>Priority Items</h3>
+                    </div>
+                    <ul class="simple-list">
+                        <li>Inspect WiFi outage cluster</li>
+                        <li>Follow up rent arrears notices</li>
+                        <li>Assign tractor booking slots</li>
+                        <li>Close unresolved maintenance tickets</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="summary-grid three">
+                <div class="tile soft-purple">
+                    <h4>Rent Operations</h4>
+                    <p>Tenant follow-up, occupancy and maintenance workflow.</p>
+                </div>
+                <div class="tile soft-cyan">
+                    <h4>WiFi Operations</h4>
+                    <p>Installations, activations and technical support.</p>
+                </div>
+                <div class="tile soft-green">
+                    <h4>Agri Operations</h4>
+                    <p>Booking management and field service execution.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,166 @@
+import json
+from datetime import timedelta
+from decimal import Decimal
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET, require_POST
+
+from .models import WifiCustomer, WifiPackage, WifiPayment, WifiCallbackLog
+
+
+@require_GET
+def wifi_packages_page(request):
+    packages = WifiPackage.objects.all().order_by("price")
+    customers = WifiCustomer.objects.all().order_by("name")
+
+    for customer in customers:
+        customer.refresh_status()
+
+    context = {
+        "packages": packages,
+        "customers": customers,
+    }
+    return render(request, "services/wifi_packages.html", context)
+
+
+@require_GET
+def wifi_payment_page(request, customer_id):
+    customer = get_object_or_404(WifiCustomer, id=customer_id)
+    customer.refresh_status()
+
+    latest_payment = WifiPayment.objects.filter(customer=customer).order_by("-id").first()
+    packages = WifiPackage.objects.all().order_by("price")
+
+    context = {
+        "customer": customer,
+        "latest_payment": latest_payment,
+        "packages": packages,
+    }
+    return render(request, "services/wifi_pay.html", context)
+
+
+@require_GET
+def wifi_status(request, customer_id):
+    customer = get_object_or_404(WifiCustomer, id=customer_id)
+    customer.refresh_status()
+
+    latest_payment = WifiPayment.objects.filter(customer=customer).order_by("-id").first()
+
+    data = {
+        "customer_id": customer.id,
+        "name": customer.name,
+        "phone": customer.phone,
+        "active": customer.active,
+        "package": customer.package.name if customer.package else None,
+        "start_date": customer.start_date.isoformat() if customer.start_date else None,
+        "expiry_date": customer.expiry_date.isoformat() if customer.expiry_date else None,
+        "is_overdue": customer.is_overdue,
+        "latest_payment": None,
+    }
+
+    if latest_payment:
+        data["latest_payment"] = {
+            "id": latest_payment.id,
+            "amount": str(latest_payment.amount),
+            "phone_number": latest_payment.phone_number,
+            "status": latest_payment.status,
+            "transaction_code": latest_payment.transaction_code,
+            "verified": latest_payment.verified,
+            "package": latest_payment.package.name if latest_payment.package else None,
+        }
+
+    return JsonResponse(data)
+
+
+@csrf_exempt
+@require_POST
+def wifi_stk_push(request, customer_id):
+    customer = get_object_or_404(WifiCustomer, id=customer_id)
+
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    phone_number = str(body.get("phone_number", "")).strip()
+    package_id = body.get("package_id")
+
+    if not phone_number:
+        return JsonResponse({"error": "phone_number is required"}, status=400)
+
+    if not package_id:
+        return JsonResponse({"error": "package_id is required"}, status=400)
+
+    package = get_object_or_404(WifiPackage, id=package_id)
+
+    payment = WifiPayment.objects.create(
+        customer=customer,
+        package=package,
+        amount=Decimal(str(package.price)),
+        phone_number=phone_number,
+        transaction_code=None,
+        status="PENDING",
+        verified=False,
+    )
+
+    return JsonResponse({
+        "message": "WiFi payment created",
+        "payment_id": payment.id,
+        "customer": customer.name,
+        "package": package.name,
+        "amount": str(package.price),
+        "status": payment.status,
+    })
+
+
+@csrf_exempt
+def wifi_callback(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    stk_callback = payload.get("Body", {}).get("stkCallback", {})
+    result_code = stk_callback.get("ResultCode")
+    result_desc = stk_callback.get("ResultDesc")
+
+    items = stk_callback.get("CallbackMetadata", {}).get("Item", [])
+    values = {item.get("Name"): item.get("Value") for item in items if "Name" in item}
+    receipt = values.get("MpesaReceiptNumber")
+
+    payment = WifiPayment.objects.order_by("-id").first()
+
+    WifiCallbackLog.objects.create(data=payload)
+
+    if payment:
+        if receipt:
+            payment.transaction_code = str(receipt)
+
+        if result_code == 0:
+            payment.status = "SUCCESS"
+            payment.verified = True
+
+            customer = payment.customer
+            customer.active = True
+
+            if payment.package:
+                customer.package = payment.package
+                customer.start_date = timezone.now()
+                customer.expiry_date = timezone.now() + timedelta(minutes=payment.package.duration_minutes)
+
+            customer.save()
+        else:
+            payment.status = "FAILED"
+            payment.verified = False
+
+        payment.save()
+
+    return JsonResponse({"ResultCode": 0, "ResultDesc": result_desc or "Accepted"})
+
+

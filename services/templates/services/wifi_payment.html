@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WiFi Payment</title>
+    <style>
+        body { font-family: Arial; background:#111; color:white; padding:40px; }
+        .box { max-width:400px; margin:auto; }
+        select, input, button {
+            width:100%; padding:10px; margin-top:10px;
+            border-radius:6px; border:none;
+        }
+        button { background:#00c853; color:white; font-weight:bold; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>WiFi Payment - {{ customer.name }}</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label>Package</label>
+        <select name="package_id">
+            {% for p in packages %}
+            <option value="{{ p.id }}">{{ p.name }} - Ksh {{ p.price }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Phone</label>
+        <input type="text" name="phone" value="{{ customer.phone }}">
+
+        <button type="submit">Pay Now</button>
+    </form>
+</div>
+
+</body>
+</html>

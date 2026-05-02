@@ -1,0 +1,59 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+
+<div style="margin-bottom:24px;">
+    <h1 style="margin-bottom:18px;">Rent Performance Dashboard</h1>
+
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
+
+        <div style="background:#2563eb;color:white;padding:14px 20px;border-radius:10px;">
+            Total Expected <br><b>KES {{ dashboard.total_expected }}</b>
+        </div>
+
+        <div style="background:#16a34a;color:white;padding:14px 20px;border-radius:10px;">
+            Collected <br><b>KES {{ dashboard.total_collected }}</b>
+        </div>
+
+        <div style="background:#dc2626;color:white;padding:14px 20px;border-radius:10px;">
+            Balance <br><b>KES {{ dashboard.total_balance }}</b>
+        </div>
+
+        <div style="background:#7f1d1d;color:white;padding:14px 20px;border-radius:10px;">
+            Defaulters <br><b>{{ dashboard.defaulters_count }}</b>
+        </div>
+
+    </div>
+
+    <!-- CHART -->
+    <div style="background:#111827;padding:20px;border-radius:12px;margin-bottom:20px;">
+        <canvas id="rentChart"></canvas>
+    </div>
+
+</div>
+
+{{ block.super }}
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const ctx = document.getElementById('rentChart');
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Expected', 'Collected', 'Balance'],
+        datasets: [{
+            label: 'KES',
+            data: [
+                {{ dashboard.total_expected }},
+                {{ dashboard.total_collected }},
+                {{ dashboard.total_balance }}
+            ],
+        }]
+    },
+});
+</script>
+
+{% endblock %}
