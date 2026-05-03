@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .models import Rent
+from django.db import models
 
 def dashboard(request):
     unpaid_rents = Rent.objects.filter(status="unpaid").order_by('-amount')[:50]
