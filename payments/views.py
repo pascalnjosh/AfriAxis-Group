@@ -11,22 +11,27 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Rent, Payment
-
+from django.db import models
+from .models import Rent
 
 def dashboard(request):
     rents = Rent.objects.all()
+
     unpaid = rents.filter(paid=False)
     paid = rents.filter(paid=True)
 
     context = {
-        "paid_total": paid.aggregate(total=models.Sum("amount"))["total"] or 0,
-        "unpaid_total": unpaid.aggregate(total=models.Sum("amount"))["total"] or 0,
-        "unpaid_count": unpaid.count(),
-        "unpaid_rents": unpaid.order_by("-amount")[:50],
+        "greeting": "AfriAxis Dashboard",
+        "total_revenue": paid.aggregate(total=models.Sum("amount"))["total"] or 0,
+        "rent_due": unpaid.aggregate(total=models.Sum("amount"))["total"] or 0,
+        "total_payments": rents.count(),
+        "successful_payments": paid.count(),
+        "pending_payments": 0,
+        "failed_payments": 0,
+        "unpaid_rents": unpaid,
     }
 
     return render(request, "payments/dashboard.html", context)
-
 
 def get_mpesa_access_token():
     url = f"{settings.MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
