@@ -112,12 +112,11 @@ if MPESA_ENV == "production":
 else:
     MPESA_BASE_URL = "https://sandbox.safaricom.co.ke"
 
-# --- ALLOWED HOSTS ---
+# --- ALLOWED_HOSTS = ["*"] ---
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    ".ngrok-free.dev",
-    ".ngrok-free.app",
+    "afriaxis-group-1.onrender.com"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
