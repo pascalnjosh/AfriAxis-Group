@@ -108,6 +108,8 @@ MPESA_CALLBACK_URL = os.environ.get(
 )
 
 if MPESA_ENV == "production":
+
+
     MPESA_BASE_URL = "https://api.safaricom.co.ke"
 else:
     MPESA_BASE_URL = "https://sandbox.safaricom.co.ke"
@@ -151,7 +153,7 @@ def create_admin_once(request):
     return HttpResponse("Admin created successfully. REMOVE THIS ROUTE NOW.")
 import os
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+TEMPLATES =
+    
+'BACKEND': 'django.template.backends.django.DjangoTemplates',
+'DIRS': [os.path.join(BASE_DIR, 'templates')],
