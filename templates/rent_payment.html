@@ -1,28 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Pay Rent</title>
-    <style>
-        body { font-family: Arial; background:#111; color:white; padding:40px; }
-        .box { max-width:450px; margin:auto; background:#1e1e1e; padding:25px; border-radius:12px; }
-        button { width:100%; padding:14px; background:#00e676; border:none; border-radius:8px; font-weight:bold; }
-        a { color:#00ffcc; }
-    </style>
-</head>
-<body>
-<div class="box">
-    <h1>Pay Rent</h1>
-    <p><b>Tenant:</b> {{ rent.tenant_name }}</p>
-    <p><b>Amount:</b> KES {{ rent.amount }}</p>
-    <p><b>Due Date:</b> {{ rent.due_date }}</p>
-    <p><b>Status:</b> {{ rent.status }}</p>
+<h1>Pay Rent via M-Pesa</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Simulate M-Pesa Payment</button>
-    </form>
+{% if message %}
+<p style="color: green;"><b>{{ message }}</b></p>
+{% endif %}
 
-    <p><a href="/">Back to Dashboard</a></p>
-</div>
-</body>
-</html>
+<p><b>Tenant:</b> {{ rent.tenant_name }}</p>
+<p><b>Amount:</b> KES {{ rent.amount }}</p>
+
+<form method="POST">
+    {% csrf_token %}
+    <input name="phone_number" placeholder="2547XXXXXXXX" required>
+    <input name="amount" value="{{ rent.amount }}" required>
+    <button type="submit">Send STK Push</button>
+</form>
+
+{% if mpesa_response %}
+<pre>{{ mpesa_response }}</pre>
+{% endif %}
