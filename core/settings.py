@@ -138,9 +138,3 @@ if DATABASE_URL:
         "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
 
-venv/
-__pycache__/
-*.pyc
-db.sqlite3
-.env
-staticfiles/
