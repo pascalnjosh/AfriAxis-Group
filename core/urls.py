@@ -3,20 +3,8 @@ from django.urls import path, include
 from payments.views import dashboard
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', dashboard, name='dashboard'),
-
-    # services
-    path('services/', include('services.urls')),
-
-    # payments
-    path('payments/', include('payments.urls')),
-
- from payments.views import dashboard
-
-urlpatterns = [
-    path('', dashboard),
-]   # billing (LEVEL 3)
-    path('billing/', include('billing.urls')),
-
+    path("admin/", admin.site.urls),
+    path("", dashboard, name="dashboard"),
+    path("payments/", include("payments.urls")),
+    path("services/", include("services.urls")),
 ]
