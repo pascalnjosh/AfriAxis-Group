@@ -12,6 +12,11 @@ urlpatterns = [
     # payments
     path('payments/', include('payments.urls')),
 
-    # billing (LEVEL 3)
+ from payments.views import dashboard
+
+urlpatterns = [
+    path('', dashboard),
+]   # billing (LEVEL 3)
     path('billing/', include('billing.urls')),
+
 ]

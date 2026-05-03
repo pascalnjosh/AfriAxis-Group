@@ -149,3 +149,9 @@ def create_admin_once(request):
 
 
     return HttpResponse("Admin created successfully. REMOVE THIS ROUTE NOW.")
+import os
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
