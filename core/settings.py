@@ -112,7 +112,7 @@ if MPESA_ENV == "production":
 else:
     MPESA_BASE_URL = "https://sandbox.safaricom.co.ke"
 
-# --- ALLOWED_HOSTS = ["*"] ---
+# --- ALLOWED_HOSTS ---
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
@@ -136,4 +136,22 @@ if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
+from django.http import HttpResponse
+from django.contrib.auth.models import User
 
+
+def create_admin_once(request):
+    username = "admin"
+    email = "pascalnjosh@gmail.com"
+    password = "Admin@2026AfriAxis"
+
+    if User.objects.filter(username=username).exists():
+        return HttpResponse("Admin already exists. REMOVE THIS ROUTE NOW.")
+
+    User.objects.create_superuser(
+        username=username,
+        email=email,
+        password=password
+    )
+
+    return HttpResponse("Admin created successfully. REMOVE THIS ROUTE NOW.")
