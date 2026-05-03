@@ -10,7 +10,6 @@ data = [
     ("Oasis Business Center Tenant 2", 450000),
     ("Oasis Business Center Tenant 1", 155000),
     ("EASTWARD House 12 - BEDSITTER", 8000),
-    ("EASTWARD House 13 - ONE BEDROOM", 8000),
     ("GULF House 9 - ONE BEDROOM", 7500),
     ("MUTHAIGA House 1 - ONE BEDROOM", 7000),
 ]
@@ -19,7 +18,7 @@ for name, amount in data:
     Rent.objects.get_or_create(
         tenant_name=name,
         amount=amount,
-        paid=False
+        paid=False,
     )
 
 print("Seeded successfully")
