@@ -3,6 +3,8 @@
 <head>
 <title>AfriAxis Analytics</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -10,6 +12,13 @@ body{
     font-family:Arial;
     background:#f3f4f6;
     margin:20px;
+}
+
+.kpis{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+    margin-bottom:25px;
 }
 
 .grid{
@@ -24,19 +33,53 @@ body{
     border-radius:12px;
     box-shadow:0 2px 8px rgba(0,0,0,0.1);
 }
+
+.card h2{
+    margin-top:0;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+
+.red{color:red;font-weight:bold;}
+.green{color:green;font-weight:bold;}
 </style>
 
 </head>
 
 <body>
 
-<h1>AfriAxis Analytics Dashboard</h1>
+<h1>AfriAxis Executive Analytics</h1>
 
 <p>
 <a href="/dashboard/">Dashboard</a> |
+<a href="/dashboard/rent-report/">Rent Report</a> |
 <a href="/billing/invoices/">Invoices</a> |
 <a href="/payments/">Payments</a>
 </p>
+
+<div class="kpis">
+<div class="card"><h2>KES {{ total_rent }}</h2><p>Total Rent Portfolio</p></div>
+<div class="card"><h2 class="green">KES {{ paid_rent }}</h2><p>Collected Rent</p></div>
+<div class="card"><h2 class="red">KES {{ unpaid_rent }}</h2><p>Outstanding Rent</p></div>
+<div class="card"><h2>{{ occupied_houses }}</h2><p>Occupied Houses</p></div>
+<div class="card"><h2>{{ vacant_houses }}</h2><p>Vacant Houses</p></div>
+</div>
 
 <div class="grid">
 
@@ -52,11 +95,38 @@ body{
 
 </div>
 
+<br>
+
+<div class="card">
+<h2>Apartment Performance Ranking</h2>
+
+<table>
+<tr>
+<th>Apartment</th>
+<th>Revenue</th>
+<th>Unpaid</th>
+<th>Occupancy</th>
+<th>Vacant</th>
+</tr>
+
+{% for item in apartment_performance %}
+<tr>
+<td>{{ item.name }}</td>
+<td>KES {{ item.revenue }}</td>
+<td class="red">KES {{ item.unpaid }}</td>
+<td>{{ item.occupancy }}%</td>
+<td>{{ item.vacant }}</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
 <script>
 new Chart(document.getElementById("rentChart"), {
     type: "pie",
     data: {
-        labels: ["Paid Rent", "Unpaid Rent"],
+        labels: ["Collected Rent", "Outstanding Rent"],
         datasets: [{
             data: [{{ paid_rent }}, {{ unpaid_rent }}]
         }]

@@ -103,6 +103,7 @@ def md_dashboard(request):
         "occupied_houses": occupied_houses,
 
         "vacant_houses": vacant_houses,
+        "apartment_performance": apartment_performance(),
 
         "occupancy_rate": occupancy_rate,
 
@@ -203,6 +204,7 @@ def vacant_houses_page(request):
         "dashboard/vacant_houses.html",
         {
             "vacant_houses": vacant_houses,
+        "apartment_performance": apartment_performance(),
             "vacant_count": vacant_houses.count(),
         }
     )
@@ -273,5 +275,68 @@ def charts_page(request):
             "total_houses": total_houses,
             "occupied_houses": occupied_houses,
             "vacant_houses": vacant_houses,
+        "apartment_performance": apartment_performance(),
         }
     )
+
+from django.db.models import Count
+
+
+def apartment_performance():
+
+    apartments = Apartment.objects.all()
+
+    performance = []
+
+    for apartment in apartments:
+
+        houses = House.objects.filter(
+            apartment=apartment
+        )
+
+        total_houses = houses.count()
+
+        occupied = houses.filter(
+            occupied=True
+        ).count()
+
+        vacant = houses.filter(
+            occupied=False
+        ).count()
+
+        revenue = Rent.objects.filter(
+            house__apartment=apartment
+        ).aggregate(
+            total=Sum("amount")
+        )["total"] or 0
+
+        unpaid = Rent.objects.filter(
+            house__apartment=apartment,
+            paid=False
+        ).aggregate(
+            total=Sum("amount")
+        )["total"] or 0
+
+        if total_houses > 0:
+            occupancy = round(
+                (occupied / total_houses) * 100,
+                2
+            )
+        else:
+            occupancy = 0
+
+        performance.append({
+            "name": apartment.name,
+            "revenue": revenue,
+            "unpaid": unpaid,
+            "occupancy": occupancy,
+            "vacant": vacant,
+        })
+
+    return sorted(
+        performance,
+        key=lambda x: x["revenue"],
+        reverse=True
+    )
+
+
