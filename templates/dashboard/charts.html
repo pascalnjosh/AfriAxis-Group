@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AfriAxis Analytics</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+    font-family:Arial;
+    background:#f3f4f6;
+    margin:20px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>AfriAxis Analytics Dashboard</h1>
+
+<p>
+<a href="/dashboard/">Dashboard</a> |
+<a href="/billing/invoices/">Invoices</a> |
+<a href="/payments/">Payments</a>
+</p>
+
+<div class="grid">
+
+<div class="card">
+<h2>Rent Collection</h2>
+<canvas id="rentChart"></canvas>
+</div>
+
+<div class="card">
+<h2>Occupancy</h2>
+<canvas id="occupancyChart"></canvas>
+</div>
+
+</div>
+
+<script>
+new Chart(document.getElementById("rentChart"), {
+    type: "pie",
+    data: {
+        labels: ["Paid Rent", "Unpaid Rent"],
+        datasets: [{
+            data: [{{ paid_rent }}, {{ unpaid_rent }}]
+        }]
+    }
+});
+
+new Chart(document.getElementById("occupancyChart"), {
+    type: "doughnut",
+    data: {
+        labels: ["Occupied", "Vacant"],
+        datasets: [{
+            data: [{{ occupied_houses }}, {{ vacant_houses }}]
+        }]
+    }
+});
+</script>
+
+</body>
+</html>

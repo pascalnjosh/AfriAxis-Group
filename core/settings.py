@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "dashboard",
     "accounts",
     "services",
+    'billing',
 ]
 
 MIDDLEWARE = [
@@ -102,3 +103,4 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.ngrok-free.dev",
     "https://*.ngrok-free.app",
 ]
+

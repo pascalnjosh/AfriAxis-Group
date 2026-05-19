@@ -1,7 +1,7 @@
 from django.db import models
+from django.utils import timezone
 
 
-# ✅ 1. Apartment FIRST (must be defined before use)
 class Apartment(models.Model):
     name = models.CharField(max_length=100, unique=True)
     total_units = models.PositiveIntegerField(default=0)
@@ -12,7 +12,6 @@ class Apartment(models.Model):
         return f"{self.name} ({self.total_units} units)"
 
 
-# ✅ 2. Tenant
 class Tenant(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15)
@@ -29,7 +28,6 @@ class Tenant(models.Model):
         return self.name
 
 
-# ✅ 3. House (linked to Apartment)
 class House(models.Model):
     apartment = models.ForeignKey(
         Apartment,
@@ -47,12 +45,12 @@ class House(models.Model):
         return f"{self.house_number} ({self.apartment})"
 
 
-# ✅ 4. Rent
 class Rent(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE)
     house = models.ForeignKey(House, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     paid = models.BooleanField(default=False)
+    due_date = models.DateField(default=timezone.now)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -1,11 +1,6 @@
-venv/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-db.sqlite3
-.env
+backups/
 staticfiles/
-*.xlsx
-*.bak
-temp_apps.txt
+.env
+db.sqlite3

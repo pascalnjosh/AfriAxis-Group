@@ -19,7 +19,21 @@ class Payment(models.Model):
         ("FAILED", "Failed"),
     ]
 
-    rent = models.ForeignKey(Rent, on_delete=models.SET_NULL, null=True, blank=True)
+    rent = models.ForeignKey(
+        Rent,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    rental_rent = models.ForeignKey(
+        "rentals.Rent",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payments"
+    )
+
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     account_reference = models.CharField(max_length=100, blank=True, null=True)

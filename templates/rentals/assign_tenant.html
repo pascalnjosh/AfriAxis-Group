@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Assign Tenant</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#f3f4f6;
+    margin:20px;
+}
+
+.form-card{
+    background:white;
+    padding:25px;
+    max-width:500px;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-bottom:15px;
+}
+
+button{
+    background:#16a34a;
+    color:white;
+    padding:10px 15px;
+    border:0;
+    border-radius:6px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Assign Tenant</h1>
+
+<div class="form-card">
+
+<p><b>Apartment:</b> {{ house.apartment.name }}</p>
+<p><b>House:</b> {{ house.house_number }}</p>
+<p><b>Rent:</b> KES {{ house.rent_amount }}</p>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<label>Tenant Name</label>
+<input type="text" name="name" required>
+
+<label>Phone Number</label>
+<input type="text" name="phone">
+
+<button type="submit">Assign Tenant</button>
+
+</form>
+
+</div>
+
+</body>
+</html>

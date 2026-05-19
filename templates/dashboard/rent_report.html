@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Rent Report</title>
+
+<style>
+
+body{
+    font-family:Arial;
+    background:#f3f4f6;
+    margin:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+
+.green{
+    color:green;
+    font-weight:bold;
+}
+
+.red{
+    color:red;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>AfriAxis Monthly Rent Report</h1>
+
+<div class="card">
+
+<h2>Grand Total: KES {{ grand_total }}</h2>
+
+<h2 class="green">
+Paid: KES {{ grand_paid }}
+</h2>
+
+<h2 class="red">
+Unpaid: KES {{ grand_unpaid }}
+</h2>
+
+</div>
+
+<table>
+
+<tr>
+<th>Apartment</th>
+<th>Total Rent</th>
+<th>Paid</th>
+<th>Unpaid</th>
+</tr>
+
+{% for row in rows %}
+
+<tr>
+<td>{{ row.apartment }}</td>
+<td>KES {{ row.total }}</td>
+<td class="green">KES {{ row.paid }}</td>
+<td class="red">KES {{ row.unpaid }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>

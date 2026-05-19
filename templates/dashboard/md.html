@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AfriAxis ERP Dashboard</title>
+</head>
+<body>
+    <h1>AfriAxis ERP Dashboard</h1><p><a href="/dashboard/rent-report/">Open Rent Report</a> | <a href="/payments/">Open Payments</a></p>
+
+    <h2>Payments</h2>
+    <p>Total Payments: {{ total_payments }}</p>
+    <p>Successful: {{ successful }}</p>
+    <p>Pending: {{ pending }}</p>
+    <p>Failed: {{ failed }}</p>
+
+    <div class="card"><h2>{{ total_houses }}</h2><p>Total Houses</p></div><div class="card"><h2>{{ occupied_houses }}</h2><p>Occupied Houses</p></div><div class="card"><h2>{{ vacant_houses }}</h2><p>Vacant Houses</p></div><div class="card"><h2>{{ occupancy_rate }}%</h2><p>Occupancy Rate</p></div><div class="card"><h2>KES {{ revenue_potential }}</h2><p>Revenue Potential</p></div><h2>Unpaid Rent List</h2>
+
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>Tenant</th>
+            <th>Amount</th>
+            <th>Due Date</th>
+            <th>Status</th>
+        </tr>
+
+        {% for rent in unpaid_rents %}
+        <tr>
+            <td>{{ rent.tenant_name }}</td>
+            <td>KES {{ rent.amount }}</td>
+            <td>{{ rent.due_date }}</td>
+            <td>UNPAID</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No unpaid rents</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

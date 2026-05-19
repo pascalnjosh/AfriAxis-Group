@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Invoices</title>
+<style>
+body{font-family:Arial;background:#f3f4f6;margin:20px;}
+.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;background:white;}
+th{background:#2563eb;color:white;padding:12px;text-align:left;}
+td{padding:10px;border-bottom:1px solid #ddd;}
+.pending{color:orange;font-weight:bold;}
+.paid{color:green;font-weight:bold;}
+.partial{color:#2563eb;font-weight:bold;}
+</style>
+</head>
+<body>
+
+<h1>AfriAxis Invoices</h1>
+
+<p>
+<a href="/dashboard/">Dashboard</a> |
+<a href="/payments/">Payments</a>
+</p>
+
+<div class="card">
+<h2>Total Invoices: {{ invoice_count }}</h2>
+</div>
+
+<table>
+<tr>
+<th>Invoice</th>
+<th>Tenant</th>
+<th>Apartment</th>
+<th>Total</th>
+<th>Paid</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+{% for invoice in invoices %}
+<tr>
+<td>{{ invoice.invoice_number }}</td>
+<td>{{ invoice.tenant.name }}</td>
+<td>{{ invoice.apartment.name }}</td>
+<td>KES {{ invoice.total_amount }}</td>
+<td>KES {{ invoice.amount_paid }}</td>
+<td>
+{% if invoice.status == "PAID" %}
+<span class="paid">PAID</span>
+{% elif invoice.status == "PARTIAL" %}
+<span class="partial">PARTIAL</span>
+{% else %}
+<span class="pending">PENDING</span>
+{% endif %}
+</td>
+<td>
+<a href="/billing/invoices/{{ invoice.id }}/">View / Print</a>
+</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</body>
+</html>

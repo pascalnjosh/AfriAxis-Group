@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>AfriAxis ERP</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    font-family:Arial;
+    background:#f3f4f6;
+    margin:0;
+    padding:0;
+}
+
+.container{
+    max-width:900px;
+    margin:60px auto;
+    background:white;
+    padding:40px;
+    border-radius:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.12);
+    text-align:center;
+}
+
+h1{
+    color:#111827;
+    font-size:38px;
+}
+
+p{
+    color:#555;
+    font-size:18px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin-top:30px;
+}
+
+.btn{
+    display:block;
+    padding:16px;
+    border-radius:10px;
+    text-decoration:none;
+    background:#2563eb;
+    color:white;
+    font-weight:bold;
+}
+
+.green{background:#16a34a;}
+.dark{background:#111827;}
+.orange{background:#f97316;}
+.purple{background:#7c3aed;}
+
+@media(max-width:600px){
+    .container{
+        margin:20px;
+        padding:25px;
+    }
+
+    h1{
+        font-size:30px;
+    }
+
+    p{
+        font-size:16px;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>AfriAxis ERP</h1>
+
+<p>Property, Payments, WiFi, Water, and Agriservices Management System</p>
+
+<div class="grid">
+
+<a class="btn" href="/accounts/home/">Enter ERP</a>
+<a class="btn green" href="/admin/">Admin Panel</a>
+<a class="btn dark" href="/payments/">Payments</a>
+<a class="btn orange" href="/billing/invoices/">Invoices</a>
+<a class="btn purple" href="/dashboard/charts/">Analytics</a>
+<a class="btn" href="/dashboard/">Dashboard</a>
+
+</div>
+
+</div>
+
+</body>
+</html>

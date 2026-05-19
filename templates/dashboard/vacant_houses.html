@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Vacant Houses</title>
+
+<style>
+
+body{
+    font-family:Arial;
+    background:#f3f4f6;
+    margin:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+
+.available{
+    color:green;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Vacant Houses</h1>
+
+<p>
+<a href="/dashboard/">Back to Dashboard</a>
+|
+<a href="/dashboard/rent-report/">Rent Report</a>
+</p>
+
+<div class="card">
+<h2>Total Vacant Houses: {{ vacant_count }}</h2>
+</div>
+
+<table>
+
+<tr>
+<th>Apartment</th>
+<th>House</th>
+<th>Rent Amount</th>
+<th>Status</th><th>Action</th>
+</tr>
+
+{% for house in vacant_houses %}
+
+<tr>
+<td>{{ house.apartment.name }}</td>
+<td>{{ house.house_number }}</td>
+<td>KES {{ house.rent_amount }}</td>
+<td class="available">VACANT</td><td><a href="/rentals/assign/{{ house.id }}/">Assign Tenant</a></td>
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="5">No vacant houses available</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>

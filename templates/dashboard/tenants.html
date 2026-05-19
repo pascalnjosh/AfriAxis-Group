@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Tenant Management</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#f3f4f6;
+    margin:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+
+.btn-danger{
+    background:#dc2626;
+    color:white;
+    padding:8px 12px;
+    border-radius:6px;
+    text-decoration:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Tenant Management</h1>
+
+<p>
+<a href="/dashboard/">Back to Dashboard</a>
+|
+<a href="/dashboard/vacant-houses/">Vacant Houses</a>
+|
+<a href="/dashboard/rent-report/">Rent Report</a>
+</p>
+
+<div class="card">
+<h2>Total Tenants: {{ tenant_count }}</h2>
+</div>
+
+<table>
+
+<tr>
+<th>Tenant</th>
+<th>Phone</th>
+<th>Apartment</th>
+<th>Portal</th><th>Action</th>
+</tr>
+
+{% for tenant in tenants %}
+
+<tr>
+<td>{{ tenant.name }}</td>
+<td>{{ tenant.phone }}</td>
+<td>{{ tenant.apartment.name }}</td>
+<td>
+<a
+class="btn-danger"
+href="/rentals/move-out/{{ tenant.id }}/"
+onclick="return confirm('Confirm tenant move-out?');"
+>
+Move Out
+</a>
+</td>
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="4">No tenants found</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>

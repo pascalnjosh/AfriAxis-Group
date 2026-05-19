@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tenant Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    font-family:Arial;
+    background:#f3f4f6;
+    margin:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+
+.paid{color:green;font-weight:bold;}
+.pending{color:orange;font-weight:bold;}
+</style>
+</head>
+
+<body>
+
+<h1>AfriAxis Tenant Portal</h1>
+
+<div class="card">
+<h2>{{ tenant.name }}</h2>
+<p>Phone: {{ tenant.phone|default:"Not provided" }}</p>
+<p>Apartment: {{ tenant.apartment.name }}</p>
+</div>
+
+<div class="grid">
+<div class="card"><h2>KES {{ total_billed }}</h2><p>Total Billed</p></div>
+<div class="card"><h2>KES {{ total_paid }}</h2><p>Total Paid</p></div>
+<div class="card"><h2>KES {{ total_balance }}</h2><p>Balance</p></div>
+</div>
+
+<div class="card">
+<h2>My Invoices</h2>
+
+<table>
+<tr>
+<th>Invoice</th>
+<th>Total</th>
+<th>Paid</th>
+<th>Balance</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+{% for invoice in invoices %}
+<tr>
+<td>{{ invoice.invoice_number }}</td>
+<td>KES {{ invoice.total_amount }}</td>
+<td>KES {{ invoice.amount_paid }}</td>
+<td>KES {{ invoice.balance }}</td>
+<td>
+{% if invoice.status == "PAID" %}
+<span class="paid">PAID</span>
+{% else %}
+<span class="pending">{{ invoice.status }}</span>
+{% endif %}
+</td>
+<td>
+<a href="/billing/invoices/{{ invoice.id }}/">View</a> |
+<a href="/billing/invoice/{{ invoice.id }}/pdf/">Download</a>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="6">No invoices found</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+</body>
+</html>
