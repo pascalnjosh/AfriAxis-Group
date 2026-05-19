@@ -1,39 +1,213 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AfriAxis ERP Dashboard</title>
+<title>AfriAxis ERP Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    font-family:Arial;
+    background:#f3f4f6;
+    margin:0;
+}
+
+.header{
+    background:#111827;
+    color:white;
+    padding:20px;
+}
+
+.nav{
+    background:white;
+    padding:15px 20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+.nav a{
+    margin-right:15px;
+    text-decoration:none;
+    color:#2563eb;
+    font-weight:bold;
+}
+
+.container{
+    padding:20px;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card h2{
+    margin:0;
+    color:#2563eb;
+}
+
+.card p{
+    color:#555;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    border-radius:12px;
+    overflow:hidden;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.danger{
+    color:red;
+    font-weight:bold;
+}
+
+.success{
+    color:green;
+    font-weight:bold;
+}
+
+@media(max-width:600px){
+    .nav a{
+        display:block;
+        margin-bottom:10px;
+    }
+
+    table{
+        font-size:13px;
+    }
+}
+</style>
 </head>
+
 <body>
-    <h1>AfriAxis ERP Dashboard</h1><p><a href="/dashboard/rent-report/">Open Rent Report</a> | <a href="/payments/">Open Payments</a></p>
 
-    <h2>Payments</h2>
-    <p>Total Payments: {{ total_payments }}</p>
-    <p>Successful: {{ successful }}</p>
-    <p>Pending: {{ pending }}</p>
-    <p>Failed: {{ failed }}</p>
+<div class="header">
+<h1>AfriAxis ERP Dashboard</h1>
+<p>Executive control center for rentals, billing, payments, water, WiFi and operations.</p>
+</div>
 
-    <div class="card"><h2>{{ total_houses }}</h2><p>Total Houses</p></div><div class="card"><h2>{{ occupied_houses }}</h2><p>Occupied Houses</p></div><div class="card"><h2>{{ vacant_houses }}</h2><p>Vacant Houses</p></div><div class="card"><h2>{{ occupancy_rate }}%</h2><p>Occupancy Rate</p></div><div class="card"><h2>KES {{ revenue_potential }}</h2><p>Revenue Potential</p></div><h2>Unpaid Rent List</h2>
+<div class="nav">
+<a href="/">Home</a>
+<a href="/dashboard/charts/">Analytics</a>
+<a href="/dashboard/rent-report/">Rent Report</a>
+<a href="/dashboard/tenants/">Tenants</a>
+<a href="/dashboard/vacant-houses/">Vacant Houses</a>
+<a href="/billing/invoices/">Invoices</a>
+<a href="/payments/">Payments</a>
+<a href="/admin/">Admin</a>
+</div>
 
-    <table border="1" cellpadding="10">
-        <tr>
-            <th>Tenant</th>
-            <th>Amount</th>
-            <th>Due Date</th>
-            <th>Status</th>
-        </tr>
+<div class="container">
 
-        {% for rent in unpaid_rents %}
-        <tr>
-            <td>{{ rent.tenant_name }}</td>
-            <td>KES {{ rent.amount }}</td>
-            <td>{{ rent.due_date }}</td>
-            <td>UNPAID</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="4">No unpaid rents</td>
-        </tr>
-        {% endfor %}
-    </table>
+<h2>Executive Summary</h2>
+
+<div class="cards">
+
+<div class="card">
+<h2>{{ total_houses }}</h2>
+<p>Total Houses</p>
+</div>
+
+<div class="card">
+<h2>{{ occupied_houses }}</h2>
+<p>Occupied Houses</p>
+</div>
+
+<div class="card">
+<h2>{{ vacant_houses }}</h2>
+<p>Vacant Houses</p>
+</div>
+
+<div class="card">
+<h2>{{ occupancy_rate }}%</h2>
+<p>Occupancy Rate</p>
+</div>
+
+<div class="card">
+<h2>KES {{ revenue_potential }}</h2>
+<p>Revenue Potential</p>
+</div>
+
+<div class="card">
+<h2>{{ total_payments }}</h2>
+<p>Total Payments</p>
+</div>
+
+<div class="card">
+<h2 class="success">{{ successful }}</h2>
+<p>Successful Payments</p>
+</div>
+
+<div class="card">
+<h2>{{ pending }}</h2>
+<p>Pending Payments</p>
+</div>
+
+<div class="card">
+<h2 class="danger">{{ failed }}</h2>
+<p>Failed Payments</p>
+</div>
+
+<div class="card">
+<h2 class="danger">{{ rent_arrears }}</h2>
+<p>Unpaid Rent Cases</p>
+</div>
+
+<div class="card">
+<h2 class="danger">KES {{ total_unpaid }}</h2>
+<p>Total Unpaid Rent</p>
+</div>
+
+</div>
+
+<h2>Unpaid Rent List</h2>
+
+<table>
+<tr>
+<th>Tenant</th>
+<th>Amount</th>
+<th>Due Date</th>
+<th>Days Overdue</th>
+<th>Status</th>
+</tr>
+
+{% for rent in unpaid_rents %}
+<tr>
+<td>{{ rent.tenant.name }}</td>
+<td>KES {{ rent.amount }}</td>
+<td>{{ rent.due_date }}</td>
+<td>{{ rent.days_overdue }}</td>
+<td class="danger">UNPAID</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="5" class="success">No unpaid rents</td>
+</tr>
+{% endfor %}
+</table>
+
+</div>
+
 </body>
 </html>
