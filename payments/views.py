@@ -11,7 +11,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Payment
-from rentals.models import Rent
+from rentals.models import Rent`r`nfrom billing.utils import apply_mpesa_to_invoice`r`nfrom billing.utils import apply_mpesa_to_invoice
 
 
 def user_role(request):
@@ -250,13 +250,7 @@ def rent_mpesa_callback(request):
                 if item.get("Name") == "MpesaReceiptNumber":
                     receipt = item.get("Value")
 
-            payment.status = "SUCCESS"
-            payment.mpesa_receipt_number = receipt
-            payment.save()
-
-            if payment.rental_rent:
-                payment.rental_rent.paid = True
-                payment.rental_rent.save()
+            payment.status = "SUCCESS"`r`n            payment.mpesa_receipt_number = receipt`r`n            payment.save()`r`n`r`n            apply_mpesa_to_invoice(`r`n                phone_number=payment.phone_number,`r`n                amount=payment.amount,`r`n                receipt=receipt`r`n            )`r`n`r`n            if payment.rental_rent:`r`n                payment.rental_rent.paid = True`r`n                payment.rental_rent.save()
 
         else:
             payment.status = "FAILED"
@@ -290,3 +284,4 @@ def payment_receipt(request, payment_id):
             "payment": payment
         }
     )
+
