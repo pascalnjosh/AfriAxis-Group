@@ -251,7 +251,19 @@ def rent_mpesa_callback(request):
                 if item.get("Name") == "MpesaReceiptNumber":
                     receipt = item.get("Value")
 
-            payment.status = "SUCCESS"`r`n            payment.mpesa_receipt_number = receipt`r`n            payment.save()`r`n`r`n            apply_mpesa_to_invoice(`r`n                phone_number=payment.phone_number,`r`n                amount=payment.amount,`r`n                receipt=receipt`r`n            )`r`n`r`n            if payment.rental_rent:`r`n                payment.rental_rent.paid = True`r`n                payment.rental_rent.save()
+            payment.status = "SUCCESS"
+            payment.mpesa_receipt_number = receipt
+            payment.save()
+
+            apply_mpesa_to_invoice(
+                phone_number=payment.phone_number,
+                amount=payment.amount,
+                receipt=receipt
+            )
+
+            if payment.rental_rent:
+                payment.rental_rent.paid = True
+                payment.rental_rent.save()
 
         else:
             payment.status = "FAILED"
@@ -285,6 +297,7 @@ def payment_receipt(request, payment_id):
             "payment": payment
         }
     )
+
 
 
 
