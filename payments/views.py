@@ -11,7 +11,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Payment
-from rentals.models import Rent`r`nfrom billing.utils import apply_mpesa_to_invoice`r`nfrom billing.utils import apply_mpesa_to_invoice
+from rentals.models import Rent`r`nfrom billing.utils import apply_mpesa_to_invoice
 
 
 def user_role(request):
@@ -284,4 +284,5 @@ def payment_receipt(request, payment_id):
             "payment": payment
         }
     )
+
 
