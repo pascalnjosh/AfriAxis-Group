@@ -1,0 +1,62 @@
+{% extends "base/erp.html" %}
+
+{% block title %}Apartment Statement | AfriAxis ERP{% endblock %}
+
+{% block content %}
+
+<h1>{{ apartment.name }} Statement</h1>
+
+<div class="grid">
+<div class="card">
+<h2>KES {{ total_billed }}</h2>
+<p>Total Billed</p>
+</div>
+
+<div class="card">
+<h2>KES {{ total_paid }}</h2>
+<p>Total Paid</p>
+</div>
+
+<div class="card">
+<h2>KES {{ total_balance }}</h2>
+<p>Total Balance</p>
+</div>
+</div>
+
+<div class="card">
+<h2>Tenant Invoice Statement</h2>
+
+<table>
+<tr>
+<th>Invoice</th>
+<th>Tenant</th>
+<th>Rent</th>
+<th>Water</th>
+<th>WiFi</th>
+<th>Total</th>
+<th>Paid</th>
+<th>Balance</th>
+<th>Status</th>
+</tr>
+
+{% for invoice in invoices %}
+<tr>
+<td>{{ invoice.invoice_number }}</td>
+<td>{{ invoice.tenant.name }}</td>
+<td>KES {{ invoice.rent_amount }}</td>
+<td>KES {{ invoice.water_amount }}</td>
+<td>KES {{ invoice.wifi_amount }}</td>
+<td>KES {{ invoice.total_amount }}</td>
+<td>KES {{ invoice.amount_paid }}</td>
+<td>KES {{ invoice.balance }}</td>
+<td>{{ invoice.status }}</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="9">No invoices found for this apartment.</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+{% endblock %}

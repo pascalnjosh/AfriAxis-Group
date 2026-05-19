@@ -10,47 +10,28 @@ from .views import (
     receipt_detail,
 )
 
+from .apartment_views import apartment_statement
+from .apartment_pdf_views import apartment_statement_pdf
+
+
 urlpatterns = [
 
-    path(
-        "invoices/",
-        invoice_list,
-        name="invoice_list"
-    ),
+    path("invoices/", invoice_list, name="invoice_list"),
 
-    path(
-        "invoices/<int:invoice_id>/",
-        invoice_detail,
-        name="invoice_detail"
-    ),
+    path("invoices/<int:invoice_id>/", invoice_detail, name="invoice_detail"),
 
-    path(
-        "tenant/<int:tenant_id>/",
-        tenant_status,
-        name="tenant_status"
-    ),
+    path("tenant/<int:tenant_id>/", tenant_status, name="tenant_status"),
 
-    path(
-        "tenant-portal/<int:tenant_id>/",
-        tenant_portal,
-        name="tenant_portal"
-    ),
+    path("tenant-portal/<int:tenant_id>/", tenant_portal, name="tenant_portal"),
 
-    path(
-        "invoice/<int:invoice_id>/pay/",
-        pay_invoice,
-        name="pay_invoice"
-    ),
+    path("invoice/<int:invoice_id>/pay/", pay_invoice, name="pay_invoice"),
 
-    path(
-        "invoice/<int:invoice_id>/pdf/",
-        invoice_pdf,
-        name="invoice_pdf"
-    ),
+    path("invoice/<int:invoice_id>/pdf/", invoice_pdf, name="invoice_pdf"),
 
-    path(
-        "receipt/<int:payment_id>/",
-        receipt_detail,
-        name="receipt_detail"
-    ),
+    path("receipt/<int:payment_id>/", receipt_detail, name="receipt_detail"),
+
+    path("apartment/<int:apartment_id>/statement/", apartment_statement, name="apartment_statement"),
+
+    path("apartment/<int:apartment_id>/statement/pdf/", apartment_statement_pdf, name="apartment_statement_pdf"),
 ]
+

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{% block title %}AfriAxis ERP{% endblock %}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#f3f4f6;
+}
+
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    width:240px;
+    height:100%;
+    background:#111827;
+    color:white;
+    padding:20px;
+}
+
+.sidebar h2{
+    margin-top:0;
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:10px;
+    margin-bottom:6px;
+    border-radius:8px;
+}
+
+.sidebar a:hover{
+    background:#2563eb;
+}
+
+.main{
+    margin-left:280px;
+    padding:25px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom:20px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+@media(max-width:800px){
+    .sidebar{
+        position:relative;
+        width:auto;
+        height:auto;
+    }
+
+    .main{
+        margin-left:0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+<h2>AfriAxis ERP</h2>
+
+<a href="/">Home</a>
+<a href="/dashboard/">Dashboard</a>
+<a href="/dashboard/charts/">Analytics</a>
+<a href="/dashboard/rent-report/">Rent Report</a>
+<a href="/dashboard/tenants/">Tenants</a>
+<a href="/dashboard/vacant-houses/">Vacant Houses</a>
+<a href="/billing/invoices/">Invoices</a>
+<a href="/payments/">Payments</a>
+<a href="/admin/">Admin</a>
+</div>
+
+<div class="main">
+{% block content %}{% endblock %}
+</div>
+
+</body>
+</html>
