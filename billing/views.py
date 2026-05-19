@@ -180,3 +180,22 @@ def tenant_portal(request, tenant_id):
             "total_balance": total_balance,
         }
     )
+
+
+def receipt_detail(request, payment_id):
+
+    from billing.models import InvoicePayment
+
+    payment = get_object_or_404(
+        InvoicePayment,
+        id=payment_id
+    )
+
+    return render(
+        request,
+        "billing/receipt_detail.html",
+        {
+            "payment": payment,
+            "invoice": payment.invoice,
+        }
+    )

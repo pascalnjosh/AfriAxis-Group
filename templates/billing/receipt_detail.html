@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Receipt</title>
+<style>
+body{font-family:Arial;background:#f3f4f6;padding:30px;}
+.receipt{background:white;max-width:650px;margin:auto;padding:35px;border-radius:12px;}
+.row{margin-bottom:12px;}
+.label{font-weight:bold;}
+button{padding:10px 16px;margin-top:20px;}
+@media print{button,a{display:none;} body{background:white;}}
+</style>
+</head>
+<body>
+
+<div class="receipt">
+
+<h1>AfriAxis Payment Receipt</h1>
+
+<div class="row"><span class="label">Invoice:</span> {{ invoice.invoice_number }}</div>
+<div class="row"><span class="label">Tenant:</span> {{ invoice.tenant.name }}</div>
+<div class="row"><span class="label">Apartment:</span> {{ invoice.apartment.name }}</div>
+<div class="row"><span class="label">Amount Paid:</span> KES {{ payment.amount }}</div>
+<div class="row"><span class="label">Phone:</span> {{ payment.phone_number }}</div>
+<div class="row"><span class="label">M-Pesa Receipt:</span> {{ payment.mpesa_receipt }}</div>
+<div class="row"><span class="label">Paid At:</span> {{ payment.paid_at }}</div>
+<div class="row"><span class="label">Invoice Balance:</span> KES {{ invoice.balance }}</div>
+<div class="row"><span class="label">Status:</span> {{ invoice.status }}</div>
+
+<button onclick="window.print()">Print / Save Receipt</button>
+
+</div>
+
+</body>
+</html>
