@@ -1,0 +1,14 @@
+services:
+  - type: cron
+    name: afriaxis-daily-invoices
+    runtime: python
+    schedule: "0 6 * * *"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python manage.py generate_invoices"
+
+  - type: cron
+    name: afriaxis-daily-reminders
+    runtime: python
+    schedule: "0 8 * * *"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python manage.py auto_overdue_reminders"
