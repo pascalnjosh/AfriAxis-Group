@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tenant Login</title>
+</head>
+
+<body>
+
+<h1>AfriAxis Tenant Portal</h1>
+
+{% if error %}
+<p style="color:red;">{{ error }}</p>
+{% endif %}
+
+<form method="POST" action="/tenant/login/">
+{% csrf_token %}
+
+<p>
+<label>Username</label><br>
+<input type="text" name="username">
+</p>
+
+<p>
+<label>Password</label><br>
+<input type="password" name="password">
+</p>
+
+<button type="submit">Login</button>
+
+</form>
+
+</body>
+</html>

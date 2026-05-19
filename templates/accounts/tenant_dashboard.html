@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tenant Dashboard</title>
+</head>
+
+<body>
+
+<h1>Tenant Dashboard</h1>
+
+{% if tenant %}
+
+<h2>{{ tenant.name }}</h2>
+
+<p>
+Phone: {{ tenant.phone }}
+</p>
+
+<table border="1" cellpadding="10">
+
+<tr>
+<th>Invoice</th>
+<th>Total</th>
+<th>Paid</th>
+<th>Balance</th>
+<th>Status</th>
+</tr>
+
+{% for invoice in invoices %}
+
+<tr>
+<td>{{ invoice.invoice_number }}</td>
+<td>KES {{ invoice.total_amount }}</td>
+<td>KES {{ invoice.amount_paid }}</td>
+<td>KES {{ invoice.balance }}</td>
+<td>{{ invoice.status }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No tenant profile found.</p>
+
+{% endif %}
+
+<p>
+<a href="/tenant/logout/">
+Logout
+</a>
+</p>
+
+</body>
+</html>
