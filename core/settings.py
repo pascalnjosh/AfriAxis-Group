@@ -23,13 +23,24 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    "payments",
-    "rentals",
-    "agri",
-    "dashboard",
+    # Core Apps
     "accounts",
+    "dashboard",
+    "rentals",
+    "payments",
+    "billing",
     "services",
-    'billing',
+    "agri",
+    "internet",
+    "afridocs",
+    "ledger",
+
+    # ERP Modules
+    "finance",
+    "water",
+    "deposits",
+    "sms",
+    "banking",
 ]
 
 MIDDLEWARE = [
@@ -74,33 +85,53 @@ AUTH_PASSWORD_VALIDATORS = []
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Africa/Nairobi"
+
 USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ==========================
+# MPESA SETTINGS
+# ==========================
+
 MPESA_ENV = os.environ.get("MPESA_ENV", "sandbox")
+
 MPESA_CONSUMER_KEY = os.environ.get("MPESA_CONSUMER_KEY", "")
 MPESA_CONSUMER_SECRET = os.environ.get("MPESA_CONSUMER_SECRET", "")
+
 MPESA_SHORTCODE = os.environ.get("MPESA_SHORTCODE", "174379")
 MPESA_PASSKEY = os.environ.get("MPESA_PASSKEY", "")
+
 MPESA_CALLBACK_URL = os.environ.get(
     "MPESA_CALLBACK_URL",
     "https://afriaxis-group-1.onrender.com/services/wifi/callback/",
 )
 
-MPESA_BASE_URL = "https://api.safaricom.co.ke" if MPESA_ENV == "production" else "https://sandbox.safaricom.co.ke"
+MPESA_BASE_URL = (
+    "https://api.safaricom.co.ke"
+    if MPESA_ENV == "production"
+    else "https://sandbox.safaricom.co.ke"
+)
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
     "https://*.ngrok-free.dev",
     "https://*.ngrok-free.app",
 ]
-
+LOGIN_URL = "/auth/login/"
+LOGIN_REDIRECT_URL = "/dashboard/"
+LOGOUT_REDIRECT_URL = "/auth/login/"
+LOGIN_URL = "/auth/login/"
+LOGIN_REDIRECT_URL = "/dashboard/"
+LOGOUT_REDIRECT_URL = "/auth/login/"

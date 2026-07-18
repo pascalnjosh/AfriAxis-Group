@@ -1,0 +1,117 @@
+{% extends "base/erp.html" %}
+
+{% block title %}Rent Balance Report{% endblock %}
+
+{% block content %}
+
+<h1>Rent Balance Report</h1>
+
+<form method="get" style="margin-bottom:20px;">
+    <label><strong>Apartment:</strong></label>
+
+    <select name="apartment" onchange="this.form.submit()">
+        <option value="">All Apartments</option>
+
+        {% for apartment in apartments %}
+        <option value="{{ apartment.id }}"
+            {% if selected_apartment == apartment.id|stringformat:"s" %}
+                selected
+            {% endif %}>
+            {{ apartment.name }}
+        </option>
+        {% endfor %}
+    </select>
+</form>
+
+<div class="grid">
+
+    <div class="card">
+        <h2>KES {{ total_rent }}</h2>
+        <p>Total Rent</p>
+    </div>
+
+    <div class="card">
+        <h2>KES {{ total_paid }}</h2>
+        <p>Total Paid</p>
+    </div>
+
+    <div class="card">
+        <h2>KES {{ total_balance }}</h2>
+        <p>Total Balance</p>
+    </div>
+
+</div>
+
+<hr>
+
+<table>
+
+<thead>
+<tr>
+    <th>Tenant</th>
+    <th>Apartment</th>
+<label><strong>Month:</strong></label>
+<select name="month">
+    <option value="">All Months</option>
+    {% for m in months %}
+    <option value="{{ m }}" {% if selected_month == m|stringformat:"s" %}selected{% endif %}>
+        {{ m }}
+    </option>
+    {% endfor %}
+</select>
+
+<label><strong>Year:</strong></label>
+<select name="year">
+    <option value="">All Years</option>
+    {% for y in years %}
+    <option value="{{ y }}" {% if selected_year == y|stringformat:"s" %}selected{% endif %}>
+        {{ y }}
+    </option>
+    {% endfor %}
+</select>
+
+<button type="submit">Filter</button>
+    <th>House</th>
+    <th>Rent</th>
+    <th>Paid</th>
+    <th>Balance</th>
+    <th>Status</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for rent in rents %}
+<tr>
+    <td>{{ rent.tenant.name }}</td>
+    <td>{{ rent.house.apartment.name }}</td>
+    <td>{{ rent.house.house_number }}</td>
+    <td>{{ rent.amount }}</td>
+    <td>{{ rent.amount_paid }}</td>
+    <td>{{ rent.balance }}</td>
+
+    <td>
+        {% if rent.paid %}
+            <span style="color:green;font-weight:bold;">Paid</span>
+        {% else %}
+            <span style="color:red;font-weight:bold;">Unpaid</span>
+        {% endif %}
+    </td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+    <td colspan="7">
+        No rent records found.
+    </td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% endblock %}

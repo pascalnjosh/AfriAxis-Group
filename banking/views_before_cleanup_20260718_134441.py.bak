@@ -1,0 +1,255 @@
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import BankStatementUploadForm
+from .models import BankTransaction
+from .utils import process_bank_statement
+
+
+@login_required
+def reconciliation_dashboard(request):
+    transactions = BankTransaction.objects.all().order_by("-transaction_date", "-id")
+
+    return render(request, "banking/reconciliation.html", {
+        "transactions": transactions[:200],
+        "total_transactions": transactions.count(),
+        "approved": transactions.filter(match_status="approved").count(),
+        "pending": transactions.filter(match_status="pending").count(),
+        "rejected": transactions.filter(match_status="rejected").count(),
+        "unknown": transactions.filter(suggested_category="unknown").count(),
+        "total_money_in": transactions.aggregate(total=Sum("money_in"))["total"] or 0,
+        "total_money_out": transactions.aggregate(total=Sum("money_out"))["total"] or 0,
+    })
+
+
+@login_required
+def upload_statement(request):
+    if request.method == "POST":
+        form = BankStatementUploadForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            upload = form.save(commit=False)
+            upload.uploaded_by = request.user
+            upload.save()
+
+            try:
+                process_bank_statement(upload)
+                messages.success(request, "Bank statement uploaded and processed.")
+            except Exception as e:
+                messages.error(request, f"Processing failed: {e}")
+
+            return redirect("bank_reconciliation")
+    else:
+        form = BankStatementUploadForm()
+
+    return render(request, "banking/upload_statement.html", {"form": form})
+
+
+@login_required
+def approve_transaction(request, transaction_id):
+    from rentals.models import Rent
+    from payments.models import Payment
+
+    transaction = get_object_or_404(BankTransaction, id=transaction_id)
+
+    if not transaction.matched_tenant:
+        messages.error(request, "Cannot approve: no matched tenant.")
+        return redirect("bank_reconciliation")
+
+    rent = (
+        Rent.objects.filter(
+            tenant=transaction.matched_tenant,
+            paid=False,
+            closed=False,
+        )
+        .order_by("billing_month", "due_date")
+        .first()
+    )
+    if rent:
+        rent.amount_paid = rent.amount_paid + transaction.money_in
+        rent.balance = rent.amount - rent.amount_paid
+        rent.paid = rent.balance <= 0
+        rent.save()
+
+        Payment.objects.create(
+            rental_rent=rent,
+            amount=transaction.money_in,
+            phone_number="",
+            account_reference="BANK",
+            transaction_desc=transaction.description,
+            mpesa_receipt_number=transaction.reference,
+            payment_method="BANK",
+            status="SUCCESS",
+        )
+
+    transaction.match_status = "approved"
+    transaction.save()
+
+    messages.success(request, "Transaction approved.")
+    return redirect("bank_reconciliation")
+
+@login_required
+def approve_transaction(request, transaction_id):
+    from rentals.models import Rent
+    from payments.models import Payment
+
+    transaction = get_object_or_404(BankTransaction, id=transaction_id)
+
+    if not transaction.matched_tenant:
+        messages.error(request, "Cannot approve: no matched tenant.")
+        return redirect("bank_reconciliation")
+
+    
+    rent = (
+        Rent.objects.filter(
+            tenant=transaction.matched_tenant,
+            paid=False,
+            closed=False,
+        )
+        .order_by("billing_month", "due_date")
+        .first()
+    )
+    if rent:
+        rent.amount_paid += transaction.money_in
+        rent.save()
+
+        Payment.objects.create(
+            rental_rent=rent,
+            amount=transaction.money_in,
+            phone_number="",
+            account_reference="BANK",
+            transaction_desc=transaction.description,
+            payment_method="BANK",
+            status="SUCCESS",
+        )
+
+    transaction.match_status = "approved"
+    transaction.save()
+
+    messages.success(request, "Transaction approved.")
+    return redirect("bank_reconciliation")
+
+@login_required
+def undo_transaction(request, transaction_id):
+    from payments.models import Payment
+
+    transaction = get_object_or_404(BankTransaction, id=transaction_id)
+
+    if transaction.match_status == "approved":
+        payments = Payment.objects.filter(
+            amount=transaction.money_in,
+            payment_method="BANK",
+            transaction_desc=transaction.description,
+        )
+
+        for payment in payments:
+            rent = payment.rental_rent
+
+            if rent:
+                rent.amount_paid = rent.amount_paid - transaction.money_in
+
+                if rent.amount_paid < 0:
+                    rent.amount_paid = 0
+
+                rent.balance = rent.amount - rent.amount_paid
+                rent.paid = rent.balance <= 0
+                rent.save()
+
+        deleted_count = payments.count()
+        payments.delete()
+
+    transaction.match_status = "pending"
+    transaction.save()
+
+    messages.success(request, "Transaction returned to pending.")
+    return redirect("bank_reconciliation")
+
+@login_required
+def approve_all_high_confidence(request):
+    from rentals.models import Rent
+    from payments.models import Payment
+
+    transactions = BankTransaction.objects.filter(
+        match_status="pending",
+        auto_matched=True,
+        confidence__gte=95,
+        money_in__gt=0,
+        matched_tenant__isnull=False,
+    )
+
+    count = 0
+
+    for transaction in transactions:
+        rent = (
+            Rent.objects.filter(
+                tenant=transaction.matched_tenant,
+                paid=False,
+            )
+            .order_by("due_date")
+            .first()
+        )
+
+        if rent:
+            rent.amount_paid = rent.amount_paid + transaction.money_in
+            rent.balance = rent.amount - rent.amount_paid
+            rent.paid = rent.balance <= 0
+            rent.save()
+
+        Payment.objects.create(
+            rental_rent=rent,
+            amount=transaction.money_in,
+            phone_number="",
+            account_reference="BANK",
+            transaction_desc=transaction.description,
+            payment_method="BANK",
+            status="SUCCESS",
+        )
+
+    transaction.match_status = "approved"
+    transaction.save()
+
+    messages.success(request, "Transaction approved.")
+    return redirect("bank_reconciliation")
+
+@login_required
+def undo_transaction(request, transaction_id):
+    from payments.models import Payment
+
+    transaction = get_object_or_404(BankTransaction, id=transaction_id)
+
+    if transaction.match_status != "approved":
+        messages.warning(request, "Transaction is not approved.")
+        return redirect("bank_reconciliation")
+
+    payments = Payment.objects.filter(
+        amount=transaction.money_in,
+        payment_method="BANK",
+        transaction_desc=transaction.description,
+    )
+
+    for payment in payments:
+        rent = payment.rental_rent
+
+        if rent:
+            rent.amount_paid -= transaction.money_in
+            rent.save()
+
+        payment.delete()
+
+    transaction.match_status = "pending"
+    transaction.save()
+
+    messages.success(request, "Transaction has been reversed.")
+    return redirect("bank_reconciliation") 
+
+@login_required
+def reject_transaction(request, transaction_id):
+    transaction = get_object_or_404(BankTransaction, id=transaction_id)
+
+    transaction.match_status = "rejected"
+    transaction.save()
+
+    messages.success(request, "Transaction rejected.")
+    return redirect("bank_reconciliation")

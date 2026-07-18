@@ -1,0 +1,95 @@
+import re
+
+from rentals.models import House, Tenant, Rent
+
+
+def normalize_phone(value):
+    digits = re.sub(r"\D", "", str(value or ""))
+
+    if digits.startswith("0"):
+        digits = "254" + digits[1:]
+    elif len(digits) == 9:
+        digits = "254" + digits
+
+    return digits
+
+def match_house(transaction, tenant):
+    text = transaction.description.upper()
+
+    # Remove phone numbers
+    text = re.sub(r"254\d{9}", "", text)
+
+    # Remove the account code
+    text = text.replace("501273", "")
+
+    # Find only 1-3 digit numbers
+    numbers = re.findall(r"\b\d{1,3}\b", text)
+
+    for number in numbers:
+        house = House.objects.filter(
+            house_number=str(int(number))
+        ).first()
+
+        if house:
+            transaction.matched_house = house
+            return
+
+    # Fallback to tenant's rent
+    rent = (
+        Rent.objects.filter(tenant=tenant)
+        .select_related("house")
+        .first()
+    )
+
+    if rent:
+        transaction.matched_house = rent.house
+
+
+def auto_match(transaction):
+    text = transaction.description.upper()
+
+    # Ignore bank charges
+    if "CHARGE" in text or "DUTY" in text:
+        transaction.auto_matched = False
+        transaction.matched_tenant = None
+        transaction.matched_house = None
+        transaction.confidence = 0
+        transaction.match_notes = "Bank charge / duty"
+        transaction.save()
+        return transaction
+
+    # Match by phone number
+    phones = re.findall(r"254\d{9}", text)
+
+    for phone in phones:
+        for tenant in Tenant.objects.exclude(phone=""):
+            if normalize_phone(tenant.phone) == normalize_phone(phone):
+                transaction.matched_tenant = tenant
+                match_house(transaction, tenant)
+
+                transaction.auto_matched = True
+                transaction.confidence = 95
+                transaction.match_notes = "Matched by phone number"
+                transaction.save()
+                return transaction
+
+    # Match by tenant name
+    for tenant in Tenant.objects.all():
+        if tenant.name and tenant.name.upper() in text:
+            transaction.matched_tenant = tenant
+            match_house(transaction, tenant)
+
+            transaction.auto_matched = True
+            transaction.confidence = 80
+            transaction.match_notes = "Matched by tenant name"
+            transaction.save()
+            return transaction
+
+    transaction.auto_matched = False
+    transaction.matched_tenant = None
+    transaction.matched_house = None
+    transaction.confidence = 0
+    transaction.match_notes = "No match"
+    transaction.save()
+
+    return transaction

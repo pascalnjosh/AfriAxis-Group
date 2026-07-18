@@ -1,0 +1,22 @@
+{% extends "base/erp.html" %}
+
+{% block title %}Upload Bank Statement{% endblock %}
+
+{% block content %}
+
+<h1>Upload Bank Statement</h1>
+
+<div class="card">
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit">Upload and Process</button>
+</form>
+</div>
+
+<p>
+<a href="{% url 'bank_reconciliation' %}">Back to Bank Reconciliation</a>
+</p>
+
+{% endblock %}
