@@ -1,0 +1,138 @@
+{% extends "base/erp.html" %}
+
+{% block title %}Water Billing{% endblock %}
+
+{% block content %}
+
+<h1>Water Billing</h1>
+
+<div class="grid">
+    <div class="card">
+        <h2>{{ total_bills }}</h2>
+        <p>Total Bills</p>
+    </div>
+
+    <div class="card">
+        <h2>KES {{ total_amount }}</h2>
+        <p>Total Billed</p>
+    </div>
+
+    <div class="card">
+        <h2>KES {{ total_paid }}</h2>
+        <p>Total Paid</p>
+    </div>
+
+    <div class="card">
+        <h2>KES {{ total_balance }}</h2>
+        <p>Outstanding</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ unpaid_count }}</h2>
+        <p>Unpaid</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ partial_count }}</h2>
+        <p>Partial</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ paid_count }}</h2>
+        <p>Paid</p>
+    </div>
+</div>
+
+<hr>
+
+<form method="get">
+    <label>
+        Month:
+        <input
+            type="text"
+            name="month"
+            value="{{ selected_month }}"
+            placeholder="Example: June 2026"
+        >
+    </label>
+
+    <label>
+        Status:
+        <select name="status">
+            <option value="">All Statuses</option>
+            <option value="unpaid" {% if selected_status == "unpaid" %}selected{% endif %}>
+                Unpaid
+            </option>
+            <option value="partial" {% if selected_status == "partial" %}selected{% endif %}>
+                Partial
+            </option>
+            <option value="paid" {% if selected_status == "paid" %}selected{% endif %}>
+                Paid
+            </option>
+        </select>
+    </label>
+
+    <label>
+        Tenant or House:
+        <input
+            type="text"
+            name="search"
+            value="{{ search }}"
+            placeholder="Tenant or house"
+        >
+    </label>
+
+    <button type="submit">Filter</button>
+</form>
+
+<hr>
+
+<table>
+    <thead>
+        <tr>
+            <th>Tenant</th>
+            <th>Apartment</th>
+            <th>House</th>
+            <th>Month</th>
+            <th>Previous</th>
+            <th>Current</th>
+            <th>Units</th>
+            <th>Rate</th>
+            <th>Amount</th>
+            <th>Paid</th>
+            <th>Balance</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for bill in bills %}
+            <tr>
+                <td>{{ bill.tenant }}</td>
+                <td>
+                    {% if bill.house and bill.house.apartment %}
+                        {{ bill.house.apartment.name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ bill.house|default:"-" }}</td>
+                <td>{{ bill.billing_month }}</td>
+                <td>{{ bill.previous_reading }}</td>
+                <td>{{ bill.current_reading }}</td>
+                <td>{{ bill.units_used }}</td>
+                <td>{{ bill.rate_per_unit }}</td>
+                <td>{{ bill.amount }}</td>
+                <td>{{ bill.amount_paid }}</td>
+                <td>{{ bill.balance }}</td>
+                <td>{{ bill.get_status_display }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="12">No water bills found.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

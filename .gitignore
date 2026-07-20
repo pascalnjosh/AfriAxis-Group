@@ -5,3 +5,18 @@ backups/
 staticfiles/
 .env
 db.sqlite3
+
+# Database backups
+db_before_*.sqlite3
+
+# Media uploads
+media/
+
+# Excel imports
+*.xlsx
+
+# Duplicate project folder
+apartment_system/
+
+# Temporary copied file
+tore coreurls.py
