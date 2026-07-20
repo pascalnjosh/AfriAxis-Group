@@ -20,3 +20,6 @@ apartment_system/
 
 # Temporary copied file
 tore coreurls.py
+
+# Local source backups
+*.bak_before_*
