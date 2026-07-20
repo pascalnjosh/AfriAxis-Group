@@ -74,7 +74,8 @@ def pay_invoice(request, invoice_id):
         apply_mpesa_to_invoice(
             phone_number=phone,
             amount=amount,
-            receipt=f"MANUAL-{invoice.invoice_number}"
+            receipt=f"MANUAL-{invoice.invoice_number}",
+            invoice=invoice,
         )
 
         return redirect(
@@ -199,3 +200,4 @@ def receipt_detail(request, payment_id):
             "invoice": payment.invoice,
         }
     )
+
