@@ -1,0 +1,412 @@
+{% extends "base/erp.html" %}
+
+{% block title %}Create Commercial Invoice{% endblock %}
+
+{% block content %}
+
+<style>
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.form-card{
+    background:white;
+    border-radius:14px;
+    padding:24px;
+    box-shadow:0 3px 14px rgba(15,23,42,0.08);
+    margin-bottom:20px;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:18px;
+}
+
+.field-group label{
+    display:block;
+    margin-bottom:6px;
+    font-weight:700;
+    color:#374151;
+}
+
+.field-group input,
+.field-group select,
+.field-group textarea{
+    width:100%;
+    box-sizing:border-box;
+    padding:10px 12px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    font-size:14px;
+}
+
+.full-width{
+    grid-column:1 / -1;
+}
+
+.items-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.items-table th{
+    background:#111827;
+    color:white;
+    padding:10px;
+}
+
+.items-table td{
+    padding:8px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.items-table input{
+    width:100%;
+    box-sizing:border-box;
+    padding:8px;
+    border:1px solid #d1d5db;
+    border-radius:6px;
+}
+
+.actions{
+    display:flex;
+    gap:12px;
+    justify-content:flex-end;
+    margin-top:20px;
+}
+
+.btn{
+    border:none;
+    border-radius:8px;
+    padding:11px 18px;
+    font-weight:700;
+    cursor:pointer;
+    text-decoration:none;
+}
+
+.btn-primary{
+    background:#2563eb;
+    color:white;
+}
+
+.btn-secondary{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.btn-danger{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.errorlist{
+    color:#b91c1c;
+    margin:5px 0;
+}
+
+.totals-panel{
+    margin-left:auto;
+    width:360px;
+    background:#f8fafc;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    padding:15px;
+    margin-top:18px;
+}
+
+.total-row{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:8px;
+}
+
+.total-row.grand{
+    border-top:1px solid #d1d5db;
+    padding-top:10px;
+    font-size:18px;
+    font-weight:800;
+}
+
+@media(max-width:900px){
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .items-wrap{
+        overflow-x:auto;
+    }
+
+    .totals-panel{
+        width:auto;
+    }
+}
+</style>
+
+<div class="page-header">
+    <div>
+        <h1>Create Commercial Invoice</h1>
+        <p>Create an itemized commercial or service invoice.</p>
+    </div>
+
+    <a href="{% url 'invoice_list' %}" class="btn btn-secondary">
+        Back to Invoices
+    </a>
+</div>
+
+<form method="post" id="invoice-form">
+    {% csrf_token %}
+
+    <div class="form-card">
+        <h2>Customer and Invoice Details</h2>
+
+        {{ form.non_field_errors }}
+
+        <div class="form-grid">
+            {% for field in form %}
+            <div class="field-group
+                {% if field.name == 'customer_address' or field.name == 'notes' or field.name == 'terms' %}
+                    full-width
+                {% endif %}
+            ">
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-card">
+        <h2>Invoice Items</h2>
+
+        {{ line_formset.management_form }}
+        {{ line_formset.non_form_errors }}
+
+        <div class="items-wrap">
+            <table class="items-table" id="items-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Unit</th>
+                        <th>Unit Price</th>
+                        <th>Discount %</th>
+                        <th>VAT %</th>
+                        <th>Line Total</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+
+                <tbody id="items-body">
+                    {% for line_form in line_formset %}
+                    <tr class="item-row">
+                        <td>
+                            {{ line_form.item_code }}
+                            {{ line_form.item_code.errors }}
+                        </td>
+                        <td>
+                            {{ line_form.description }}
+                            {{ line_form.description.errors }}
+                        </td>
+                        <td>
+                            {{ line_form.quantity }}
+                            {{ line_form.quantity.errors }}
+                        </td>
+                        <td>
+                            {{ line_form.unit }}
+                            {{ line_form.unit.errors }}
+                        </td>
+                        <td>
+                            {{ line_form.unit_price }}
+                            {{ line_form.unit_price.errors }}
+                        </td>
+                        <td>
+                            {{ line_form.discount_rate }}
+                            {{ line_form.discount_rate.errors }}
+                        </td>
+                        <td>
+                            {{ line_form.tax_rate }}
+                            {{ line_form.tax_rate.errors }}
+                        </td>
+                        <td class="line-total">0.00</td>
+                        <td>
+                            {{ line_form.DELETE }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-secondary"
+            id="add-item"
+            style="margin-top:14px;"
+        >
+            Add Another Item
+        </button>
+
+        <div class="totals-panel">
+            <div class="total-row">
+                <span>Subtotal</span>
+                <span id="subtotal-display">0.00</span>
+            </div>
+
+            <div class="total-row">
+                <span>Discount</span>
+                <span id="discount-display">0.00</span>
+            </div>
+
+            <div class="total-row">
+                <span>Tax / VAT</span>
+                <span id="tax-display">0.00</span>
+            </div>
+
+            <div class="total-row grand">
+                <span>Grand Total</span>
+                <span id="grand-total-display">0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a href="{% url 'invoice_list' %}" class="btn btn-secondary">
+            Cancel
+        </a>
+
+        <button type="submit" class="btn btn-primary">
+            Create Draft Invoice
+        </button>
+    </div>
+</form>
+
+<table style="display:none;">
+    <tbody>
+        <tr id="empty-item-row">
+            <td>{{ line_formset.empty_form.item_code }}</td>
+            <td>{{ line_formset.empty_form.description }}</td>
+            <td>{{ line_formset.empty_form.quantity }}</td>
+            <td>{{ line_formset.empty_form.unit }}</td>
+            <td>{{ line_formset.empty_form.unit_price }}</td>
+            <td>{{ line_formset.empty_form.discount_rate }}</td>
+            <td>{{ line_formset.empty_form.tax_rate }}</td>
+            <td class="line-total">0.00</td>
+            <td>{{ line_formset.empty_form.DELETE }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+function numberValue(input) {
+    const value = parseFloat(input?.value || "0");
+    return Number.isFinite(value) ? value : 0;
+}
+
+function calculateTotals() {
+    let subtotal = 0;
+    let discountTotal = 0;
+    let taxTotal = 0;
+    let grandTotal = 0;
+
+    document.querySelectorAll(".item-row").forEach((row) => {
+        const deleteInput = row.querySelector(
+            'input[name$="-DELETE"]'
+        );
+
+        if (deleteInput && deleteInput.checked) {
+            row.querySelector(".line-total").textContent = "0.00";
+            return;
+        }
+
+        const quantity = numberValue(
+            row.querySelector('input[name$="-quantity"]')
+        );
+
+        const unitPrice = numberValue(
+            row.querySelector('input[name$="-unit_price"]')
+        );
+
+        const discountRate = numberValue(
+            row.querySelector('input[name$="-discount_rate"]')
+        );
+
+        const taxRate = numberValue(
+            row.querySelector('input[name$="-tax_rate"]')
+        );
+
+        const lineSubtotal = quantity * unitPrice;
+        const discount = lineSubtotal * discountRate / 100;
+        const taxable = lineSubtotal - discount;
+        const tax = taxable * taxRate / 100;
+        const lineTotal = taxable + tax;
+
+        subtotal += lineSubtotal;
+        discountTotal += discount;
+        taxTotal += tax;
+        grandTotal += lineTotal;
+
+        row.querySelector(".line-total").textContent =
+            lineTotal.toFixed(2);
+    });
+
+    document.getElementById("subtotal-display").textContent =
+        subtotal.toFixed(2);
+
+    document.getElementById("discount-display").textContent =
+        discountTotal.toFixed(2);
+
+    document.getElementById("tax-display").textContent =
+        taxTotal.toFixed(2);
+
+    document.getElementById("grand-total-display").textContent =
+        grandTotal.toFixed(2);
+}
+
+function bindRow(row) {
+    row.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("input", calculateTotals);
+        input.addEventListener("change", calculateTotals);
+    });
+}
+
+document.querySelectorAll(".item-row").forEach(bindRow);
+
+document.getElementById("add-item").addEventListener("click", () => {
+    const totalForms = document.getElementById(
+        "id_items-TOTAL_FORMS"
+    );
+
+    const index = parseInt(totalForms.value, 10);
+
+    const template = document.getElementById(
+        "empty-item-row"
+    ).outerHTML.replaceAll(
+        "__prefix__",
+        index
+    );
+
+    const wrapper = document.createElement("tbody");
+    wrapper.innerHTML = template;
+
+    const newRow = wrapper.firstElementChild;
+    newRow.removeAttribute("id");
+    newRow.classList.add("item-row");
+
+    document.getElementById("items-body").appendChild(newRow);
+
+    totalForms.value = index + 1;
+
+    bindRow(newRow);
+    calculateTotals();
+});
+
+calculateTotals();
+</script>
+
+{% endblock %}

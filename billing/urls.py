@@ -8,6 +8,7 @@ from .views import (
     invoice_pdf,
     tenant_portal,
     receipt_detail,
+    commercial_invoice_create,
 )
 
 from .apartment_views import apartment_statement
@@ -17,6 +18,12 @@ from .apartment_pdf_views import apartment_statement_pdf
 urlpatterns = [
 
     path("invoices/", invoice_list, name="invoice_list"),
+
+    path(
+        "invoices/create/commercial/",
+        commercial_invoice_create,
+        name="commercial_invoice_create",
+    ),
 
     path("invoices/<int:invoice_id>/", invoice_detail, name="invoice_detail"),
 
@@ -34,4 +41,5 @@ urlpatterns = [
 
     path("apartment/<int:apartment_id>/statement/pdf/", apartment_statement_pdf, name="apartment_statement_pdf"),
 ]
+
 

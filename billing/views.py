@@ -1,10 +1,127 @@
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 
-from billing.models import Invoice
+from billing.forms import CommercialInvoiceForm, CommercialInvoiceLineFormSet
+from billing.models import Invoice, InvoicePayment
+from billing.services import create_commercial_invoice
 from billing.utils import apply_mpesa_to_invoice
 from rentals.models import Tenant
 
+
+@login_required
+def commercial_invoice_create(request):
+    if request.method == "POST":
+        form = CommercialInvoiceForm(request.POST)
+        line_formset = CommercialInvoiceLineFormSet(
+            request.POST,
+            prefix="items",
+        )
+
+        if form.is_valid() and line_formset.is_valid():
+            items = []
+
+            for line_form in line_formset:
+                if not line_form.cleaned_data:
+                    continue
+
+                if line_form.cleaned_data.get("DELETE"):
+                    continue
+
+                items.append(
+                    {
+                        "item_code": line_form.cleaned_data.get(
+                            "item_code",
+                            "",
+                        ),
+                        "description": line_form.cleaned_data[
+                            "description"
+                        ],
+                        "quantity": line_form.cleaned_data[
+                            "quantity"
+                        ],
+                        "unit": line_form.cleaned_data[
+                            "unit"
+                        ],
+                        "unit_price": line_form.cleaned_data[
+                            "unit_price"
+                        ],
+                        "discount_rate": line_form.cleaned_data[
+                            "discount_rate"
+                        ],
+                        "tax_rate": line_form.cleaned_data[
+                            "tax_rate"
+                        ],
+                    }
+                )
+
+            try:
+                invoice = create_commercial_invoice(
+                    customer_name=form.cleaned_data[
+                        "customer_name"
+                    ],
+                    customer_phone=form.cleaned_data[
+                        "customer_phone"
+                    ],
+                    customer_email=form.cleaned_data[
+                        "customer_email"
+                    ],
+                    customer_address=form.cleaned_data[
+                        "customer_address"
+                    ],
+                    customer_kra_pin=form.cleaned_data[
+                        "customer_kra_pin"
+                    ],
+                    invoice_type=form.cleaned_data[
+                        "invoice_type"
+                    ],
+                    due_date=form.cleaned_data[
+                        "due_date"
+                    ],
+                    currency=form.cleaned_data[
+                        "currency"
+                    ],
+                    notes=form.cleaned_data[
+                        "notes"
+                    ],
+                    terms=form.cleaned_data[
+                        "terms"
+                    ],
+                    items=items,
+                )
+
+            except ValueError as exc:
+                form.add_error(None, str(exc))
+
+            else:
+                messages.success(
+                    request,
+                    (
+                        f"Invoice {invoice.invoice_number} "
+                        "created successfully."
+                    ),
+                )
+
+                return redirect(
+                    "invoice_detail",
+                    invoice_id=invoice.id,
+                )
+
+    else:
+        form = CommercialInvoiceForm()
+        line_formset = CommercialInvoiceLineFormSet(
+            prefix="items",
+        )
+
+    return render(
+        request,
+        "billing/commercial_invoice_form.html",
+        {
+            "form": form,
+            "line_formset": line_formset,
+        },
+    )
 
 def invoice_list(request):
 
@@ -661,12 +778,9 @@ def tenant_portal(request, tenant_id):
 
 
 def receipt_detail(request, payment_id):
-
-    from billing.models import InvoicePayment
-
     payment = get_object_or_404(
         InvoicePayment,
-        id=payment_id
+        id=payment_id,
     )
 
     return render(
@@ -675,7 +789,5 @@ def receipt_detail(request, payment_id):
         {
             "payment": payment,
             "invoice": payment.invoice,
-        }
+        },
     )
-
-
