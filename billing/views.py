@@ -93,60 +93,537 @@ def pay_invoice(request, invoice_id):
 
 
 def invoice_pdf(request, invoice_id):
+    from io import BytesIO
 
-    invoice = get_object_or_404(
-        Invoice,
-        id=invoice_id
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import mm
+    from reportlab.platypus import (
+        KeepTogether,
+        Paragraph,
+        SimpleDocTemplate,
+        Spacer,
+        Table,
+        TableStyle,
     )
 
-    content = f"""
-AFRIAXIS ERP INVOICE
---------------------------------
+    invoice = get_object_or_404(
+        Invoice.objects.select_related(
+            "tenant",
+            "apartment",
+        ).prefetch_related(
+            "lines",
+            "invoicepayment_set",
+        ),
+        id=invoice_id,
+    )
 
-Invoice Number:
-{invoice.invoice_number}
+    buffer = BytesIO()
 
-Tenant:
-{invoice.tenant.name}
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=16 * mm,
+        leftMargin=16 * mm,
+        topMargin=14 * mm,
+        bottomMargin=14 * mm,
+        title=f"Invoice {invoice.invoice_number}",
+        author="AfriAxis Group",
+    )
 
-Apartment:
-{invoice.apartment.name}
+    styles = getSampleStyleSheet()
 
-Rent:
-KES {invoice.rent_amount}
+    styles.add(
+        ParagraphStyle(
+            name="Brand",
+            parent=styles["Heading1"],
+            fontName="Helvetica-Bold",
+            fontSize=20,
+            leading=24,
+            textColor=colors.HexColor("#111827"),
+            spaceAfter=4,
+        )
+    )
 
-Water:
-KES {invoice.water_amount}
+    styles.add(
+        ParagraphStyle(
+            name="SmallMuted",
+            parent=styles["Normal"],
+            fontSize=8.5,
+            leading=11,
+            textColor=colors.HexColor("#6B7280"),
+        )
+    )
 
-WiFi:
-KES {invoice.wifi_amount}
+    styles.add(
+        ParagraphStyle(
+            name="InvoiceTitle",
+            parent=styles["Heading1"],
+            fontName="Helvetica-Bold",
+            fontSize=20,
+            leading=24,
+            alignment=TA_RIGHT,
+            textColor=colors.HexColor("#111827"),
+        )
+    )
 
-TOTAL:
-KES {invoice.total_amount}
+    styles.add(
+        ParagraphStyle(
+            name="SectionHeading",
+            parent=styles["Heading2"],
+            fontName="Helvetica-Bold",
+            fontSize=10,
+            leading=13,
+            textColor=colors.HexColor("#2563EB"),
+            spaceBefore=6,
+            spaceAfter=6,
+        )
+    )
 
-PAID:
-KES {invoice.amount_paid}
+    styles.add(
+        ParagraphStyle(
+            name="RightText",
+            parent=styles["Normal"],
+            fontSize=9,
+            leading=12,
+            alignment=TA_RIGHT,
+        )
+    )
 
-BALANCE:
-KES {invoice.balance()}
+    styles.add(
+        ParagraphStyle(
+            name="CenterSmall",
+            parent=styles["Normal"],
+            fontSize=8,
+            leading=10,
+            alignment=TA_CENTER,
+            textColor=colors.HexColor("#6B7280"),
+        )
+    )
 
-STATUS:
-{invoice.status}
+    story = []
 
-Thank you for using AfriAxis ERP
-"""
+    customer_name = (
+        invoice.customer_name
+        or (invoice.tenant.name if invoice.tenant else "Customer")
+    )
+
+    customer_phone = (
+        invoice.customer_phone
+        or (invoice.tenant.phone if invoice.tenant else "")
+        or "-"
+    )
+
+    header = Table(
+        [
+            [
+                [
+                    Paragraph("AfriAxis Group", styles["Brand"]),
+                    Paragraph(
+                        "Integrated Business &amp; Property Management",
+                        styles["SmallMuted"],
+                    ),
+                    Spacer(1, 4),
+                    Paragraph("Nyahururu, Kenya", styles["SmallMuted"]),
+                    Paragraph("M-PESA Paybill: 880100", styles["SmallMuted"]),
+                ],
+                [
+                    Paragraph("INVOICE", styles["InvoiceTitle"]),
+                    Paragraph(
+                        invoice.invoice_number,
+                        styles["RightText"],
+                    ),
+                ],
+            ]
+        ],
+        colWidths=[110 * mm, 52 * mm],
+    )
+
+    header.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+
+    story.append(header)
+    story.append(Spacer(1, 10))
+
+    bill_to_rows = [
+        ["Customer", customer_name],
+        ["Phone", customer_phone],
+        ["Email", invoice.customer_email or "-"],
+        ["KRA PIN", invoice.customer_kra_pin or "-"],
+    ]
+
+    if invoice.apartment:
+        bill_to_rows.append(["Apartment", invoice.apartment.name])
+
+    invoice_detail_rows = [
+        ["Invoice Type", invoice.get_invoice_type_display()],
+        ["Invoice Date", invoice.invoice_date.strftime("%d %b %Y")],
+        [
+            "Due Date",
+            invoice.due_date.strftime("%d %b %Y")
+            if invoice.due_date
+            else "-",
+        ],
+        ["Currency", invoice.currency],
+        ["Status", invoice.get_status_display()],
+    ]
+
+    def info_box(title, rows):
+        data = [[Paragraph(title, styles["SectionHeading"])]]
+        data.extend(
+            [
+                [
+                    Paragraph(
+                        str(label),
+                        styles["SmallMuted"],
+                    ),
+                    Paragraph(
+                        str(value),
+                        styles["RightText"],
+                    ),
+                ]
+                for label, value in rows
+            ]
+        )
+
+        table = Table(
+            data,
+            colWidths=[37 * mm, 43 * mm],
+        )
+
+        table.setStyle(
+            TableStyle(
+                [
+                    ("SPAN", (0, 0), (1, 0)),
+                    ("BOX", (0, 0), (-1, -1), 0.7, colors.HexColor("#D1D5DB")),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F8FAFC")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 7),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                    ("LINEBELOW", (0, 1), (-1, -2), 0.25, colors.HexColor("#E5E7EB")),
+                ]
+            )
+        )
+
+        return table
+
+    information = Table(
+        [
+            [
+                info_box("BILL TO", bill_to_rows),
+                info_box("INVOICE DETAILS", invoice_detail_rows),
+            ]
+        ],
+        colWidths=[82 * mm, 82 * mm],
+        hAlign="LEFT",
+    )
+
+    information.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (0, 0), 4),
+                ("LEFTPADDING", (1, 0), (1, 0), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]
+        )
+    )
+
+    story.append(information)
+    story.append(Spacer(1, 14))
+    story.append(Paragraph("Invoice Items", styles["SectionHeading"]))
+
+    item_rows = [
+        [
+            "Description",
+            "Qty",
+            "Unit",
+            "Unit Price",
+            "Discount",
+            "Tax",
+            "Total",
+        ]
+    ]
+
+    lines = list(invoice.lines.all())
+
+    if lines:
+        for line in lines:
+            description = line.description
+
+            if line.item_code:
+                description += f"<br/><font size='7'>Code: {line.item_code}</font>"
+
+            item_rows.append(
+                [
+                    Paragraph(description, styles["Normal"]),
+                    f"{line.quantity:.2f}",
+                    line.unit,
+                    f"{line.unit_price:,.2f}",
+                    f"{line.discount_amount:,.2f}",
+                    f"{line.tax_amount:,.2f}",
+                    f"{line.line_total:,.2f}",
+                ]
+            )
+    else:
+        legacy_items = (
+            ("Rent", invoice.rent_amount, "MONTH"),
+            ("Water", invoice.water_amount, "BILL"),
+            ("Wi-Fi", invoice.wifi_amount, "MONTH"),
+        )
+
+        for description, amount, unit in legacy_items:
+            if amount > 0:
+                item_rows.append(
+                    [
+                        description,
+                        "1.00",
+                        unit,
+                        f"{amount:,.2f}",
+                        "0.00",
+                        "0.00",
+                        f"{amount:,.2f}",
+                    ]
+                )
+
+    item_table = Table(
+        item_rows,
+        repeatRows=1,
+        colWidths=[
+            55 * mm,
+            14 * mm,
+            16 * mm,
+            24 * mm,
+            21 * mm,
+            18 * mm,
+            24 * mm,
+        ],
+    )
+
+    item_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2563EB")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+                ("ALIGN", (1, 0), (-1, 0), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#D1D5DB")),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
+                    colors.white,
+                    colors.HexColor("#F9FAFB"),
+                ]),
+                ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 7),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+            ]
+        )
+    )
+
+    story.append(item_table)
+    story.append(Spacer(1, 12))
+
+    summary_rows = [
+        ["Subtotal", f"{invoice.currency} {invoice.subtotal:,.2f}"],
+        ["Discount", f"{invoice.currency} {invoice.discount_amount:,.2f}"],
+        ["Tax / VAT", f"{invoice.currency} {invoice.tax_amount:,.2f}"],
+        ["Grand Total", f"{invoice.currency} {invoice.total_amount:,.2f}"],
+        ["Amount Paid", f"{invoice.currency} {invoice.amount_paid:,.2f}"],
+        ["Balance Due", f"{invoice.currency} {invoice.balance():,.2f}"],
+    ]
+
+    summary = Table(
+        summary_rows,
+        colWidths=[43 * mm, 45 * mm],
+        hAlign="RIGHT",
+    )
+
+    summary.setStyle(
+        TableStyle(
+            [
+                ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+                ("FONTNAME", (0, 3), (-1, 3), "Helvetica-Bold"),
+                ("BACKGROUND", (0, 3), (-1, 3), colors.HexColor("#111827")),
+                ("TEXTCOLOR", (0, 3), (-1, 3), colors.white),
+                ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                ("TEXTCOLOR", (0, -1), (-1, -1), colors.HexColor("#B91C1C")),
+                ("LINEBELOW", (0, 0), (-1, -1), 0.35, colors.HexColor("#D1D5DB")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 7),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+            ]
+        )
+    )
+
+    story.append(summary)
+    story.append(Spacer(1, 14))
+
+    payments = list(
+        invoice.invoicepayment_set.all().order_by("paid_at", "id")
+    )
+
+    story.append(Paragraph("Payment History", styles["SectionHeading"]))
+
+    payment_rows = [["Date", "Phone", "Receipt", "Amount"]]
+
+    if payments:
+        for payment in payments:
+            payment_rows.append(
+                [
+                    payment.paid_at.strftime("%d %b %Y %H:%M"),
+                    payment.phone_number,
+                    payment.mpesa_receipt or "-",
+                    f"{invoice.currency} {payment.amount:,.2f}",
+                ]
+            )
+    else:
+        payment_rows.append(
+            [
+                Paragraph(
+                    "No payments recorded for this invoice.",
+                    styles["CenterSmall"],
+                ),
+                "",
+                "",
+                "",
+            ]
+        )
+
+    payment_table = Table(
+        payment_rows,
+        colWidths=[42 * mm, 42 * mm, 45 * mm, 35 * mm],
+        repeatRows=1,
+    )
+
+    payment_style = [
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("ALIGN", (-1, 1), (-1, -1), "RIGHT"),
+        ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#D1D5DB")),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]
+
+    if not payments:
+        payment_style.append(("SPAN", (0, 1), (-1, 1)))
+
+    payment_table.setStyle(TableStyle(payment_style))
+    story.append(payment_table)
+    story.append(Spacer(1, 14))
+
+    etims_rows = [
+        ["Submission Status", invoice.get_etims_status_display()],
+        ["Receipt Number", invoice.etims_receipt_number or "-"],
+        ["Control Unit", invoice.etims_control_unit_number or "-"],
+    ]
+
+    etims_table = info_box("eTIMS INFORMATION", etims_rows)
+
+    qr_text = (
+        invoice.etims_qr_code_url
+        if invoice.etims_qr_code_url
+        else "eTIMS QR Code\nNot available"
+    )
+
+    qr_box = Table(
+        [[Paragraph(qr_text.replace("\n", "<br/>"), styles["CenterSmall"])]],
+        colWidths=[45 * mm],
+        rowHeights=[32 * mm],
+    )
+
+    qr_box.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#9CA3AF")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ]
+        )
+    )
+
+    etims_section = Table(
+        [[etims_table, qr_box]],
+        colWidths=[115 * mm, 49 * mm],
+    )
+
+    etims_section.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (0, 0), 4),
+                ("LEFTPADDING", (1, 0), (1, 0), 4),
+            ]
+        )
+    )
+
+    story.append(KeepTogether(etims_section))
+
+    if invoice.notes:
+        story.append(Spacer(1, 12))
+        story.append(Paragraph("Notes", styles["SectionHeading"]))
+        story.append(
+            Table(
+                [[Paragraph(invoice.notes, styles["Normal"])]],
+                colWidths=[164 * mm],
+                style=TableStyle(
+                    [
+                        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#D1D5DB")),
+                        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                        ("TOPPADDING", (0, 0), (-1, -1), 8),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                    ]
+                ),
+            )
+        )
+
+    story.append(Spacer(1, 16))
+    story.append(
+        Paragraph(
+            "Thank you for doing business with AfriAxis Group.",
+            styles["CenterSmall"],
+        )
+    )
+
+    document.build(story)
+
+    pdf = buffer.getvalue()
+    buffer.close()
 
     response = HttpResponse(
-        content,
-        content_type="text/plain"
+        pdf,
+        content_type="application/pdf",
     )
 
     response["Content-Disposition"] = (
-        f'attachment; filename="{invoice.invoice_number}.txt"'
+        f'attachment; filename="{invoice.invoice_number}.pdf"'
     )
 
     return response
-
 
 def tenant_portal(request, tenant_id):
 
@@ -200,4 +677,5 @@ def receipt_detail(request, payment_id):
             "invoice": payment.invoice,
         }
     )
+
 

@@ -1,11 +1,13 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+
+from etims.services import EtimsService
 
 from .models import Invoice, InvoiceLine, InvoicePayment
 
 
 class InvoiceLineInline(admin.TabularInline):
     model = InvoiceLine
-    extra = 1
+    extra = 0
 
     fields = (
         "item_code",
@@ -27,6 +29,71 @@ class InvoiceLineInline(admin.TabularInline):
         "tax_amount",
         "line_total",
     )
+
+
+@admin.action(
+    description="Submit selected invoices to eTIMS sandbox"
+)
+def submit_invoices_to_etims(
+    modeladmin,
+    request,
+    queryset,
+):
+    submitted = 0
+    failed = 0
+
+    try:
+        service = EtimsService()
+    except RuntimeError as exc:
+        modeladmin.message_user(
+            request,
+            str(exc),
+            level=messages.ERROR,
+        )
+        return
+
+    for invoice in queryset:
+        try:
+            result = service.submit_invoice(invoice)
+
+            if result.get("success"):
+                submitted += 1
+            else:
+                failed += 1
+
+        except Exception as exc:
+            failed += 1
+
+            invoice.etims_status = "FAILED"
+            invoice.save(
+                update_fields=[
+                    "etims_status",
+                    "updated_at",
+                ]
+            )
+
+            modeladmin.message_user(
+                request,
+                f"{invoice.invoice_number}: {exc}",
+                level=messages.ERROR,
+            )
+
+    if submitted:
+        modeladmin.message_user(
+            request,
+            (
+                f"{submitted} invoice(s) submitted "
+                "to the eTIMS sandbox."
+            ),
+            level=messages.SUCCESS,
+        )
+
+    if failed:
+        modeladmin.message_user(
+            request,
+            f"{failed} invoice(s) failed.",
+            level=messages.WARNING,
+        )
 
 
 @admin.register(Invoice)
@@ -159,6 +226,10 @@ class InvoiceAdmin(admin.ModelAdmin):
     )
 
     inlines = (InvoiceLineInline,)
+
+    actions = (
+        submit_invoices_to_etims,
+    )
 
 
 @admin.register(InvoiceLine)
