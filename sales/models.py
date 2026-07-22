@@ -1,9 +1,11 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
-from enterprise.models import Company, Currency
+from enterprise.models import Branch, Company, Currency
 
 
 class Customer(models.Model):
@@ -275,3 +277,386 @@ class PriceListItem(models.Model):
 
     def __str__(self):
         return f"{self.price_list.name} - {self.product.name}"
+
+
+
+class SalesOrder(models.Model):
+    STATUS_CHOICES = (
+        ("DRAFT", "Draft"),
+        ("PENDING", "Pending Approval"),
+        ("APPROVED", "Approved"),
+        ("CONFIRMED", "Confirmed"),
+        ("PARTIALLY_DELIVERED", "Partially Delivered"),
+        ("DELIVERED", "Delivered"),
+        ("INVOICED", "Invoiced"),
+        ("CANCELLED", "Cancelled"),
+    )
+
+    order_number = models.CharField(
+        max_length=60,
+        unique=True,
+    )
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="sales_orders",
+    )
+
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.SET_NULL,
+        related_name="sales_orders",
+        null=True,
+        blank=True,
+    )
+
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.PROTECT,
+        related_name="sales_orders",
+    )
+
+    price_list = models.ForeignKey(
+        PriceList,
+        on_delete=models.SET_NULL,
+        related_name="sales_orders",
+        null=True,
+        blank=True,
+    )
+
+    order_date = models.DateField(
+        default=timezone.localdate,
+    )
+
+    expected_delivery_date = models.DateField(
+        null=True,
+        blank=True,
+    )
+
+    currency = models.ForeignKey(
+        Currency,
+        on_delete=models.PROTECT,
+        related_name="sales_orders",
+    )
+
+    status = models.CharField(
+        max_length=30,
+        choices=STATUS_CHOICES,
+        default="DRAFT",
+    )
+
+    customer_reference = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    delivery_address = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    notes = models.TextField(blank=True, default="")
+    terms = models.TextField(blank=True, default="")
+
+    subtotal = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+
+    discount_amount = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+
+    tax_amount = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+
+    total_amount = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="created_sales_orders",
+        null=True,
+        blank=True,
+    )
+
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="approved_sales_orders",
+        null=True,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def calculate_totals(self):
+        subtotal = Decimal("0.00")
+        discount = Decimal("0.00")
+        tax = Decimal("0.00")
+
+        for line in self.lines.all():
+            subtotal += line.line_subtotal
+            discount += line.discount_amount
+            tax += line.tax_amount
+
+        self.subtotal = subtotal
+        self.discount_amount = discount
+        self.tax_amount = tax
+        self.total_amount = subtotal - discount + tax
+
+        self.save(
+            update_fields=[
+                "subtotal",
+                "discount_amount",
+                "tax_amount",
+                "total_amount",
+                "updated_at",
+            ]
+        )
+
+    def __str__(self):
+        return self.order_number
+
+
+class SalesOrderLine(models.Model):
+    sales_order = models.ForeignKey(
+        SalesOrder,
+        on_delete=models.CASCADE,
+        related_name="lines",
+    )
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name="sales_order_lines",
+    )
+
+    description = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    quantity = models.DecimalField(
+        max_digits=16,
+        decimal_places=3,
+        validators=[MinValueValidator(Decimal("0.001"))],
+    )
+
+    quantity_delivered = models.DecimalField(
+        max_digits=16,
+        decimal_places=3,
+        default=Decimal("0.000"),
+        validators=[MinValueValidator(Decimal("0.000"))],
+    )
+
+    unit_price = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
+
+    discount_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
+    )
+
+    tax_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
+    )
+
+    @property
+    def line_subtotal(self):
+        return self.quantity * self.unit_price
+
+    @property
+    def discount_amount(self):
+        return (
+            self.line_subtotal
+            * self.discount_rate
+            / Decimal("100")
+        )
+
+    @property
+    def taxable_amount(self):
+        return self.line_subtotal - self.discount_amount
+
+    @property
+    def tax_amount(self):
+        return (
+            self.taxable_amount
+            * self.tax_rate
+            / Decimal("100")
+        )
+
+    @property
+    def line_total(self):
+        return self.taxable_amount + self.tax_amount
+
+    @property
+    def quantity_outstanding(self):
+        return self.quantity - self.quantity_delivered
+
+    def save(self, *args, **kwargs):
+        if not self.description:
+            self.description = self.product.name
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return (
+            f"{self.sales_order.order_number} - "
+            f"{self.product.product_code}"
+        )
+
+
+class DeliveryNote(models.Model):
+    STATUS_CHOICES = (
+        ("DRAFT", "Draft"),
+        ("POSTED", "Posted"),
+        ("CANCELLED", "Cancelled"),
+    )
+
+    delivery_number = models.CharField(
+        max_length=60,
+        unique=True,
+    )
+
+    sales_order = models.ForeignKey(
+        SalesOrder,
+        on_delete=models.PROTECT,
+        related_name="delivery_notes",
+    )
+
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.PROTECT,
+        related_name="delivery_notes",
+    )
+
+    warehouse = models.ForeignKey(
+        "inventory.Warehouse",
+        on_delete=models.PROTECT,
+        related_name="delivery_notes",
+    )
+
+    delivery_date = models.DateField(
+        default=timezone.localdate,
+    )
+
+    delivery_address = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    vehicle_number = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+    )
+
+    driver_name = models.CharField(
+        max_length=150,
+        blank=True,
+        default="",
+    )
+
+    received_by_name = models.CharField(
+        max_length=150,
+        blank=True,
+        default="",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="DRAFT",
+    )
+
+    notes = models.TextField(blank=True, default="")
+
+    dispatched_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="dispatched_delivery_notes",
+        null=True,
+        blank=True,
+    )
+
+    posted_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.delivery_number
+
+
+class DeliveryNoteLine(models.Model):
+    delivery_note = models.ForeignKey(
+        DeliveryNote,
+        on_delete=models.CASCADE,
+        related_name="lines",
+    )
+
+    sales_order_line = models.ForeignKey(
+        SalesOrderLine,
+        on_delete=models.PROTECT,
+        related_name="delivery_lines",
+    )
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.PROTECT,
+        related_name="delivery_note_lines",
+    )
+
+    location = models.ForeignKey(
+        "inventory.StorageLocation",
+        on_delete=models.PROTECT,
+        related_name="delivery_note_lines",
+    )
+
+    quantity = models.DecimalField(
+        max_digits=16,
+        decimal_places=3,
+        validators=[MinValueValidator(Decimal("0.001"))],
+    )
+
+    batch_number = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    def __str__(self):
+        return (
+            f"{self.delivery_note.delivery_number} - "
+            f"{self.product.product_code}"
+        )
+
+

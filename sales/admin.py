@@ -1,158 +1,161 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 
 from .models import (
     Customer,
+    DeliveryNote,
+    DeliveryNoteLine,
     PriceList,
     PriceListItem,
     Product,
     ProductCategory,
+    SalesOrder,
+    SalesOrderLine,
     UnitOfMeasure,
 )
+from .services import post_delivery_note
 
 
-class PriceListItemInline(admin.TabularInline):
-    model = PriceListItem
+class SalesOrderLineInline(admin.TabularInline):
+    model = SalesOrderLine
     extra = 1
 
 
-@admin.register(Customer)
-class CustomerAdmin(admin.ModelAdmin):
+@admin.register(SalesOrder)
+class SalesOrderAdmin(admin.ModelAdmin):
     list_display = (
-        "customer_code",
-        "name",
-        "customer_type",
-        "phone",
-        "kra_pin",
-        "credit_limit",
-        "current_balance",
-        "active",
-    )
-
-    search_fields = (
-        "customer_code",
-        "name",
-        "phone",
-        "email",
-        "kra_pin",
-    )
-
-    list_filter = (
-        "company",
-        "customer_type",
-        "active",
-    )
-
-
-@admin.register(ProductCategory)
-class ProductCategoryAdmin(admin.ModelAdmin):
-    list_display = (
-        "code",
-        "name",
-        "company",
-        "active",
-    )
-
-    search_fields = (
-        "code",
-        "name",
-    )
-
-    list_filter = (
-        "company",
-        "active",
-    )
-
-
-@admin.register(UnitOfMeasure)
-class UnitOfMeasureAdmin(admin.ModelAdmin):
-    list_display = (
-        "code",
-        "name",
-        "company",
-        "active",
-    )
-
-    search_fields = (
-        "code",
-        "name",
-    )
-
-    list_filter = (
-        "company",
-        "active",
-    )
-
-
-@admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = (
-        "product_code",
-        "name",
-        "product_type",
-        "category",
-        "unit",
-        "selling_price",
-        "tax_rate",
-        "track_inventory",
-        "active",
-    )
-
-    search_fields = (
-        "product_code",
-        "barcode",
-        "name",
-        "etims_item_code",
-    )
-
-    list_filter = (
-        "company",
-        "product_type",
-        "category",
-        "unit",
-        "track_inventory",
-        "active",
-    )
-
-
-@admin.register(PriceList)
-class PriceListAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "company",
+        "order_number",
+        "customer",
+        "order_date",
+        "status",
         "currency",
-        "is_default",
-        "active",
+        "total_amount",
     )
 
     list_filter = (
+        "status",
+        "order_date",
         "company",
-        "currency",
-        "is_default",
-        "active",
-    )
-
-    inlines = (
-        PriceListItemInline,
-    )
-
-
-@admin.register(PriceListItem)
-class PriceListItemAdmin(admin.ModelAdmin):
-    list_display = (
-        "price_list",
-        "product",
-        "minimum_quantity",
-        "price",
-        "active",
+        "branch",
     )
 
     search_fields = (
-        "price_list__name",
-        "product__product_code",
-        "product__name",
+        "order_number",
+        "customer__name",
+        "customer_reference",
+    )
+
+    readonly_fields = (
+        "subtotal",
+        "discount_amount",
+        "tax_amount",
+        "total_amount",
+        "created_at",
+        "updated_at",
+        "approved_at",
+    )
+
+    inlines = [SalesOrderLineInline]
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(
+            request,
+            form,
+            formsets,
+            change,
+        )
+
+        form.instance.calculate_totals()
+
+
+class DeliveryNoteLineInline(admin.TabularInline):
+    model = DeliveryNoteLine
+    extra = 1
+
+
+@admin.register(DeliveryNote)
+class DeliveryNoteAdmin(admin.ModelAdmin):
+    list_display = (
+        "delivery_number",
+        "sales_order",
+        "customer",
+        "warehouse",
+        "delivery_date",
+        "status",
     )
 
     list_filter = (
-        "price_list",
-        "active",
+        "status",
+        "delivery_date",
+        "warehouse",
     )
+
+    search_fields = (
+        "delivery_number",
+        "sales_order__order_number",
+        "customer__name",
+        "vehicle_number",
+        "driver_name",
+    )
+
+    readonly_fields = (
+        "posted_at",
+        "created_at",
+    )
+
+    inlines = [DeliveryNoteLineInline]
+
+    actions = ["post_selected_delivery_notes"]
+
+    @admin.action(
+        description="Post selected delivery notes"
+    )
+    def post_selected_delivery_notes(self, request, queryset):
+        posted = 0
+        failed = 0
+
+        for delivery_note in queryset:
+            try:
+                post_delivery_note(
+                    delivery_note=delivery_note,
+                    user=request.user,
+                )
+                posted += 1
+
+            except ValidationError as exc:
+                failed += 1
+
+                self.message_user(
+                    request,
+                    (
+                        f"{delivery_note.delivery_number}: "
+                        f"{'; '.join(exc.messages)}"
+                    ),
+                    level=messages.ERROR,
+                )
+
+        if posted:
+            self.message_user(
+                request,
+                f"{posted} delivery note(s) posted successfully.",
+                level=messages.SUCCESS,
+            )
+
+        if failed:
+            self.message_user(
+                request,
+                f"{failed} delivery note(s) failed.",
+                level=messages.WARNING,
+            )
+
+
+for model in (
+    Customer,
+    Product,
+    ProductCategory,
+    UnitOfMeasure,
+    PriceList,
+    PriceListItem,
+):
+    if not admin.site.is_registered(model):
+        admin.site.register(model)
