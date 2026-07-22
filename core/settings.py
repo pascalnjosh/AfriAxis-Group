@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "finance",
     "water",
     "etims",
+    "enterprise",
     "deposits",
     "sms",
     "banking",
@@ -136,4 +137,5 @@ LOGOUT_REDIRECT_URL = "/auth/login/"
 LOGIN_URL = "/auth/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/auth/login/"
+
 
