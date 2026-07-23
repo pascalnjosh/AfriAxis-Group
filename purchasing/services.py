@@ -4,13 +4,14 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
+from accounting.models import JournalEntry
+
 from inventory.models import InventoryBatch
 from inventory.services import post_stock_movement
 
 from .models import GoodsReceipt, PurchaseOrder
 
 
-@transaction.atomic
 def post_goods_receipt(goods_receipt, user=None):
     receipt = (
         GoodsReceipt.objects
@@ -167,3 +168,105 @@ def post_goods_receipt(goods_receipt, user=None):
     )
 
     return receipt
+
+
+@transaction.atomic
+def post_supplier_invoice(supplier_invoice, user=None):
+    from accounting.posting import create_journal_entry
+
+    invoice = (
+        supplier_invoice.__class__.objects
+        .select_for_update()
+        .select_related(
+            "supplier",
+            "purchase_order",
+            "currency",
+        )
+        .get(pk=supplier_invoice.pk)
+    )
+
+    if invoice.status == "CANCELLED":
+        raise ValidationError(
+            "A cancelled supplier invoice cannot be posted."
+        )
+
+    if invoice.status == "PAID":
+        raise ValidationError(
+            "A paid supplier invoice cannot be posted again."
+        )
+
+    if invoice.total_amount <= Decimal("0.00"):
+        raise ValidationError(
+            "Supplier invoice total must be greater than zero."
+        )
+
+    if invoice.purchase_order is None:
+        raise ValidationError(
+            "Supplier invoice must be linked to a purchase order."
+        )
+
+    reference = f"SUPINV-{invoice.invoice_number}"
+
+    existing = JournalEntry.objects.filter(
+        company=invoice.purchase_order.company,
+        reference=reference,
+    ).first()
+
+    if existing:
+        return existing
+
+    lines = []
+
+    net_amount = invoice.subtotal
+    tax_amount = invoice.tax_amount
+    total_amount = invoice.total_amount
+
+    if net_amount > Decimal("0.00"):
+        lines.append(
+            {
+                "account_code": "1200",
+                "debit": net_amount,
+                "description": (
+                    f"Inventory purchase from {invoice.supplier.name}"
+                ),
+            }
+        )
+
+    if tax_amount > Decimal("0.00"):
+        lines.append(
+            {
+                "account_code": "1300",
+                "debit": tax_amount,
+                "description": "Input VAT",
+            }
+        )
+
+    lines.append(
+        {
+            "account_code": "2000",
+            "credit": total_amount,
+            "description": (
+                f"Accounts payable - {invoice.supplier.name}"
+            ),
+        }
+    )
+
+    journal = create_journal_entry(
+        company=invoice.purchase_order.company,
+        currency=invoice.currency,
+        entry_date=invoice.invoice_date,
+        reference=reference,
+        description=(
+            f"Supplier invoice {invoice.invoice_number}"
+        ),
+        lines=lines,
+        user=user,
+        auto_post=True,
+    )
+
+    if invoice.status == "DRAFT":
+        invoice.status = "PENDING"
+        invoice.save(update_fields=["status"])
+
+    return journal
+
