@@ -139,3 +139,157 @@ def create_commercial_invoice(
     invoice.refresh_from_db()
 
     return invoice
+
+
+@transaction.atomic
+def post_customer_invoice(invoice, user=None):
+    from decimal import Decimal
+
+    from accounting.models import Account, JournalEntry
+    from accounting.posting import create_journal_entry
+    from enterprise.models import Currency
+    from enterprise.models import Currency
+
+    invoice = (
+        invoice.__class__.objects
+        .select_for_update()
+        .get(pk=invoice.pk)
+    )
+
+    if invoice.status == "PAID":
+        raise ValidationError(
+            "This invoice has already been paid."
+        )
+
+    reference = f"INV-{invoice.invoice_number}"
+
+    existing = JournalEntry.objects.filter(
+        reference=reference,
+    ).first()
+
+    if existing:
+        return existing
+
+    company = Account.objects.first().company
+
+    receivable = Decimal(str(invoice.total_amount))
+    vat = Decimal(str(invoice.tax_amount))
+    revenue = Decimal(str(invoice.subtotal))
+
+    if revenue <= Decimal("0.00"):
+        revenue = receivable - vat
+
+    lines = [
+        {
+            "account_code": "1100",
+            "debit": receivable,
+            "description": f"Invoice {invoice.invoice_number}",
+        }
+    ]
+
+    if revenue > Decimal("0.00"):
+        lines.append(
+            {
+                "account_code": "4000",
+                "credit": revenue,
+                "description": "Sales revenue",
+            }
+        )
+
+    if vat > Decimal("0.00"):
+        lines.append(
+            {
+                "account_code": "2100",
+                "credit": vat,
+                "description": "Output VAT",
+            }
+        )
+
+    return create_journal_entry(
+        company=company,
+        currency=Currency.objects.get(code=invoice.currency),
+        entry_date=invoice.invoice_date,
+        reference=reference,
+        description=f"Customer invoice {invoice.invoice_number}",
+        lines=lines,
+        user=user,
+        auto_post=True,
+    )
+
+
+@transaction.atomic
+def post_customer_invoice(invoice, user=None):
+    from decimal import Decimal
+
+    from accounting.models import Account, JournalEntry
+    from accounting.posting import create_journal_entry
+    from enterprise.models import Currency
+    from enterprise.models import Currency
+
+    invoice = (
+        invoice.__class__.objects
+        .select_for_update()
+        .get(pk=invoice.pk)
+    )
+
+    if invoice.status == "PAID":
+        raise ValidationError(
+            "This invoice has already been paid."
+        )
+
+    reference = f"INV-{invoice.invoice_number}"
+
+    existing = JournalEntry.objects.filter(
+        reference=reference,
+    ).first()
+
+    if existing:
+        return existing
+
+    company = Account.objects.first().company
+
+    receivable = Decimal(str(invoice.total_amount))
+    vat = Decimal(str(invoice.tax_amount))
+    revenue = Decimal(str(invoice.subtotal))
+
+    if revenue <= Decimal("0.00"):
+        revenue = receivable - vat
+
+    lines = [
+        {
+            "account_code": "1100",
+            "debit": receivable,
+            "description": f"Invoice {invoice.invoice_number}",
+        }
+    ]
+
+    if revenue > Decimal("0.00"):
+        lines.append(
+            {
+                "account_code": "4000",
+                "credit": revenue,
+                "description": "Sales revenue",
+            }
+        )
+
+    if vat > Decimal("0.00"):
+        lines.append(
+            {
+                "account_code": "2100",
+                "credit": vat,
+                "description": "Output VAT",
+            }
+        )
+
+    return create_journal_entry(
+        company=company,
+        currency=Currency.objects.get(code=invoice.currency),
+        entry_date=invoice.invoice_date,
+        reference=reference,
+        description=f"Customer invoice {invoice.invoice_number}",
+        lines=lines,
+        user=user,
+        auto_post=True,
+    )
+
+
