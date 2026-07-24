@@ -33,6 +33,7 @@ urlpatterns = [
     path("banking/", include("banking.urls")),
     path("ledger/", include("ledger.urls")),
     path("billing/", include("billing.urls")),
+    path("accounting/", include("accounting.urls")),
 
     # Accounts
     path("accounts/", include("accounts.urls")),

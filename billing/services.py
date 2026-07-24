@@ -293,3 +293,101 @@ def post_customer_invoice(invoice, user=None):
     )
 
 
+
+
+@transaction.atomic
+def post_customer_payment(payment, user=None):
+    from decimal import Decimal
+
+    from accounting.models import Account, JournalEntry
+    from accounting.posting import create_journal_entry
+    from enterprise.models import Currency
+
+    payment = (
+        payment.__class__.objects
+        .select_for_update()
+        .select_related("invoice")
+        .get(pk=payment.pk)
+    )
+
+    invoice = payment.invoice
+
+    if payment.amount <= Decimal("0.00"):
+        raise ValidationError(
+            "Payment amount must be greater than zero."
+        )
+
+    outstanding = (
+        Decimal(str(invoice.total_amount))
+        - Decimal(str(invoice.amount_paid))
+    )
+
+    if payment.amount > outstanding:
+        raise ValidationError(
+            f"Payment exceeds outstanding balance of {outstanding}."
+        )
+
+    reference_value = (
+        payment.mpesa_receipt
+        or f"PAY-{payment.pk}"
+    )
+
+    reference = f"RCPT-{reference_value}"
+
+    existing = JournalEntry.objects.filter(
+        reference=reference,
+    ).first()
+
+    if existing:
+        return existing
+
+    company = Account.objects.first().company
+
+    journal = create_journal_entry(
+        company=company,
+        currency=Currency.objects.get(code=invoice.currency),
+        entry_date=payment.paid_at.date(),
+        reference=reference,
+        description=(
+            f"Customer payment for invoice "
+            f"{invoice.invoice_number}"
+        ),
+        lines=[
+            {
+                "account_code": "1000",
+                "debit": payment.amount,
+                "description": (
+                    f"Customer receipt {reference_value}"
+                ),
+            },
+            {
+                "account_code": "1100",
+                "credit": payment.amount,
+                "description": (
+                    f"Settlement of invoice "
+                    f"{invoice.invoice_number}"
+                ),
+            },
+        ],
+        user=user,
+        auto_post=True,
+    )
+
+    invoice.amount_paid += payment.amount
+
+    if invoice.amount_paid >= invoice.total_amount:
+        invoice.status = "PAID"
+    elif invoice.amount_paid > Decimal("0.00"):
+        invoice.status = "PARTIAL"
+    else:
+        invoice.status = "PENDING"
+
+    invoice.save(
+        update_fields=[
+            "amount_paid",
+            "status",
+            "updated_at",
+        ]
+    )
+
+    return journal
