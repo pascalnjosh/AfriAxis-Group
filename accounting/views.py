@@ -55,3 +55,29 @@ def trial_balance(request):
             "date_to": date_to,
         },
     )
+
+@login_required
+def general_ledger(request):
+    from .ledger_reports import get_general_ledger
+    from .models import Account
+
+    account = None
+    rows = []
+
+    account_id = request.GET.get("account")
+
+    if account_id:
+        account = Account.objects.get(pk=account_id)
+        rows = get_general_ledger(
+            account=account,
+        )
+
+    return render(
+        request,
+        "accounting/general_ledger.html",
+        {
+            "accounts": Account.objects.order_by("code"),
+            "selected_account": account,
+            "rows": rows,
+        },
+    )
