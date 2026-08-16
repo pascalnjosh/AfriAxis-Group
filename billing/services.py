@@ -1,6 +1,7 @@
 from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 
 from billing.models import Invoice, InvoiceLine
@@ -142,189 +143,195 @@ def create_commercial_invoice(
 
 
 @transaction.atomic
-def post_customer_invoice(invoice, user=None):
-    from decimal import Decimal
+def _invoice_company(invoice):
+    """
+    Resolve the company that owns an invoice.
 
-    from accounting.models import Account, JournalEntry
-    from accounting.posting import create_journal_entry
-    from enterprise.models import Currency
-    from enterprise.models import Currency
+    AfriAxis currently operates as a single-company ERP, but this helper
+    first attempts to derive the company from the invoice relationships.
+    """
+    from enterprise.models import Company
 
-    invoice = (
-        invoice.__class__.objects
-        .select_for_update()
-        .get(pk=invoice.pk)
-    )
+    if invoice.apartment_id:
+        apartment = invoice.apartment
 
-    if invoice.status == "PAID":
+        if hasattr(apartment, "company_id") and apartment.company_id:
+            return apartment.company
+
+    if invoice.tenant_id:
+        tenant = invoice.tenant
+
+        if (
+            hasattr(tenant, "apartment")
+            and tenant.apartment
+            and hasattr(tenant.apartment, "company_id")
+            and tenant.apartment.company_id
+        ):
+            return tenant.apartment.company
+
+    company = Company.objects.first()
+
+    if company is None:
         raise ValidationError(
-            "This invoice has already been paid."
+            "No company has been configured."
         )
 
-    reference = f"INV-{invoice.invoice_number}"
-
-    existing = JournalEntry.objects.filter(
-        reference=reference,
-    ).first()
-
-    if existing:
-        return existing
-
-    company = Account.objects.first().company
-
-    receivable = Decimal(str(invoice.total_amount))
-    vat = Decimal(str(invoice.tax_amount))
-    revenue = Decimal(str(invoice.subtotal))
-
-    if revenue <= Decimal("0.00"):
-        revenue = receivable - vat
-
-    lines = [
-        {
-            "account_code": "1100",
-            "debit": receivable,
-            "description": f"Invoice {invoice.invoice_number}",
-        }
-    ]
-
-    if revenue > Decimal("0.00"):
-        lines.append(
-            {
-                "account_code": "4000",
-                "credit": revenue,
-                "description": "Sales revenue",
-            }
-        )
-
-    if vat > Decimal("0.00"):
-        lines.append(
-            {
-                "account_code": "2100",
-                "credit": vat,
-                "description": "Output VAT",
-            }
-        )
-
-    return create_journal_entry(
-        company=company,
-        currency=Currency.objects.get(code=invoice.currency),
-        entry_date=invoice.invoice_date,
-        reference=reference,
-        description=f"Customer invoice {invoice.invoice_number}",
-        lines=lines,
-        user=user,
-        auto_post=True,
-    )
+    return company
 
 
 @transaction.atomic
 def post_customer_invoice(invoice, user=None):
     from decimal import Decimal
 
-    from accounting.models import Account, JournalEntry
+    from accounting.models import JournalEntry
     from accounting.posting import create_journal_entry
-    from enterprise.models import Currency
     from enterprise.models import Currency
 
     invoice = (
         invoice.__class__.objects
         .select_for_update()
+        .select_related(
+            "tenant",
+            "apartment",
+        )
         .get(pk=invoice.pk)
     )
 
-    if invoice.status == "PAID":
+    if invoice.status == "DRAFT":
         raise ValidationError(
-            "This invoice has already been paid."
+            "A draft invoice cannot be posted to the General Ledger."
+        )
+
+    if invoice.status == "CANCELLED":
+        raise ValidationError(
+            "A cancelled invoice cannot be posted."
+        )
+
+    if invoice.total_amount <= Decimal("0.00"):
+        raise ValidationError(
+            "Invoice total must be greater than zero."
         )
 
     reference = f"INV-{invoice.invoice_number}"
+    company = _invoice_company(invoice)
 
     existing = JournalEntry.objects.filter(
+        company=company,
         reference=reference,
     ).first()
 
     if existing:
         return existing
 
-    company = Account.objects.first().company
-
     receivable = Decimal(str(invoice.total_amount))
     vat = Decimal(str(invoice.tax_amount))
     revenue = Decimal(str(invoice.subtotal))
+    discount = Decimal(str(invoice.discount_amount))
 
-    if revenue <= Decimal("0.00"):
-        revenue = receivable - vat
+    # Revenue should equal the taxable/net sales amount.
+    net_revenue = revenue - discount
+
+    if net_revenue <= Decimal("0.00"):
+        net_revenue = receivable - vat
+
+    if receivable != net_revenue + vat:
+        raise ValidationError(
+            "Invoice accounting values do not balance: "
+            f"receivable {receivable}, "
+            f"revenue {net_revenue}, VAT {vat}."
+        )
+
+    try:
+        currency = Currency.objects.get(
+            code=invoice.currency,
+        )
+    except Currency.DoesNotExist as exc:
+        raise ValidationError(
+            f"Currency {invoice.currency} has not been configured."
+        ) from exc
 
     lines = [
         {
             "account_code": "1100",
             "debit": receivable,
-            "description": f"Invoice {invoice.invoice_number}",
-        }
+            "description": (
+                f"Customer invoice {invoice.invoice_number}"
+            ),
+        },
+        {
+            "account_code": "4000",
+            "credit": net_revenue,
+            "description": (
+                f"Sales revenue - {invoice.customer_name}"
+            ),
+        },
     ]
-
-    if revenue > Decimal("0.00"):
-        lines.append(
-            {
-                "account_code": "4000",
-                "credit": revenue,
-                "description": "Sales revenue",
-            }
-        )
 
     if vat > Decimal("0.00"):
         lines.append(
             {
                 "account_code": "2100",
                 "credit": vat,
-                "description": "Output VAT",
+                "description": (
+                    f"Output VAT - {invoice.invoice_number}"
+                ),
             }
         )
 
     return create_journal_entry(
         company=company,
-        currency=Currency.objects.get(code=invoice.currency),
+        currency=currency,
         entry_date=invoice.invoice_date,
         reference=reference,
-        description=f"Customer invoice {invoice.invoice_number}",
+        description=(
+            f"Customer invoice {invoice.invoice_number}"
+        ),
         lines=lines,
         user=user,
         auto_post=True,
     )
-
-
 
 
 @transaction.atomic
 def post_customer_payment(payment, user=None):
     from decimal import Decimal
 
-    from accounting.models import Account, JournalEntry
+    from accounting.models import JournalEntry
     from accounting.posting import create_journal_entry
     from enterprise.models import Currency
 
     payment = (
         payment.__class__.objects
         .select_for_update()
-        .select_related("invoice")
+        .select_related(
+            "invoice",
+            "invoice__tenant",
+            "invoice__apartment",
+        )
         .get(pk=payment.pk)
     )
 
     invoice = payment.invoice
+    payment_amount = Decimal(str(payment.amount))
 
-    if payment.amount <= Decimal("0.00"):
+    if payment_amount <= Decimal("0.00"):
         raise ValidationError(
             "Payment amount must be greater than zero."
         )
 
-    outstanding = (
-        Decimal(str(invoice.total_amount))
-        - Decimal(str(invoice.amount_paid))
+    # The payment record already exists and InvoicePayment.save()
+    # recalculates amount_paid. Check the invoice total against all
+    # recorded payments instead of adding the payment again.
+    total_recorded = (
+        invoice.invoicepayment_set.aggregate(
+            total=Sum("amount")
+        )["total"]
+        or Decimal("0.00")
     )
 
-    if payment.amount > outstanding:
+    if total_recorded > Decimal(str(invoice.total_amount)):
         raise ValidationError(
-            f"Payment exceeds outstanding balance of {outstanding}."
+            "Recorded payments exceed the invoice total."
         )
 
     reference_value = (
@@ -333,19 +340,28 @@ def post_customer_payment(payment, user=None):
     )
 
     reference = f"RCPT-{reference_value}"
+    company = _invoice_company(invoice)
 
     existing = JournalEntry.objects.filter(
+        company=company,
         reference=reference,
     ).first()
 
     if existing:
         return existing
 
-    company = Account.objects.first().company
+    try:
+        currency = Currency.objects.get(
+            code=invoice.currency,
+        )
+    except Currency.DoesNotExist as exc:
+        raise ValidationError(
+            f"Currency {invoice.currency} has not been configured."
+        ) from exc
 
     journal = create_journal_entry(
         company=company,
-        currency=Currency.objects.get(code=invoice.currency),
+        currency=currency,
         entry_date=payment.paid_at.date(),
         reference=reference,
         description=(
@@ -355,14 +371,14 @@ def post_customer_payment(payment, user=None):
         lines=[
             {
                 "account_code": "1000",
-                "debit": payment.amount,
+                "debit": payment_amount,
                 "description": (
                     f"Customer receipt {reference_value}"
                 ),
             },
             {
                 "account_code": "1100",
-                "credit": payment.amount,
+                "credit": payment_amount,
                 "description": (
                     f"Settlement of invoice "
                     f"{invoice.invoice_number}"
@@ -373,21 +389,7 @@ def post_customer_payment(payment, user=None):
         auto_post=True,
     )
 
-    invoice.amount_paid += payment.amount
-
-    if invoice.amount_paid >= invoice.total_amount:
-        invoice.status = "PAID"
-    elif invoice.amount_paid > Decimal("0.00"):
-        invoice.status = "PARTIAL"
-    else:
-        invoice.status = "PENDING"
-
-    invoice.save(
-        update_fields=[
-            "amount_paid",
-            "status",
-            "updated_at",
-        ]
-    )
+    # Use the model's aggregate-based status calculation.
+    invoice.recalculate_status()
 
     return journal

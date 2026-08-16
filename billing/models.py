@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 
@@ -443,6 +444,18 @@ class InvoicePayment(models.Model):
         default=timezone.now,
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["mpesa_receipt"],
+                condition=(
+                    Q(mpesa_receipt__isnull=False)
+                    & ~Q(mpesa_receipt="")
+                ),
+                name="unique_nonblank_mpesa_receipt",
+            ),
+        ]
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.invoice.recalculate_status()
@@ -454,3 +467,5 @@ class InvoicePayment(models.Model):
 
     def __str__(self):
         return f"{self.invoice} - {self.amount}"
+
+

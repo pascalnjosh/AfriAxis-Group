@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "enterprise",
     "sales",
     "inventory",
+    "manufacturing",
     "purchasing",
     "accounting",
     "deposits",
@@ -147,3 +148,34 @@ LOGOUT_REDIRECT_URL = "/auth/login/"
 
 
 
+
+
+# ==========================
+# PRODUCTION SECURITY
+# ==========================
+
+AFRIAXIS_PRODUCTION = (
+    os.environ.get("AFRIAXIS_PRODUCTION", "0") == "1"
+)
+
+if AFRIAXIS_PRODUCTION:
+    DEBUG = False
+
+    SECRET_KEY = os.environ["SECRET_KEY"]
+
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    SECURE_PROXY_SSL_HEADER = (
+        "HTTP_X_FORWARDED_PROTO",
+        "https",
+    )
+else:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False

@@ -1,9 +1,17 @@
 from decimal import Decimal
 from uuid import uuid4
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from .models import StockBalance, StockMovement
+from accounting.models import JournalEntry
+from accounting.posting import create_journal_entry
+
+from .models import (
+    StockAdjustment,
+    StockBalance,
+    StockMovement,
+)
 
 
 INWARD_MOVEMENTS = {
@@ -100,6 +108,7 @@ def post_stock_movement(
                 )
             )
 
+        unit_cost = balance.average_cost
         balance.quantity -= quantity
 
     balance.save(
@@ -137,3 +146,143 @@ def post_stock_movement(
         )
 
     return movement, balance
+
+@transaction.atomic
+def post_stock_adjustment(adjustment, user=None):
+    adjustment = (
+        StockAdjustment.objects
+        .select_for_update()
+        .prefetch_related("lines")
+        .get(pk=adjustment.pk)
+    )
+
+    if adjustment.status == "POSTED":
+        raise ValidationError(
+            "This stock adjustment has already been posted."
+        )
+
+    if adjustment.status != "APPROVED":
+        raise ValidationError(
+            "Only approved stock adjustments can be posted."
+        )
+
+    reference = f"STKADJ-{adjustment.adjustment_number}"
+
+    if JournalEntry.objects.filter(
+        company=adjustment.warehouse.company,
+        reference=reference,
+        status="POSTED",
+    ).exists():
+        raise ValidationError(
+            "A journal already exists for this adjustment."
+        )
+
+    total_loss = Decimal("0.00")
+    total_gain = Decimal("0.00")
+
+    adjustment_lines = list(
+        adjustment.lines.select_related(
+            "location",
+            "product",
+            "batch",
+        )
+    )
+
+    if not adjustment_lines:
+        raise ValidationError(
+            "The stock adjustment contains no lines."
+        )
+
+    for line in adjustment_lines:
+        variance = Decimal(str(line.variance))
+
+        if variance == Decimal("0.000"):
+            continue
+
+        if line.location.warehouse_id != adjustment.warehouse_id:
+            raise ValidationError(
+                (
+                    f"Location {line.location} does not belong "
+                    f"to warehouse {adjustment.warehouse}."
+                )
+            )
+
+        if variance > 0:
+            movement, balance = post_stock_movement(
+                movement_type="ADJUSTMENT_IN",
+                product=line.product,
+                warehouse=adjustment.warehouse,
+                location=line.location,
+                quantity=variance,
+                unit_cost=line.unit_cost,
+                batch=line.batch,
+                reference=adjustment.adjustment_number,
+                remarks=adjustment.reason,
+                created_by=user,
+            )
+
+            total_gain += movement.quantity * movement.unit_cost
+
+        else:
+            movement, balance = post_stock_movement(
+                movement_type="ADJUSTMENT_OUT",
+                product=line.product,
+                warehouse=adjustment.warehouse,
+                location=line.location,
+                quantity=abs(variance),
+                unit_cost=line.unit_cost,
+                batch=line.batch,
+                reference=adjustment.adjustment_number,
+                remarks=adjustment.reason,
+                created_by=user,
+            )
+
+            total_loss += movement.quantity * movement.unit_cost
+
+    if total_gain > Decimal("0.00"):
+        raise ValidationError(
+            (
+                "Positive stock adjustments require an Inventory "
+                "Adjustment Gain account. Create that account before "
+                "posting inventory gains."
+            )
+        )
+
+    if total_loss == Decimal("0.00"):
+        raise ValidationError(
+            "This adjustment has no non-zero stock variances."
+        )
+
+    create_journal_entry(
+        company=adjustment.warehouse.company,
+        reference=reference,
+        description=(
+            f"Stock adjustment {adjustment.adjustment_number}: "
+            f"{adjustment.reason}"
+        ),
+        user=user,
+        auto_post=True,
+        lines=[
+            {
+                "account_code": "6000",
+                "debit": total_loss,
+                "credit": Decimal("0.00"),
+                "description": "Inventory adjustment loss",
+            },
+            {
+                "account_code": "1200",
+                "debit": Decimal("0.00"),
+                "credit": total_loss,
+                "description": "Inventory reduction",
+            },
+        ],
+    )
+
+    adjustment.status = "POSTED"
+    adjustment.save(
+        update_fields=[
+            "status",
+        ]
+    )
+
+    return adjustment

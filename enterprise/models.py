@@ -381,3 +381,10 @@ class DocumentSequence(models.Model):
             f"{self.get_document_type_display()}"
         )
 
+
+from .approval_models import (
+    ApprovalAction,
+    ApprovalRequest,
+    ApprovalStep,
+    ApprovalWorkflow,
+)

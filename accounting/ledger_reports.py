@@ -1,7 +1,5 @@
 from decimal import Decimal
 
-from .models import Account
-
 
 def get_general_ledger(
     *,
@@ -11,6 +9,7 @@ def get_general_ledger(
 ):
     lines = (
         account.journal_lines
+        .filter(journal_entry__status="POSTED")
         .select_related("journal_entry")
         .order_by(
             "journal_entry__entry_date",
@@ -33,7 +32,6 @@ def get_general_ledger(
     rows = []
 
     for line in lines:
-
         if account.account_type.normal_balance == "DEBIT":
             balance += line.debit
             balance -= line.credit

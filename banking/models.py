@@ -66,6 +66,8 @@ class BankTransaction(models.Model):
         ("water_deposit", "Water Deposit"),
         ("expense", "Expense"),
         ("other_income", "Other Income"),
+        ("customer_receipt", "Customer Receipt"),
+        ("supplier_payment", "Supplier Payment"),
         ("unknown", "Unknown"),
     ]
 
@@ -90,6 +92,21 @@ class BankTransaction(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+    )
+    matched_sales_receipt = models.ForeignKey(
+        "sales.SalesReceipt",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bank_transactions",
+    )
+
+    matched_supplier_payment = models.ForeignKey(
+        "purchasing.SupplierPayment",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bank_transactions",
     )
 
     auto_matched = models.BooleanField(default=False)
@@ -127,3 +144,6 @@ class BankTransaction(models.Model):
 
     def __str__(self):
         return f"{self.transaction_date} - {self.description[:40]}"
+
+
+

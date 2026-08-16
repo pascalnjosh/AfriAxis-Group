@@ -1,0 +1,94 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Stock Balances | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+
+<h1>Stock Balances</h1>
+
+<form method="get" class="card">
+    <label>Warehouse:</label>
+    <select name="warehouse">
+        <option value="">All Warehouses</option>
+        {% for warehouse in warehouses %}
+        <option
+            value="{{ warehouse.id }}"
+            {% if selected_warehouse == warehouse.id|stringformat:"s" %}selected{% endif %}
+        >
+            {{ warehouse }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label>Product:</label>
+    <select name="product">
+        <option value="">All Products</option>
+        {% for product in products %}
+        <option
+            value="{{ product.id }}"
+            {% if selected_product == product.id|stringformat:"s" %}selected{% endif %}
+        >
+            {{ product }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <input
+        type="text"
+        name="q"
+        value="{{ search }}"
+        placeholder="Code, product, batch or location"
+    >
+
+    <button type="submit">Apply</button>
+
+    <a href="{% url 'stock_balances' %}">Clear</a>
+</form>
+
+<div class="card">
+    <p>
+        <strong>Total Quantity:</strong>
+        {{ total_quantity|floatformat:3 }}
+
+        &nbsp; | &nbsp;
+
+        <strong>Total Value:</strong>
+        KES {{ total_value|floatformat:2 }}
+    </p>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Warehouse</th>
+            <th>Location</th>
+            <th>Product</th>
+            <th>Batch</th>
+            <th>Quantity</th>
+            <th>Average Cost</th>
+            <th>Stock Value</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for balance in balances %}
+        <tr>
+            <td>{{ balance.warehouse }}</td>
+            <td>{{ balance.location }}</td>
+            <td>{{ balance.product }}</td>
+            <td>{{ balance.batch|default:"-" }}</td>
+            <td>{{ balance.quantity|floatformat:3 }}</td>
+            <td>KES {{ balance.average_cost|floatformat:2 }}</td>
+            <td>KES {{ balance.stock_value|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No stock balances found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

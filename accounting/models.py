@@ -216,3 +216,277 @@ class JournalEntryLine(models.Model):
             f"{self.journal_entry.journal_number} - "
             f"{self.account.code}"
         )
+
+
+class AdjustmentNote(models.Model):
+    NOTE_TYPE_CHOICES = (
+        (
+            "CUSTOMER_CREDIT",
+            "Customer Credit Note",
+        ),
+        (
+            "SUPPLIER_DEBIT",
+            "Supplier Debit Note",
+        ),
+    )
+
+    STATUS_CHOICES = (
+        ("DRAFT", "Draft"),
+        ("POSTED", "Posted"),
+        ("CANCELLED", "Cancelled"),
+    )
+
+    note_number = models.CharField(
+        max_length=60,
+        unique=True,
+    )
+
+    company = models.ForeignKey(
+        "enterprise.Company",
+        on_delete=models.PROTECT,
+        related_name="adjustment_notes",
+    )
+
+    note_type = models.CharField(
+        max_length=30,
+        choices=NOTE_TYPE_CHOICES,
+    )
+
+    note_date = models.DateField()
+
+    customer_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    supplier = models.ForeignKey(
+        "purchasing.Supplier",
+        on_delete=models.PROTECT,
+        related_name="adjustment_notes",
+        null=True,
+        blank=True,
+    )
+
+    customer_invoice = models.ForeignKey(
+        "billing.Invoice",
+        on_delete=models.PROTECT,
+        related_name="adjustment_notes",
+        null=True,
+        blank=True,
+    )
+
+    supplier_invoice = models.ForeignKey(
+        "purchasing.SupplierInvoice",
+        on_delete=models.PROTECT,
+        related_name="adjustment_notes",
+        null=True,
+        blank=True,
+    )
+
+    reason = models.CharField(
+        max_length=255,
+    )
+
+    subtotal = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(
+                Decimal("0.00")
+            )
+        ],
+    )
+
+    tax_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(
+                Decimal("0.00")
+            )
+        ],
+    )
+
+    total_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+
+    offset_account = models.ForeignKey(
+        Account,
+        on_delete=models.PROTECT,
+        related_name="adjustment_notes",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="DRAFT",
+    )
+
+    journal_entry = models.OneToOneField(
+        JournalEntry,
+        on_delete=models.PROTECT,
+        related_name="adjustment_note",
+        null=True,
+        blank=True,
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="created_adjustment_notes",
+        null=True,
+        blank=True,
+    )
+
+    posted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="posted_adjustment_notes",
+        null=True,
+        blank=True,
+    )
+
+    posted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = (
+            "-note_date",
+            "-id",
+        )
+
+    def clean(self):
+        errors = {}
+
+        subtotal = Decimal(
+            str(self.subtotal or 0)
+        )
+        tax_amount = Decimal(
+            str(self.tax_amount or 0)
+        )
+
+        if subtotal <= Decimal("0.00"):
+            errors["subtotal"] = (
+                "Subtotal must be greater than zero."
+            )
+
+        if tax_amount < Decimal("0.00"):
+            errors["tax_amount"] = (
+                "Tax amount cannot be negative."
+            )
+
+        if self.offset_account_id:
+            if (
+                self.company_id
+                and self.offset_account.company_id
+                != self.company_id
+            ):
+                errors["offset_account"] = (
+                    "The offset account belongs "
+                    "to another company."
+                )
+
+            if not self.offset_account.active:
+                errors["offset_account"] = (
+                    "The offset account is inactive."
+                )
+
+            if not self.offset_account.allow_posting:
+                errors["offset_account"] = (
+                    "The offset account does not "
+                    "allow direct posting."
+                )
+
+        if self.note_type == "CUSTOMER_CREDIT":
+            if not self.customer_name.strip():
+                errors["customer_name"] = (
+                    "Customer name is required."
+                )
+
+            if self.supplier_id:
+                errors["supplier"] = (
+                    "A customer credit note cannot "
+                    "have a supplier."
+                )
+
+            if self.supplier_invoice_id:
+                errors["supplier_invoice"] = (
+                    "A customer credit note cannot "
+                    "reference a supplier invoice."
+                )
+
+            if (
+                self.customer_invoice_id
+                and self.customer_invoice.customer_name
+                != self.customer_name
+            ):
+                errors["customer_invoice"] = (
+                    "The invoice customer does not "
+                    "match the customer name."
+                )
+
+        elif self.note_type == "SUPPLIER_DEBIT":
+            if not self.supplier_id:
+                errors["supplier"] = (
+                    "Supplier is required."
+                )
+
+            if self.customer_invoice_id:
+                errors["customer_invoice"] = (
+                    "A supplier debit note cannot "
+                    "reference a customer invoice."
+                )
+
+            if (
+                self.supplier_invoice_id
+                and self.supplier_invoice.supplier_id
+                != self.supplier_id
+            ):
+                errors["supplier_invoice"] = (
+                    "The supplier invoice belongs "
+                    "to another supplier."
+                )
+
+        else:
+            errors["note_type"] = (
+                "Select a valid adjustment note type."
+            )
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        subtotal = Decimal(
+            str(self.subtotal or 0)
+        )
+        tax_amount = Decimal(
+            str(self.tax_amount or 0)
+        )
+
+        self.total_amount = (
+            subtotal + tax_amount
+        )
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return (
+            f"{self.note_number} - "
+            f"{self.get_note_type_display()}"
+        )

@@ -5,20 +5,24 @@ from django.db import transaction
 from django.utils import timezone
 
 from accounting.models import JournalEntry
-
+from accounting.posting import create_journal_entry
 from inventory.models import InventoryBatch
 from inventory.services import post_stock_movement
 
 from .models import GoodsReceipt, PurchaseOrder
 
 
+@transaction.atomic
 def post_goods_receipt(goods_receipt, user=None):
     receipt = (
         GoodsReceipt.objects
         .select_for_update()
         .select_related(
             "purchase_order",
+            "purchase_order__company",
+            "purchase_order__currency",
             "warehouse",
+            "supplier",
         )
         .get(pk=goods_receipt.pk)
     )
@@ -53,6 +57,18 @@ def post_goods_receipt(goods_receipt, user=None):
             "The goods receipt has no lines."
         )
 
+    journal_reference = f"GRN-{receipt.receipt_number}"
+
+    if JournalEntry.objects.filter(
+        company=receipt.purchase_order.company,
+        reference=journal_reference,
+    ).exists():
+        raise ValidationError(
+            "A GRNI journal already exists for this goods receipt."
+        )
+
+    total_receipt_value = Decimal("0.00")
+
     for line in lines:
         po_line = line.purchase_order_line
 
@@ -68,7 +84,8 @@ def post_goods_receipt(goods_receipt, user=None):
 
         if line.location.warehouse_id != receipt.warehouse_id:
             raise ValidationError(
-                f"Location {line.location} does not belong to the warehouse."
+                f"Location {line.location} does not belong "
+                "to the selected warehouse."
             )
 
         outstanding = (
@@ -78,7 +95,8 @@ def post_goods_receipt(goods_receipt, user=None):
 
         if line.quantity_received <= Decimal("0.000"):
             raise ValidationError(
-                f"Received quantity for {line.product} must be greater than zero."
+                f"Received quantity for {line.product} "
+                "must be greater than zero."
             )
 
         if line.quantity_received > outstanding:
@@ -90,18 +108,42 @@ def post_goods_receipt(goods_receipt, user=None):
         batch = None
 
         if line.batch_number:
-            batch, _ = InventoryBatch.objects.get_or_create(
+            batch, created = InventoryBatch.objects.get_or_create(
                 product=line.product,
-                warehouse=receipt.warehouse,
-                location=line.location,
                 batch_number=line.batch_number,
                 defaults={
                     "manufacturing_date": line.manufacturing_date,
                     "expiry_date": line.expiry_date,
+                    "quantity_received": Decimal("0.000"),
+                    "quantity_available": Decimal("0.000"),
+                    "cost_price": line.unit_cost,
+                    "active": True,
                 },
             )
 
-        post_stock_movement(
+            if not created:
+                if (
+                    line.manufacturing_date
+                    and batch.manufacturing_date
+                    and batch.manufacturing_date
+                    != line.manufacturing_date
+                ):
+                    raise ValidationError(
+                        f"Batch {line.batch_number} has a different "
+                        "manufacturing date."
+                    )
+
+                if (
+                    line.expiry_date
+                    and batch.expiry_date
+                    and batch.expiry_date != line.expiry_date
+                ):
+                    raise ValidationError(
+                        f"Batch {line.batch_number} has a different "
+                        "expiry date."
+                    )
+
+        movement, _balance = post_stock_movement(
             movement_type="PURCHASE",
             product=line.product,
             warehouse=receipt.warehouse,
@@ -117,10 +159,69 @@ def post_goods_receipt(goods_receipt, user=None):
             created_by=user,
         )
 
+        line_value = movement.total_cost
+        total_receipt_value += line_value
+
+        if batch:
+            batch.quantity_received += line.quantity_received
+            batch.cost_price = line.unit_cost
+
+            if line.manufacturing_date:
+                batch.manufacturing_date = line.manufacturing_date
+
+            if line.expiry_date:
+                batch.expiry_date = line.expiry_date
+
+            batch.save(
+                update_fields=[
+                    "quantity_received",
+                    "quantity_available",
+                    "cost_price",
+                    "manufacturing_date",
+                    "expiry_date",
+                ]
+            )
+
         po_line.quantity_received += line.quantity_received
         po_line.save(
             update_fields=["quantity_received"]
         )
+
+    if total_receipt_value <= Decimal("0.00"):
+        raise ValidationError(
+            "The goods receipt has no accounting value."
+        )
+
+    create_journal_entry(
+        company=receipt.purchase_order.company,
+        currency=receipt.purchase_order.currency,
+        entry_date=receipt.receipt_date,
+        reference=journal_reference,
+        description=(
+            f"Goods receipt {receipt.receipt_number} "
+            f"from {receipt.supplier.name}"
+        ),
+        lines=[
+            {
+                "account_code": "1210",
+                "debit": total_receipt_value,
+                "description": (
+                    f"Inventory received under "
+                    f"{receipt.receipt_number}"
+                ),
+            },
+            {
+                "account_code": "2050",
+                "credit": total_receipt_value,
+                "description": (
+                    f"GRNI liability for "
+                    f"{receipt.receipt_number}"
+                ),
+            },
+        ],
+        user=user,
+        auto_post=True,
+    )
 
     purchase_order = (
         PurchaseOrder.objects
@@ -172,14 +273,13 @@ def post_goods_receipt(goods_receipt, user=None):
 
 @transaction.atomic
 def post_supplier_invoice(supplier_invoice, user=None):
-    from accounting.posting import create_journal_entry
-
     invoice = (
         supplier_invoice.__class__.objects
         .select_for_update()
         .select_related(
             "supplier",
             "purchase_order",
+            "purchase_order__company",
             "currency",
         )
         .get(pk=supplier_invoice.pk)
@@ -188,11 +288,6 @@ def post_supplier_invoice(supplier_invoice, user=None):
     if invoice.status == "CANCELLED":
         raise ValidationError(
             "A cancelled supplier invoice cannot be posted."
-        )
-
-    if invoice.status == "PAID":
-        raise ValidationError(
-            "A paid supplier invoice cannot be posted again."
         )
 
     if invoice.total_amount <= Decimal("0.00"):
@@ -215,19 +310,27 @@ def post_supplier_invoice(supplier_invoice, user=None):
     if existing:
         return existing
 
-    lines = []
+    net_amount = Decimal(str(invoice.subtotal))
+    tax_amount = Decimal(str(invoice.tax_amount))
+    total_amount = Decimal(str(invoice.total_amount))
 
-    net_amount = invoice.subtotal
-    tax_amount = invoice.tax_amount
-    total_amount = invoice.total_amount
+    if total_amount != net_amount + tax_amount:
+        raise ValidationError(
+            "Supplier invoice does not balance: "
+            f"net {net_amount}, VAT {tax_amount}, "
+            f"total {total_amount}."
+        )
+
+    lines = []
 
     if net_amount > Decimal("0.00"):
         lines.append(
             {
-                "account_code": "1200",
+                "account_code": "2050",
                 "debit": net_amount,
                 "description": (
-                    f"Inventory purchase from {invoice.supplier.name}"
+                    f"Clear GRNI for supplier invoice "
+                    f"{invoice.invoice_number}"
                 ),
             }
         )
@@ -237,7 +340,10 @@ def post_supplier_invoice(supplier_invoice, user=None):
             {
                 "account_code": "1300",
                 "debit": tax_amount,
-                "description": "Input VAT",
+                "description": (
+                    f"Input VAT on supplier invoice "
+                    f"{invoice.invoice_number}"
+                ),
             }
         )
 
@@ -267,6 +373,150 @@ def post_supplier_invoice(supplier_invoice, user=None):
     if invoice.status == "DRAFT":
         invoice.status = "PENDING"
         invoice.save(update_fields=["status"])
+
+    return journal
+
+@transaction.atomic
+def post_supplier_payment(payment, user=None):
+    from decimal import Decimal
+
+    from accounting.models import JournalEntry
+    from accounting.posting import create_journal_entry
+
+    payment = (
+        payment.__class__.objects
+        .select_for_update()
+        .select_related(
+            "supplier_invoice",
+            "supplier_invoice__purchase_order",
+            "supplier_invoice__purchase_order__company",
+            "supplier_invoice__currency",
+            "supplier",
+            "bank_account",
+        )
+        .get(pk=payment.pk)
+    )
+
+    invoice = payment.supplier_invoice
+    amount = Decimal(str(payment.amount))
+
+    if payment.posted:
+        reference = f"SUPPAY-{payment.reference}"
+
+        existing = JournalEntry.objects.filter(
+            reference=reference,
+        ).first()
+
+        if existing:
+            return existing
+
+        raise ValidationError(
+            "This supplier payment is marked posted but has no journal."
+        )
+
+    if invoice.status == "CANCELLED":
+        raise ValidationError(
+            "A cancelled supplier invoice cannot be paid."
+        )
+
+    if payment.supplier_id != invoice.supplier_id:
+        raise ValidationError(
+            "Payment supplier does not match the supplier invoice."
+        )
+
+    if amount <= Decimal("0.00"):
+        raise ValidationError(
+            "Payment amount must be greater than zero."
+        )
+
+    outstanding = (
+        Decimal(str(invoice.total_amount))
+        - Decimal(str(invoice.amount_paid))
+    )
+
+    if amount > outstanding:
+        raise ValidationError(
+            f"Payment exceeds outstanding balance of {outstanding}."
+        )
+
+    if invoice.purchase_order is None:
+        raise ValidationError(
+            "Supplier invoice has no linked purchase order."
+        )
+
+    company = invoice.purchase_order.company
+    reference = f"SUPPAY-{payment.reference}"
+
+    existing = JournalEntry.objects.filter(
+        company=company,
+        reference=reference,
+    ).first()
+
+    if existing:
+        payment.posted = True
+        payment.posted_at = timezone.now()
+        payment.save(
+            update_fields=[
+                "posted",
+                "posted_at",
+            ]
+        )
+        return existing
+
+    journal = create_journal_entry(
+        company=company,
+        currency=invoice.currency,
+        entry_date=payment.payment_date,
+        reference=reference,
+        description=(
+            f"Supplier payment {payment.reference} "
+            f"for invoice {invoice.invoice_number}"
+        ),
+        lines=[
+            {
+                "account_code": "2000",
+                "debit": amount,
+                "description": (
+                    f"Settlement of supplier invoice "
+                    f"{invoice.invoice_number}"
+                ),
+            },
+            {
+                "account_code": "1000",
+                "credit": amount,
+                "description": (
+                    f"Payment from {payment.bank_account}"
+                ),
+            },
+        ],
+        user=user,
+        auto_post=True,
+    )
+
+    invoice.amount_paid += amount
+
+    if invoice.amount_paid >= invoice.total_amount:
+        invoice.status = "PAID"
+    elif invoice.amount_paid > Decimal("0.00"):
+        invoice.status = "PARTIAL"
+    else:
+        invoice.status = "PENDING"
+
+    invoice.save(
+        update_fields=[
+            "amount_paid",
+            "status",
+        ]
+    )
+
+    payment.posted = True
+    payment.posted_at = timezone.now()
+    payment.save(
+        update_fields=[
+            "posted",
+            "posted_at",
+        ]
+    )
 
     return journal
 

@@ -23,3 +23,26 @@ tore coreurls.py
 
 # Local source backups
 *.bak_before_*
+# Python
+__pycache__/
+*.py[cod]
+
+# Local databases / backups
+*.sqlite3
+backups/
+*.bak
+*.backup
+*.backup.*
+*.pre_*
+*.phase2c_backup
+
+# Local environments
+venv/
+.env
+.env.*
+
+# Generated/static runtime files
+staticfiles/
+
+# Temporary files
+*.tmp

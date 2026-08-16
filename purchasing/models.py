@@ -54,6 +54,7 @@ class PurchaseRequest(models.Model):
         ("PENDING", "Pending Approval"),
         ("APPROVED", "Approved"),
         ("REJECTED", "Rejected"),
+        ("REJECTED", "Rejected"),
         ("CONVERTED", "Converted to Purchase Order"),
         ("CANCELLED", "Cancelled"),
     )
@@ -165,6 +166,7 @@ class PurchaseOrder(models.Model):
         ("DRAFT", "Draft"),
         ("PENDING", "Pending Approval"),
         ("APPROVED", "Approved"),
+        ("REJECTED", "Rejected"),
         ("SENT", "Sent to Supplier"),
         ("PARTIALLY_RECEIVED", "Partially Received"),
         ("RECEIVED", "Fully Received"),
@@ -556,3 +558,65 @@ class SupplierInvoice(models.Model):
             f"{self.supplier.name} - "
             f"{self.invoice_number}"
         )
+
+class SupplierPayment(models.Model):
+    PAYMENT_METHOD_CHOICES = (
+        ("BANK", "Bank Transfer"),
+        ("CHEQUE", "Cheque"),
+        ("CASH", "Cash"),
+    )
+
+    supplier_invoice = models.ForeignKey(
+        SupplierInvoice,
+        on_delete=models.PROTECT,
+        related_name="payments",
+    )
+
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.PROTECT,
+        related_name="payments",
+    )
+
+    bank_account = models.ForeignKey(
+        "banking.BankAccount",
+        on_delete=models.PROTECT,
+        related_name="supplier_payments",
+    )
+
+    payment_date = models.DateField(default=timezone.localdate)
+
+    amount = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+    )
+
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHOD_CHOICES,
+        default="BANK",
+    )
+
+    reference = models.CharField(
+        max_length=100,
+        unique=True,
+    )
+
+    notes = models.TextField(blank=True, default="")
+
+    posted = models.BooleanField(default=False)
+
+    posted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    def __str__(self):
+        return self.reference
+
+
+

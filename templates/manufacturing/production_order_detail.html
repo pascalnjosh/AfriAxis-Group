@@ -1,0 +1,383 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+{{ order.order_number }} | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+
+<style>
+.page-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    margin-bottom:24px;
+}
+
+.page-header h1 {
+    margin:0 0 6px 0;
+}
+
+.page-header p {
+    margin:0;
+    color:#6b7280;
+}
+
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:16px;
+    margin-bottom:24px;
+}
+
+.card {
+    background:white;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);
+}
+
+.label {
+    color:#6b7280;
+    font-size:13px;
+    text-transform:uppercase;
+    margin-bottom:6px;
+}
+
+.value {
+    font-size:20px;
+    font-weight:700;
+}
+
+.workflow {
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:18px 0;
+}
+
+.workflow form {
+    margin:0;
+}
+
+.btn {
+    border:0;
+    padding:11px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:700;
+}
+
+.btn-release {
+    background:#d97706;
+    color:white;
+}
+
+.btn-start {
+    background:#2563eb;
+    color:white;
+}
+
+.btn-complete {
+    background:#15803d;
+    color:white;
+}
+
+.btn-secondary {
+    display:inline-block;
+    background:#374151;
+    color:white;
+    padding:11px 16px;
+    border-radius:8px;
+    text-decoration:none;
+}
+
+.status {
+    font-weight:700;
+}
+
+.status-draft {
+    color:#6b7280;
+}
+
+.status-released {
+    color:#b45309;
+}
+
+.status-progress {
+    color:#2563eb;
+}
+
+.status-completed {
+    color:#15803d;
+}
+
+.status-cancelled {
+    color:#b91c1c;
+}
+
+table {
+    width:100%;
+    border-collapse:collapse;
+}
+
+th {
+    text-align:left;
+    background:#f3f4f6;
+    padding:12px;
+}
+
+td {
+    padding:12px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.message {
+    padding:12px 15px;
+    margin-bottom:14px;
+    border-radius:8px;
+    background:#f3f4f6;
+}
+</style>
+
+<div class="page-header">
+    <div>
+        <h1>{{ order.order_number }}</h1>
+
+        <p>
+            {{ order.bom.finished_product.name }}
+            · BOM {{ order.bom.code }}
+        </p>
+    </div>
+
+    <div>
+        <a
+            href="/admin/manufacturing/productionorder/{{ order.pk }}/change/"
+            class="btn-secondary"
+        >
+            Edit in Administration
+        </a>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="message">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="grid">
+
+    <div class="card">
+        <div class="label">Status</div>
+        <div class="value">
+            <span class="
+                status
+                {% if order.status == 'DRAFT' %}
+                    status-draft
+                {% elif order.status == 'RELEASED' %}
+                    status-released
+                {% elif order.status == 'IN_PROGRESS' %}
+                    status-progress
+                {% elif order.status == 'COMPLETED' %}
+                    status-completed
+                {% elif order.status == 'CANCELLED' %}
+                    status-cancelled
+                {% endif %}
+            ">
+                {{ order.get_status_display }}
+            </span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">Planned Quantity</div>
+        <div class="value">
+            {{ order.planned_quantity }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">Produced Quantity</div>
+        <div class="value">
+            {{ order.produced_quantity }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">Warehouse</div>
+        <div class="value">
+            {{ order.warehouse.code }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">Raw Material Location</div>
+        <div class="value">
+            {{ order.raw_material_location.code }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">Finished Goods Location</div>
+        <div class="value">
+            {{ order.finished_goods_location.code }}
+        </div>
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h2>Production Workflow</h2>
+
+    <div class="workflow">
+
+        {% if order.status == "DRAFT" %}
+        <form
+            method="post"
+            action="{% url 'manufacturing:release_production_order' order.pk %}"
+        >
+            {% csrf_token %}
+            <button
+                type="submit"
+                class="btn btn-release"
+                onclick="return confirm('Release this production order?');"
+            >
+                Release Production Order
+            </button>
+        </form>
+        {% endif %}
+
+        {% if order.status == "RELEASED" %}
+        <form
+            method="post"
+            action="{% url 'manufacturing:start_production_order' order.pk %}"
+        >
+            {% csrf_token %}
+            <button
+                type="submit"
+                class="btn btn-start"
+                onclick="return confirm('Start production now?');"
+            >
+                Start Production
+            </button>
+        </form>
+        {% endif %}
+
+        {% if order.status == "IN_PROGRESS" %}
+        <form
+            method="post"
+            action="{% url 'manufacturing:complete_production_order' order.pk %}"
+        >
+            {% csrf_token %}
+            <button
+                type="submit"
+                class="btn btn-complete"
+                onclick="return confirm('Complete production and post inventory/accounting transactions?');"
+            >
+                Complete Production
+            </button>
+        </form>
+        {% endif %}
+
+        <a
+            href="{% url 'manufacturing:production_order_list' %}"
+            class="btn-secondary"
+        >
+            Back to Production Orders
+        </a>
+
+    </div>
+
+</div>
+
+<br>
+
+<div class="card">
+
+    <h2>Material Requirements</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Component</th>
+                <th>Required Qty</th>
+                <th>Consumed Qty</th>
+                <th>Unit Cost</th>
+                <th>Total Cost</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for material in order.materials.all %}
+            <tr>
+                <td>
+                    {{ material.component.product_code }}
+                    -
+                    {{ material.component.name }}
+                </td>
+
+                <td>
+                    {{ material.required_quantity }}
+                </td>
+
+                <td>
+                    {{ material.consumed_quantity }}
+                </td>
+
+                <td>
+                    KES {{ material.unit_cost|floatformat:2 }}
+                </td>
+
+                <td>
+                    KES {{ material.total_cost|floatformat:2 }}
+                </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="5">
+                    No material requirements have been added.
+                </td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+
+</div>
+
+<br>
+
+<div class="card">
+
+    <h2>Production Dates</h2>
+
+    <p>
+        <strong>Planned Start:</strong>
+        {{ order.planned_start_date|default:"-" }}
+    </p>
+
+    <p>
+        <strong>Planned End:</strong>
+        {{ order.planned_end_date|default:"-" }}
+    </p>
+
+    <p>
+        <strong>Actual Start:</strong>
+        {{ order.actual_start_at|default:"-" }}
+    </p>
+
+    <p>
+        <strong>Completed At:</strong>
+        {{ order.completed_at|default:"-" }}
+    </p>
+
+</div>
+
+{% endblock %}

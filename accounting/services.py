@@ -29,6 +29,11 @@ def post_journal_entry(journal_entry, user=None):
             "A reversed journal entry cannot be posted."
         )
 
+    if entry.entry_date > timezone.localdate():
+        raise ValidationError(
+            "Future-dated journal entries cannot be posted."
+        )
+
     lines = list(entry.lines.all())
 
     if len(lines) < 2:
@@ -86,3 +91,4 @@ def post_journal_entry(journal_entry, user=None):
     )
 
     return entry
+

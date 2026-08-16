@@ -1,0 +1,409 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Finance Dashboard | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+
+<style>
+.dashboard-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    margin-bottom:24px;
+}
+
+.dashboard-header h1 {
+    margin:0 0 6px 0;
+}
+
+.dashboard-header p {
+    margin:0;
+    color:#6b7280;
+}
+
+.kpi-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
+    gap:16px;
+    margin-bottom:24px;
+}
+
+.kpi-card {
+    background:#ffffff;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);
+    border-left:5px solid #2563eb;
+}
+
+.kpi-label {
+    color:#6b7280;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-bottom:8px;
+}
+
+.kpi-value {
+    font-size:25px;
+    font-weight:700;
+    color:#111827;
+}
+
+.kpi-note {
+    margin-top:8px;
+    color:#6b7280;
+    font-size:13px;
+}
+
+.section-title {
+    margin:28px 0 14px;
+}
+
+.quick-actions {
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.quick-actions a {
+    display:inline-block;
+    padding:11px 15px;
+    background:#2563eb;
+    color:#ffffff;
+    text-decoration:none;
+    border-radius:8px;
+}
+
+.quick-actions a:hover {
+    background:#1d4ed8;
+}
+
+.status-good {
+    color:#15803d;
+}
+
+.status-warning {
+    color:#b45309;
+}
+
+.status-danger {
+    color:#b91c1c;
+}
+
+.two-column {
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(420px, 1fr));
+    gap:18px;
+}
+
+.table-card {
+    overflow-x:auto;
+}
+
+@media(max-width:600px) {
+    .dashboard-header {
+        display:block;
+    }
+
+    .two-column {
+        grid-template-columns:1fr;
+    }
+
+    .kpi-value {
+        font-size:21px;
+    }
+}
+</style>
+
+<div class="dashboard-header">
+    <div>
+        <h1>AfriAxis Executive Finance Dashboard</h1>
+        <p>
+            {% if company %}
+                {{ company }}
+            {% else %}
+                No company configured
+            {% endif %}
+        </p>
+    </div>
+
+    <div>
+        <a href="/admin/" class="button">
+            Open Administration
+        </a>
+    </div>
+</div>
+
+<h2 class="section-title">Financial Position</h2>
+
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Cash and Bank</div>
+        <div class="kpi-value">
+            KES {{ cash_and_bank|floatformat:2 }}
+        </div>
+        <div class="kpi-note">General-ledger cash balance</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Revenue</div>
+        <div class="kpi-value">
+            KES {{ total_revenue|floatformat:2 }}
+        </div>
+        <div class="kpi-note">Posted revenue transactions</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Net Profit</div>
+        <div class="kpi-value {% if net_profit >= 0 %}status-good{% else %}status-danger{% endif %}">
+            KES {{ net_profit|floatformat:2 }}
+        </div>
+        <div class="kpi-note">Revenue less costs and expenses</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Accounts Receivable</div>
+        <div class="kpi-value">
+            KES {{ accounts_receivable|floatformat:2 }}
+        </div>
+        <div class="kpi-note">Amounts due from customers</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Accounts Payable</div>
+        <div class="kpi-value">
+            KES {{ accounts_payable|floatformat:2 }}
+        </div>
+        <div class="kpi-note">Amounts due to suppliers</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Inventory Value</div>
+        <div class="kpi-value">
+            KES {{ inventory_value|floatformat:2 }}
+        </div>
+        <div class="kpi-note">Current inventory ledger value</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Total Assets</div>
+        <div class="kpi-value">
+            KES {{ total_assets|floatformat:2 }}
+        </div>
+        <div class="kpi-note">Balance-sheet assets</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Total Liabilities</div>
+        <div class="kpi-value">
+            KES {{ total_liabilities|floatformat:2 }}
+        </div>
+        <div class="kpi-note">Balance-sheet liabilities</div>
+    </div>
+</div>
+
+<h2 class="section-title">Rental Performance</h2>
+
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Rent Billed</div>
+        <div class="kpi-value">
+            KES {{ rent_billed|floatformat:2 }}
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Rent Collected</div>
+        <div class="kpi-value status-good">
+            KES {{ rent_collected|floatformat:2 }}
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Outstanding Rent</div>
+        <div class="kpi-value {% if outstanding_rent > 0 %}status-warning{% endif %}">
+            KES {{ outstanding_rent|floatformat:2 }}
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Occupancy Rate</div>
+        <div class="kpi-value">
+            {{ occupancy_rate }}%
+        </div>
+        <div class="kpi-note">
+            {{ occupied_houses }} occupied of {{ total_houses }}
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Vacant Houses</div>
+        <div class="kpi-value">
+            {{ vacant_houses }}
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Unpaid Invoices</div>
+        <div class="kpi-value">
+            {{ unpaid_invoice_count }}
+        </div>
+        <div class="kpi-note">
+            KES {{ outstanding_invoices|floatformat:2 }} outstanding
+        </div>
+    </div>
+</div>
+
+<h2 class="section-title">Bank Reconciliation</h2>
+
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Active Bank Accounts</div>
+        <div class="kpi-value">{{ bank_accounts }}</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Pending Review</div>
+        <div class="kpi-value {% if pending_bank > 0 %}status-warning{% endif %}">
+            {{ pending_bank }}
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Approved</div>
+        <div class="kpi-value status-good">
+            {{ approved_bank }}
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-label">Rejected</div>
+        <div class="kpi-value {% if rejected_bank > 0 %}status-danger{% endif %}">
+            {{ rejected_bank }}
+        </div>
+    </div>
+</div>
+
+<h2 class="section-title">Quick Actions</h2>
+
+<div class="card">
+    <div class="quick-actions">
+        <a href="/accounting/general-ledger/">
+            General Ledger
+        </a>
+
+        <a href="/accounting/trial-balance/">
+            Trial Balance
+        </a>
+
+        <a href="/accounting/profit-and-loss/">
+            Profit &amp; Loss
+        </a>
+
+        <a href="/accounting/balance-sheet/">
+            Balance Sheet
+        </a>
+
+        <a href="/accounting/cash-flow/">
+            Cash Flow
+        </a>
+
+        <a href="/banking/reconciliation/">
+            Bank Reconciliation
+        </a>
+
+        <a href="/banking/upload/">
+            Upload Bank Statement
+        </a>
+
+        <a href="/billing/invoices/">
+            Invoices
+        </a>
+
+        <a href="/dashboard/rent-report/">
+            Rent Report
+        </a>
+
+        <a href="/admin/accounting/journalentry/add/">
+            New Journal Entry
+        </a>
+    </div>
+</div>
+
+<div class="two-column">
+    <div class="card table-card">
+        <h2>Recent Bank Transactions</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Money In</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in recent_bank_transactions %}
+                <tr>
+                    <td>{{ item.transaction_date }}</td>
+                    <td>{{ item.description|truncatechars:35 }}</td>
+                    <td>
+                        KES {{ item.money_in|floatformat:2 }}
+                    </td>
+                    <td>{{ item.get_match_status_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        No bank transactions available.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card table-card">
+        <h2>Recent Rent Records</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Tenant</th>
+                    <th>House</th>
+                    <th>Billed</th>
+                    <th>Balance</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for rent in recent_rents %}
+                <tr>
+                    <td>{{ rent.tenant }}</td>
+                    <td>{{ rent.house }}</td>
+                    <td>
+                        KES {{ rent.amount|floatformat:2 }}
+                    </td>
+                    <td>
+                        KES {{ rent.balance|floatformat:2 }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        No rent records available.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
