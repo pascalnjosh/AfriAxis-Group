@@ -47,6 +47,20 @@ class WifiPayment(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     phone_number = models.CharField(max_length=20)
     transaction_code = models.CharField(max_length=50, blank=True, null=True)
+
+    merchant_request_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+
+    checkout_request_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        db_index=True
+    )
+
     status = models.CharField(max_length=20, default="PENDING")
     verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -91,3 +105,4 @@ class WaterBill(models.Model):
 
     def __str__(self):
         return f"{self.tenant} - Water {self.total_amount}"
+

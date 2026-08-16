@@ -1,0 +1,105 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Stock Movements | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+
+<h1>Stock Movement History</h1>
+
+<form method="get" class="card">
+    <select name="warehouse">
+        <option value="">All Warehouses</option>
+        {% for warehouse in warehouses %}
+        <option
+            value="{{ warehouse.id }}"
+            {% if selected_warehouse == warehouse.id|stringformat:"s" %}selected{% endif %}
+        >
+            {{ warehouse }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <select name="product">
+        <option value="">All Products</option>
+        {% for product in products %}
+        <option
+            value="{{ product.id }}"
+            {% if selected_product == product.id|stringformat:"s" %}selected{% endif %}
+        >
+            {{ product }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <select name="movement_type">
+        <option value="">All Movement Types</option>
+        {% for code, label in movement_types %}
+        <option
+            value="{{ code }}"
+            {% if selected_movement_type == code %}selected{% endif %}
+        >
+            {{ label }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <input
+        type="text"
+        name="q"
+        value="{{ search }}"
+        placeholder="Movement, reference, product or batch"
+    >
+
+    <button type="submit">Apply</button>
+
+    <a href="{% url 'movement_history' %}">Clear</a>
+</form>
+
+<div class="card">
+    <strong>Total Movement Quantity:</strong>
+    {{ total_quantity|floatformat:3 }}
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Movement</th>
+            <th>Type</th>
+            <th>Product</th>
+            <th>Warehouse</th>
+            <th>Location</th>
+            <th>Batch</th>
+            <th>Quantity</th>
+            <th>Unit Cost</th>
+            <th>Total Cost</th>
+            <th>Reference</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for movement in movements %}
+        <tr>
+            <td>{{ movement.created_at }}</td>
+            <td>{{ movement.movement_number }}</td>
+            <td>{{ movement.get_movement_type_display }}</td>
+            <td>{{ movement.product }}</td>
+            <td>{{ movement.warehouse }}</td>
+            <td>{{ movement.location }}</td>
+            <td>{{ movement.batch|default:"-" }}</td>
+            <td>{{ movement.quantity|floatformat:3 }}</td>
+            <td>KES {{ movement.unit_cost|floatformat:2 }}</td>
+            <td>KES {{ movement.total_cost|floatformat:2 }}</td>
+            <td>{{ movement.reference|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="11">No stock movements found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

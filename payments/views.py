@@ -1,22 +1,13 @@
-import base64
-import json
-from datetime import datetime
+from decimal import Decimal, InvalidOperation
 
-import requests
-
-from django.conf import settings
-from django.db import models
-from django.http import JsonResponse
+from django.db import models, transaction
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.csrf import csrf_exempt
 
 from .models import Payment
 from rentals.models import Rent
-from billing.utils import apply_mpesa_to_invoice
 
 
 def user_role(request):
-
     profile = getattr(
         request.user,
         "userprofile",
@@ -30,18 +21,20 @@ def user_role(request):
 
 
 def dashboard(request):
-
     if not request.user.is_authenticated:
         return redirect("/admin/login/")
 
     role = user_role(request)
 
-    if role not in ["MD", "ACCOUNTS"]:
+    if role not in ["MD", "GM", "ACCOUNTS"]:
         return redirect("/accounts/home/")
 
     rents = Rent.objects.all().order_by("due_date")
 
-    unpaid = rents.filter(paid=False)
+    unpaid = rents.filter(
+        paid=False,
+        closed=False
+    )
 
     paid = rents.filter(
         paid=True
@@ -55,23 +48,27 @@ def dashboard(request):
         status="SUCCESS"
     ).aggregate(
         total=models.Sum("amount")
-    )["total"] or 0
+    )["total"] or Decimal("0.00")
 
-    unpaid_total = unpaid.aggregate(
-        total=models.Sum("amount")
-    )["total"] or 0
-
-    net_outstanding = unpaid_total - collected_total
+    outstanding_total = unpaid.aggregate(
+        total=models.Sum("balance")
+    )["total"] or Decimal("0.00")
 
     context = {
         "greeting": "AfriAxis Payments Dashboard",
         "total_rents": rents.count(),
         "total_revenue": collected_total,
-        "rent_due": unpaid_total,
-        "net_outstanding": net_outstanding,
-        "successful_payments": Payment.objects.filter(status="SUCCESS").count(),
-        "pending_payments": Payment.objects.filter(status="PENDING").count(),
-        "failed_payments": Payment.objects.filter(status="FAILED").count(),
+        "rent_due": outstanding_total,
+        "net_outstanding": outstanding_total,
+        "successful_payments": Payment.objects.filter(
+            status="SUCCESS"
+        ).count(),
+        "pending_payments": Payment.objects.filter(
+            status="PENDING"
+        ).count(),
+        "failed_payments": Payment.objects.filter(
+            status="FAILED"
+        ).count(),
         "unpaid_rents": unpaid,
         "paid_rents": paid,
         "payments": payments,
@@ -84,34 +81,13 @@ def dashboard(request):
     )
 
 
-def get_mpesa_access_token():
-
-    url = f"{settings.MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
-
-    auth = (
-        settings.MPESA_CONSUMER_KEY,
-        settings.MPESA_CONSUMER_SECRET
-    )
-
-    response = requests.get(
-        url,
-        auth=auth,
-        timeout=30
-    )
-
-    response.raise_for_status()
-
-    return response.json()["access_token"]
-
-
 def rent_payment_page(request, rent_id):
-
     if not request.user.is_authenticated:
         return redirect("/admin/login/")
 
     role = user_role(request)
 
-    if role not in ["MD", "ACCOUNTS"]:
+    if role not in ["MD", "GM", "ACCOUNTS"]:
         return redirect("/accounts/home/")
 
     rent = get_object_or_404(
@@ -119,170 +95,110 @@ def rent_payment_page(request, rent_id):
         id=rent_id
     )
 
+    message = None
+    error = None
+
     if request.method == "POST":
+        payment_method = (
+            request.POST.get("payment_method", "BANK")
+            .strip()
+            .upper()
+        )
 
-        phone = request.POST.get("phone_number")
+        allowed_methods = {
+            "BANK",
+            "CASH",
+            "CHEQUE",
+        }
 
-        amount = int(
-            float(
-                request.POST.get("amount") or rent.amount
+        if payment_method not in allowed_methods:
+            error = "Invalid payment method."
+
+        try:
+            amount = Decimal(
+                request.POST.get("amount") or "0"
             )
+        except (InvalidOperation, TypeError):
+            amount = Decimal("0.00")
+
+        reference = (
+            request.POST.get("reference", "")
+            .strip()
         )
 
-        token = get_mpesa_access_token()
-
-        timestamp = datetime.now().strftime(
-            "%Y%m%d%H%M%S"
+        description = (
+            request.POST.get("description", "")
+            .strip()
         )
 
-        password_raw = (
-            f"{settings.MPESA_SHORTCODE}"
-            f"{settings.MPESA_PASSKEY}"
-            f"{timestamp}"
-        )
+        current_balance = rent.balance or Decimal("0.00")
 
-        password = base64.b64encode(
-            password_raw.encode()
-        ).decode()
+        if not error and amount <= 0:
+            error = "Payment amount must be greater than zero."
 
-        callback_url = (
-            "https://afriaxis-group-1.onrender.com/"
-            "payments/mpesa/callback/"
-        )
+        if not error and current_balance > 0 and amount > current_balance:
+            error = (
+                f"Payment cannot exceed outstanding balance "
+                f"of KES {current_balance}."
+            )
 
-        payload = {
-            "BusinessShortCode": settings.MPESA_SHORTCODE,
-            "Password": password,
-            "Timestamp": timestamp,
-            "TransactionType": "CustomerPayBillOnline",
-            "Amount": amount,
-            "PartyA": phone,
-            "PartyB": settings.MPESA_SHORTCODE,
-            "PhoneNumber": phone,
-            "CallBackURL": callback_url,
-            "AccountReference": f"RENT-{rent.id}",
-            "TransactionDesc": (
-                f"Rent payment for {rent.tenant.name}"
-            ),
-        }
+        if not error:
+            with transaction.atomic():
+                payment = Payment.objects.create(
+                    rental_rent=rent,
+                    amount=amount,
+                    account_reference=reference or f"RENT-{rent.id}",
+                    transaction_desc=(
+                        description
+                        or f"Rent payment for {rent.tenant.name}"
+                    ),
+                    payment_method=payment_method,
+                    status="SUCCESS",
+                )
 
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        }
+                rent.amount_paid = (
+                    rent.amount_paid or Decimal("0.00")
+                ) + amount
 
-        url = (
-            f"{settings.MPESA_BASE_URL}"
-            "/mpesa/stkpush/v1/processrequest"
-        )
+                rent.balance = max(
+                    Decimal("0.00"),
+                    (rent.amount or Decimal("0.00"))
+                    - rent.amount_paid
+                )
 
-        response = requests.post(
-            url,
-            json=payload,
-            headers=headers,
-            timeout=30
-        )
+                rent.paid = rent.balance == Decimal("0.00")
 
-        data = response.json()
+                rent.save(
+                    update_fields=[
+                        "amount_paid",
+                        "balance",
+                        "paid",
+                    ]
+                )
 
-        Payment.objects.create(
-            rental_rent=rent,
-            amount=amount,
-            phone_number=phone,
-            account_reference=f"RENT-{rent.id}",
-            transaction_desc=(
-                f"Rent payment for {rent.tenant.name}"
-            ),
-            checkout_request_id=data.get("CheckoutRequestID"),
-            merchant_request_id=data.get("MerchantRequestID"),
-            status="PENDING",
-        )
-
-        return render(
-            request,
-            "rent_payment.html",
-            {
-                "rent": rent,
-                "message": "STK push sent. Complete payment on phone.",
-                "mpesa_response": data,
-            }
-        )
+            return redirect(
+                "payment_receipt",
+                payment_id=payment.id
+            )
 
     return render(
         request,
         "rent_payment.html",
-        {"rent": rent}
+        {
+            "rent": rent,
+            "message": message,
+            "error": error,
+        }
     )
-
-
-@csrf_exempt
-def rent_mpesa_callback(request):
-
-    data = json.loads(
-        request.body.decode("utf-8") or "{}"
-    )
-
-    callback = data.get("Body", {}).get("stkCallback", {})
-
-    checkout_id = callback.get("CheckoutRequestID")
-
-    result_code = callback.get("ResultCode")
-
-    payment = Payment.objects.filter(
-        checkout_request_id=checkout_id
-    ).first()
-
-    if payment:
-
-        if result_code == 0:
-
-            receipt = None
-
-            items = callback.get(
-                "CallbackMetadata",
-                {}
-            ).get(
-                "Item",
-                []
-            )
-
-            for item in items:
-
-                if item.get("Name") == "MpesaReceiptNumber":
-                    receipt = item.get("Value")
-
-            payment.status = "SUCCESS"
-            payment.mpesa_receipt_number = receipt
-            payment.save()
-
-            apply_mpesa_to_invoice(
-                phone_number=payment.phone_number,
-                amount=payment.amount,
-                receipt=receipt
-            )
-
-            if payment.rental_rent:
-                payment.rental_rent.paid = True
-                payment.rental_rent.save()
-
-        else:
-            payment.status = "FAILED"
-            payment.save()
-
-    return JsonResponse({
-        "ResultCode": 0,
-        "ResultDesc": "Accepted"
-    })
 
 
 def payment_receipt(request, payment_id):
-
     if not request.user.is_authenticated:
         return redirect("/admin/login/")
 
     role = user_role(request)
 
-    if role not in ["MD", "ACCOUNTS"]:
+    if role not in ["MD", "GM", "ACCOUNTS"]:
         return redirect("/accounts/home/")
 
     payment = get_object_or_404(
@@ -297,8 +213,4 @@ def payment_receipt(request, payment_id):
             "payment": payment
         }
     )
-
-
-
-
 

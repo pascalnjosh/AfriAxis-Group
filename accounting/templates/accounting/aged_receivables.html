@@ -1,0 +1,141 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}
+Aged Receivables | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+<style>
+    .report-header {
+        margin-bottom: 24px;
+    }
+
+    .report-filter {
+        background: var(--darkened-bg);
+        border: 1px solid var(--hairline-color);
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 24px;
+    }
+
+    .report-filter input {
+        padding: 8px;
+        margin-right: 10px;
+    }
+
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .report-table th,
+    .report-table td {
+        padding: 10px;
+        border: 1px solid var(--hairline-color);
+        text-align: right;
+    }
+
+    .report-table th:first-child,
+    .report-table td:first-child,
+    .report-table th:nth-child(2),
+    .report-table td:nth-child(2) {
+        text-align: left;
+    }
+
+    .report-table thead {
+        background: var(--primary);
+        color: white;
+    }
+
+    .total-row {
+        font-weight: bold;
+        background: var(--darkened-bg);
+    }
+
+    .amount-overdue {
+        font-weight: bold;
+    }
+
+    .empty-report {
+        padding: 30px;
+        text-align: center;
+        background: var(--darkened-bg);
+        border-radius: 6px;
+    }
+</style>
+
+<div class="report-header">
+    <h1>Aged Receivables</h1>
+    <p>Outstanding customer invoices grouped by age.</p>
+</div>
+
+<form method="get" class="report-filter">
+    <label for="as_of"><strong>Report date:</strong></label>
+
+    <input
+        id="as_of"
+        type="date"
+        name="as_of"
+        value="{{ as_of|date:'Y-m-d' }}"
+    >
+
+    <button type="submit" class="button">
+        Generate Report
+    </button>
+</form>
+
+{% if rows %}
+<div style="overflow-x:auto;">
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Due Date</th>
+                <th>Days Overdue</th>
+                <th>Current</th>
+                <th>1–30 Days</th>
+                <th>31–60 Days</th>
+                <th>61–90 Days</th>
+                <th>Over 90 Days</th>
+                <th>Total Balance</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row.invoice.invoice_number }}</td>
+                <td>{{ row.customer }}</td>
+                <td>{{ row.due_date|date:"d M Y" }}</td>
+                <td>{{ row.days_overdue }}</td>
+                <td>{{ row.current|floatformat:2 }}</td>
+                <td>{{ row.days_1_30|floatformat:2 }}</td>
+                <td>{{ row.days_31_60|floatformat:2 }}</td>
+                <td>{{ row.days_61_90|floatformat:2 }}</td>
+                <td>{{ row.days_over_90|floatformat:2 }}</td>
+                <td class="amount-overdue">
+                    KES {{ row.balance|floatformat:2 }}
+                </td>
+            </tr>
+            {% endfor %}
+
+            <tr class="total-row">
+                <td colspan="4">TOTAL</td>
+                <td>{{ totals.current|floatformat:2 }}</td>
+                <td>{{ totals.days_1_30|floatformat:2 }}</td>
+                <td>{{ totals.days_31_60|floatformat:2 }}</td>
+                <td>{{ totals.days_61_90|floatformat:2 }}</td>
+                <td>{{ totals.days_over_90|floatformat:2 }}</td>
+                <td>KES {{ totals.total|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-report">
+    <h2>No outstanding customer invoices</h2>
+    <p>There are no receivables to display as of {{ as_of|date:"d M Y" }}.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -6,66 +6,110 @@
 
 <h1>Bank Reconciliation</h1>
 
-<p>
-    <a href="{% url 'approve_all_high_confidence' %}">
-        Approve All 95%+
-    </a>
-</p>
+{% if bank_account %}
+<div class="grid">
+
+    <div class="card">
+        <h2>{{ bank_account.bank_name }}</h2>
+        <p>{{ bank_account.account_number }}</p>
+    </div>
+
+    <div class="card">
+        <h2>KES {{ statement_closing_balance }}</h2>
+        <p>Statement Closing Balance</p>
+    </div>
+
+    <div class="card">
+        <h2>KES {{ gl_cash_balance }}</h2>
+        <p>General Ledger Cash</p>
+    </div>
+
+    <div class="card">
+        <h2>KES {{ reconciliation_difference }}</h2>
+        <p>Difference</p>
+    </div>
+
+    <div class="card">
+        {% if reconciliation_status == "BALANCED" %}
+            <h2 style="color:green;">✓ BALANCED</h2>
+        {% else %}
+            <h2 style="color:red;">{{ reconciliation_status }}</h2>
+        {% endif %}
+        <p>Reconciliation Status</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ statement_date }}</h2>
+        <p>Statement Date</p>
+    </div>
+
+</div>
+{% endif %}
+
+<hr>
+
+<h2>Statement Control</h2>
 
 <div class="grid">
 
     <div class="card">
-        <h2>{{ total_transactions }}</h2>
-        <p>Total Transactions</p>
+        <h2>{{ statement_transactions }}</h2>
+        <p>Statement Transactions</p>
     </div>
 
     <div class="card">
-        <h2>{{ approved }}</h2>
+        <h2>{{ statement_approved }}</h2>
         <p>Approved</p>
     </div>
 
     <div class="card">
-        <h2>{{ pending }}</h2>
+        <h2>{{ statement_pending }}</h2>
         <p>Pending Review</p>
     </div>
 
     <div class="card">
-        <h2>{{ rejected }}</h2>
+        <h2>{{ statement_rejected }}</h2>
         <p>Rejected</p>
     </div>
 
     <div class="card">
-        <h2>{{ unknown }}</h2>
-        <p>Unknown</p>
+        <h2>{{ unallocated_receipts }}</h2>
+        <p>Unallocated Receipts</p>
     </div>
 
     <div class="card">
-        <h2>KES {{ total_money_in }}</h2>
-        <p>Total Money In</p>
-    </div>
-
-    <div class="card">
-        <h2>KES {{ total_money_out }}</h2>
-        <p>Total Money Out</p>
+        <h2>{{ bank_charge_rows }}</h2>
+        <p>Bank Charge Rows</p>
     </div>
 
 </div>
 
 <hr>
 
-<table>
+<p>
+    <a href="{% url 'upload_statement' %}">
+        Upload Bank Statement
+    </a>
+    |
+    <a href="{% url 'approve_all_high_confidence' %}">
+        Approve All 95%+
+    </a>
+</p>
 
+<h2>All Bank Transactions</h2>
+
+<table>
     <thead>
         <tr>
             <th>Date</th>
             <th>Description</th>
-            <th>Tenant</th>
+            <th>Tenant / ERP Match</th>
             <th>House</th>
-            <th>Auto Match</th>
             <th>Money In</th>
             <th>Money Out</th>
-            <th>Suggestion</th>
+            <th>Category</th>
             <th>Confidence</th>
+            <th>Status</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -73,48 +117,64 @@
     <tbody>
 
     {% for t in transactions %}
-
         <tr>
-
             <td>{{ t.transaction_date }}</td>
 
             <td>{{ t.description }}</td>
 
-            <td>{{ t.matched_tenant|default:"-" }}</td>
-
-            <td>{{ t.matched_house|default:"-" }}</td>
-
             <td>
-                {% if t.auto_matched %}
-                    ✅
+                {% if t.matched_sales_receipt %}
+                    Customer Receipt:
+                    {{ t.matched_sales_receipt.receipt_number }}
+
+                {% elif t.matched_supplier_payment %}
+                    Supplier Payment:
+                    {{ t.matched_supplier_payment.reference }}
+
+                {% elif t.matched_tenant %}
+                    {{ t.matched_tenant }}
+
                 {% else %}
-                    ❌
+                    -
                 {% endif %}
             </td>
+
+            <td>{{ t.matched_house|default:"-" }}</td>
 
             <td>{{ t.money_in }}</td>
 
             <td>{{ t.money_out }}</td>
 
-            <td>{{ t.suggested_category }}</td>
+            <td>{{ t.get_suggested_category_display }}</td>
 
             <td>{{ t.confidence }}%</td>
 
             <td>
+                {% if t.match_status == "approved" %}
+                    <span style="color:green;">
+                        Approved
+                    </span>
 
+                {% elif t.match_status == "rejected" %}
+                    <span style="color:red;">
+                        Rejected
+                    </span>
+
+                {% else %}
+                    <span style="color:#b8860b;">
+                        Pending
+                    </span>
+                {% endif %}
+            </td>
+
+            <td>
                 {% if t.match_status == "approved" %}
 
                     <a href="{% url 'undo_transaction' t.id %}">
                         Undo
                     </a>
 
-                {% elif t.match_status == "rejected" %}
-
-                    <span style="color:red;">
-                        Rejected
-                    </span>
-
-                {% elif t.matched_tenant and t.matched_house %}
+                {% elif t.matched_tenant and t.matched_house or t.matched_sales_receipt or t.matched_supplier_payment %}
 
                     <a href="{% url 'approve_transaction' t.id %}">
                         Approve
@@ -128,28 +188,24 @@
 
                 {% else %}
 
-                    <span style="color:#888;">
-                        Pending
-                    </span>
+                    Pending
 
                 {% endif %}
-
             </td>
-
         </tr>
 
     {% empty %}
 
         <tr>
             <td colspan="10">
-                No transactions imported yet.
+                No bank transactions imported.
             </td>
         </tr>
 
     {% endfor %}
 
     </tbody>
-
 </table>
 
 {% endblock %}
+

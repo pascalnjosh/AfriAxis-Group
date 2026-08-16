@@ -1,0 +1,105 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Stock Ledger | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+
+<h1>Stock Ledger</h1>
+
+<form method="get" class="card">
+    <label>Product:</label>
+
+    <select name="product" required>
+        <option value="">Select Product</option>
+        {% for product in products %}
+        <option
+            value="{{ product.id }}"
+            {% if selected_product and selected_product.id == product.id %}selected{% endif %}
+        >
+            {{ product }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label>Warehouse:</label>
+
+    <select name="warehouse">
+        <option value="">All Warehouses</option>
+        {% for warehouse in warehouses %}
+        <option
+            value="{{ warehouse.id }}"
+            {% if selected_warehouse == warehouse.id|stringformat:"s" %}selected{% endif %}
+        >
+            {{ warehouse }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">View Ledger</button>
+</form>
+
+{% if selected_product %}
+
+<div class="card">
+    <h2>{{ selected_product }}</h2>
+
+    <p>
+        <strong>Closing Quantity:</strong>
+        {{ closing_quantity|floatformat:3 }}
+
+        &nbsp; | &nbsp;
+
+        <strong>Closing Value:</strong>
+        KES {{ closing_value|floatformat:2 }}
+    </p>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Movement</th>
+            <th>Type</th>
+            <th>Reference</th>
+            <th>Warehouse</th>
+            <th>Location</th>
+            <th>Batch</th>
+            <th>In</th>
+            <th>Out</th>
+            <th>Unit Cost</th>
+            <th>Running Quantity</th>
+            <th>Running Value</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.date }}</td>
+            <td>{{ row.movement_number }}</td>
+            <td>{{ row.movement_type }}</td>
+            <td>{{ row.reference|default:"-" }}</td>
+            <td>{{ row.warehouse }}</td>
+            <td>{{ row.location }}</td>
+            <td>{{ row.batch|default:"-" }}</td>
+            <td>{{ row.quantity_in|floatformat:3 }}</td>
+            <td>{{ row.quantity_out|floatformat:3 }}</td>
+            <td>KES {{ row.unit_cost|floatformat:2 }}</td>
+            <td>{{ row.running_balance|floatformat:3 }}</td>
+            <td>KES {{ row.running_value|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="12">
+                No movements found for this product.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endif %}
+
+{% endblock %}

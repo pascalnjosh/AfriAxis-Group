@@ -4,6 +4,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction as db_transaction
 from django.db.models import Sum
+from decimal import Decimal
+
+from accounting.models import Account, JournalEntryLine
+from .models import BankStatementUpload
+from accounting.posting import create_journal_entry
 from django.shortcuts import get_object_or_404, redirect, render
 
 from payments.models import Payment
@@ -19,35 +24,188 @@ def reconciliation_dashboard(request):
     transactions = (
         BankTransaction.objects
         .select_related(
+            "bank_account",
             "matched_tenant",
             "matched_house",
             "matched_house__apartment",
+            "matched_sales_receipt",
+            "matched_supplier_payment",
         )
         .order_by("-transaction_date", "-id")
     )
 
+    latest_upload = (
+        BankStatementUpload.objects
+        .filter(processed=True)
+        .select_related("bank_account")
+        .order_by("-uploaded_at", "-id")
+        .first()
+    )
+
+    statement_closing_balance = Decimal("0.00")
+    gl_cash_balance = Decimal("0.00")
+    reconciliation_difference = Decimal("0.00")
+    reconciliation_status = "NO STATEMENT"
+    statement_date = None
+    bank_account = None
+
+    statement_transactions = BankTransaction.objects.none()
+
+    if latest_upload:
+        bank_account = latest_upload.bank_account
+
+        statement_transactions = (
+            BankTransaction.objects
+            .filter(statement_upload=latest_upload)
+            .order_by("transaction_date", "id")
+        )
+
+        last_statement_transaction = (
+            statement_transactions.last()
+        )
+
+        if last_statement_transaction:
+            statement_date = (
+                last_statement_transaction.transaction_date
+            )
+
+            statement_closing_balance = Decimal(
+                str(last_statement_transaction.balance)
+            )
+
+            cash_account = (
+                Account.objects
+                .filter(
+                    code="1000",
+                    active=True,
+                )
+                .first()
+            )
+
+            if cash_account:
+                cash_lines = (
+                    JournalEntryLine.objects
+                    .filter(
+                        account=cash_account,
+                        journal_entry__status="POSTED",
+                        journal_entry__entry_date__lte=statement_date,
+                    )
+                )
+
+                gl_cash_balance = sum(
+                    (
+                        Decimal(str(line.debit))
+                        - Decimal(str(line.credit))
+                        for line in cash_lines
+                    ),
+                    Decimal("0.00"),
+                )
+
+            reconciliation_difference = (
+                statement_closing_balance
+                - gl_cash_balance
+            )
+
+            if (
+                reconciliation_difference
+                == Decimal("0.00")
+            ):
+                reconciliation_status = "BALANCED"
+            else:
+                reconciliation_status = (
+                    "OUT OF BALANCE"
+                )
+
     context = {
         "transactions": transactions[:200],
+
         "total_transactions": transactions.count(),
+
         "approved": transactions.filter(
             match_status="approved",
         ).count(),
+
         "pending": transactions.filter(
             match_status="pending",
         ).count(),
+
         "rejected": transactions.filter(
             match_status="rejected",
         ).count(),
+
         "unknown": transactions.filter(
             suggested_category="unknown",
         ).count(),
+
         "total_money_in": (
-            transactions.aggregate(total=Sum("money_in"))["total"]
-            or Decimal("0")
+            transactions.aggregate(
+                total=Sum("money_in")
+            )["total"]
+            or Decimal("0.00")
         ),
+
         "total_money_out": (
-            transactions.aggregate(total=Sum("money_out"))["total"]
-            or Decimal("0")
+            transactions.aggregate(
+                total=Sum("money_out")
+            )["total"]
+            or Decimal("0.00")
+        ),
+
+        "bank_account": bank_account,
+        "latest_upload": latest_upload,
+        "statement_date": statement_date,
+
+        "statement_closing_balance": (
+            statement_closing_balance
+        ),
+
+        "gl_cash_balance": gl_cash_balance,
+
+        "reconciliation_difference": (
+            reconciliation_difference
+        ),
+
+        "reconciliation_status": (
+            reconciliation_status
+        ),
+
+        "statement_transactions": (
+            statement_transactions.count()
+        ),
+
+        "statement_approved": (
+            statement_transactions.filter(
+                match_status="approved",
+            ).count()
+        ),
+
+        "statement_pending": (
+            statement_transactions.filter(
+                match_status="pending",
+            ).count()
+        ),
+
+        "statement_rejected": (
+            statement_transactions.filter(
+                match_status="rejected",
+            ).count()
+        ),
+
+        "unallocated_receipts": (
+            statement_transactions
+            .filter(
+                money_in__gt=0,
+            )
+            .exclude(
+                match_status="approved",
+            )
+            .count()
+        ),
+
+        "bank_charge_rows": (
+            statement_transactions.filter(
+                money_out__gt=0,
+            ).count()
         ),
     }
 
@@ -56,7 +214,6 @@ def reconciliation_dashboard(request):
         "banking/reconciliation.html",
         context,
     )
-
 
 @login_required
 def upload_statement(request):
@@ -222,6 +379,70 @@ def _post_bank_transaction(transaction):
     )
 
 
+def _post_bank_charge_transaction(transaction, user=None):
+    if transaction.match_status == "approved":
+        return False, "Transaction is already approved."
+
+    if transaction.money_out <= 0:
+        return False, "Cannot approve: transaction has no money out."
+
+    bank_account = transaction.bank_account
+    company = getattr(bank_account, "company", None)
+
+    if company is None:
+        return False, "Cannot approve: bank account has no company."
+
+    reference = (
+        transaction.reference
+        or f"BANK-{transaction.id}"
+    )
+
+    description = (
+        transaction.description
+        or "Bank charge"
+    )
+
+    create_journal_entry(
+        company=company,
+        reference=reference,
+        description=description,
+        entry_date=transaction.transaction_date,
+        user=user,
+        auto_post=True,
+        lines=[
+            {
+                "account_code": "6100",
+                "debit": transaction.money_out,
+                "credit": "0.00",
+                "description": description,
+            },
+            {
+                "account_code": "1000",
+                "debit": "0.00",
+                "credit": transaction.money_out,
+                "description": description,
+            },
+        ],
+    )
+
+    transaction.match_status = "approved"
+    transaction.suggested_category = "bank_charge"
+    transaction.match_notes = (
+        "Posted to 6100 Bank Charges "
+        "against 1000 Cash and Bank."
+    )
+
+    transaction.save(
+        update_fields=[
+            "match_status",
+            "suggested_category",
+            "match_notes",
+        ]
+    )
+
+    return True, "Bank charge posted and approved."
+
+
 @login_required
 def approve_transaction(request, transaction_id):
     transaction = get_object_or_404(
@@ -229,7 +450,24 @@ def approve_transaction(request, transaction_id):
         id=transaction_id,
     )
 
-    posted, message = _post_bank_transaction(transaction)
+    if transaction.money_out > 0:
+        posted, message = _post_bank_charge_transaction(
+            transaction,
+            user=request.user,
+        )
+
+    elif (
+        transaction.matched_sales_receipt_id
+        or transaction.matched_supplier_payment_id
+    ):
+        posted, message = _approve_erp_bank_transaction(
+            transaction
+        )
+
+    else:
+        posted, message = _post_bank_transaction(
+            transaction
+        )
 
     if posted:
         messages.success(request, message)
@@ -364,3 +602,143 @@ def reject_transaction(request, transaction_id):
     )
 
     return redirect("bank_reconciliation")
+
+
+@db_transaction.atomic
+def _approve_erp_bank_transaction(bank_item):
+    bank_item = (
+        BankTransaction.objects
+        .select_for_update()
+        .select_related(
+            "bank_account",
+            "matched_sales_receipt",
+            "matched_sales_receipt__bank_account",
+            "matched_supplier_payment",
+            "matched_supplier_payment__bank_account",
+        )
+        .get(pk=bank_item.pk)
+    )
+
+    if bank_item.match_status == "approved":
+        return False, "Transaction is already approved."
+
+    if bank_item.matched_sales_receipt_id:
+        receipt = bank_item.matched_sales_receipt
+
+        if receipt.status != "POSTED":
+            return False, (
+                "Matched customer receipt is not posted."
+            )
+
+        if receipt.bank_account_id != bank_item.bank_account_id:
+            return False, (
+                "Customer receipt bank account does not match "
+                "the statement transaction."
+            )
+
+        if Decimal(str(bank_item.money_in)) != Decimal(str(receipt.amount)):
+            return False, (
+                "Bank money-in amount does not match "
+                "the customer receipt."
+            )
+
+        duplicate = (
+            BankTransaction.objects
+            .filter(
+                matched_sales_receipt=receipt,
+                match_status="approved",
+            )
+            .exclude(pk=bank_item.pk)
+            .exists()
+        )
+
+        if duplicate:
+            return False, (
+                "This customer receipt is already reconciled "
+                "to another bank transaction."
+            )
+
+        bank_item.match_status = "approved"
+        bank_item.suggested_category = "customer_receipt"
+        bank_item.match_notes = (
+            f"Reconciled to customer receipt "
+            f"{receipt.receipt_number}"
+        )
+
+        bank_item.save(
+            update_fields=[
+                "match_status",
+                "suggested_category",
+                "match_notes",
+            ]
+        )
+
+        return True, (
+            f"Bank transaction reconciled to "
+            f"{receipt.receipt_number}."
+        )
+
+    if bank_item.matched_supplier_payment_id:
+        payment = bank_item.matched_supplier_payment
+
+        if not payment.posted:
+            return False, (
+                "Matched supplier payment is not posted."
+            )
+
+        if payment.bank_account_id != bank_item.bank_account_id:
+            return False, (
+                "Supplier payment bank account does not match "
+                "the statement transaction."
+            )
+
+        if Decimal(str(bank_item.money_out)) != Decimal(str(payment.amount)):
+            return False, (
+                "Bank money-out amount does not match "
+                "the supplier payment."
+            )
+
+        duplicate = (
+            BankTransaction.objects
+            .filter(
+                matched_supplier_payment=payment,
+                match_status="approved",
+            )
+            .exclude(pk=bank_item.pk)
+            .exists()
+        )
+
+        if duplicate:
+            return False, (
+                "This supplier payment is already reconciled "
+                "to another bank transaction."
+            )
+
+        bank_item.match_status = "approved"
+        bank_item.suggested_category = "supplier_payment"
+        bank_item.match_notes = (
+            f"Reconciled to supplier payment "
+            f"{payment.reference}"
+        )
+
+        bank_item.save(
+            update_fields=[
+                "match_status",
+                "suggested_category",
+                "match_notes",
+            ]
+        )
+
+        return True, (
+            f"Bank transaction reconciled to "
+            f"{payment.reference}."
+        )
+
+    return False, "No ERP transaction is matched."
+
+
+
+
+
+
+

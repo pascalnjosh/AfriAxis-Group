@@ -1,0 +1,199 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}
+Cash Flow Statement | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <h1>Cash Flow Statement</h1>
+
+    <p>
+        <strong>Company:</strong> {{ company }}
+    </p>
+
+    <p>
+        <strong>Method:</strong> Indirect Method
+    </p>
+
+    <form method="get" style="margin-bottom: 20px;">
+        <label for="as_of">As of:</label>
+
+        <input
+            id="as_of"
+            type="date"
+            name="as_of"
+            value="{{ as_of|date:'Y-m-d' }}"
+        >
+
+        <button
+            type="submit"
+            class="button"
+            style="margin-left: 12px;"
+        >
+            Apply
+        </button>
+
+        <a href="{% url 'cash_flow' %}" class="button">
+            Clear
+        </a>
+    </form>
+
+    <table style="width: 100%;">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Description</th>
+                <th style="text-align: right;">Amount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <th colspan="3">
+                    Cash Flows from Operating Activities
+                </th>
+            </tr>
+
+            <tr>
+                <td></td>
+                <td>Net Profit</td>
+                <td style="text-align: right;">
+                    {{ report.net_profit|floatformat:2 }}
+                </td>
+            </tr>
+
+            {% for row in report.operating_rows %}
+            <tr>
+                <td>{{ row.code }}</td>
+                <td>
+                    Change in {{ row.name }}
+                </td>
+                <td style="text-align: right;">
+                    {{ row.amount|floatformat:2 }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">
+                    No operating adjustments found.
+                </td>
+            </tr>
+            {% endfor %}
+
+            <tr>
+                <th colspan="2">
+                    Net Cash from Operating Activities
+                </th>
+                <th style="text-align: right;">
+                    {{ report.net_cash_from_operations|floatformat:2 }}
+                </th>
+            </tr>
+
+            <tr>
+                <th colspan="3">
+                    Cash Flows from Investing Activities
+                </th>
+            </tr>
+
+            {% for row in report.investing_rows %}
+            <tr>
+                <td>{{ row.code }}</td>
+                <td>{{ row.name }}</td>
+                <td style="text-align: right;">
+                    {{ row.amount|floatformat:2 }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td></td>
+                <td>No investing transactions</td>
+                <td style="text-align: right;">0.00</td>
+            </tr>
+            {% endfor %}
+
+            <tr>
+                <th colspan="2">
+                    Net Cash from Investing Activities
+                </th>
+                <th style="text-align: right;">
+                    {{ report.net_cash_from_investing|floatformat:2 }}
+                </th>
+            </tr>
+
+            <tr>
+                <th colspan="3">
+                    Cash Flows from Financing Activities
+                </th>
+            </tr>
+
+            {% for row in report.financing_rows %}
+            <tr>
+                <td>{{ row.code }}</td>
+                <td>{{ row.name }}</td>
+                <td style="text-align: right;">
+                    {{ row.amount|floatformat:2 }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td></td>
+                <td>No financing transactions</td>
+                <td style="text-align: right;">0.00</td>
+            </tr>
+            {% endfor %}
+
+            <tr>
+                <th colspan="2">
+                    Net Cash from Financing Activities
+                </th>
+                <th style="text-align: right;">
+                    {{ report.net_cash_from_financing|floatformat:2 }}
+                </th>
+            </tr>
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <th colspan="2">Net Change in Cash</th>
+                <th style="text-align: right;">
+                    {{ report.net_change_in_cash|floatformat:2 }}
+                </th>
+            </tr>
+
+            <tr>
+                <th colspan="2">Opening Cash Balance</th>
+                <th style="text-align: right;">
+                    {{ report.opening_cash_balance|floatformat:2 }}
+                </th>
+            </tr>
+
+            <tr>
+                <th colspan="2">Closing Cash Balance</th>
+                <th style="text-align: right;">
+                    {{ report.closing_cash_balance|floatformat:2 }}
+                </th>
+            </tr>
+
+            <tr>
+                <th colspan="2">Reconciliation Difference</th>
+                <th style="text-align: right;">
+                    {{ report.difference|floatformat:2 }}
+                </th>
+            </tr>
+        </tfoot>
+    </table>
+
+    {% if report.is_reconciled %}
+    <p style="margin-top: 20px; color: green;">
+        <strong>Cash Flow Statement is reconciled.</strong>
+    </p>
+    {% else %}
+    <p style="margin-top: 20px; color: red;">
+        <strong>
+            Cash Flow Statement does not reconcile.
+        </strong>
+    </p>
+    {% endif %}
+</div>
+{% endblock %}

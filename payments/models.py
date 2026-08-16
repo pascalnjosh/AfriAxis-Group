@@ -19,11 +19,18 @@ class Payment(models.Model):
         ("FAILED", "Failed"),
     ]
 
+    PAYMENT_METHOD_CHOICES = [
+        ("BANK", "Bank"),
+        ("CASH", "Cash"),
+        ("CHEQUE", "Cheque"),
+        ("MPESA", "M-Pesa - Historical"),
+    ]
+
     rent = models.ForeignKey(
         Rent,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
     )
 
     rental_rent = models.ForeignKey(
@@ -31,19 +38,67 @@ class Payment(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="payments"
+        related_name="payments",
     )
 
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
-    account_reference = models.CharField(max_length=100, blank=True, null=True)
-    transaction_desc = models.CharField(max_length=255, blank=True, null=True)
-    mpesa_receipt_number = models.CharField(max_length=100, blank=True, null=True)
-    checkout_request_id = models.CharField(max_length=100, blank=True, null=True, db_index=True)
-    merchant_request_id = models.CharField(max_length=100, blank=True, null=True)
-    payment_method = models.CharField(max_length=50, default="MPESA")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+    )
+
+    account_reference = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+
+    transaction_desc = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+
+    # Historical fields retained so old records remain readable.
+    mpesa_receipt_number = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+
+    checkout_request_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
+    merchant_request_id = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+
+    payment_method = models.CharField(
+        max_length=50,
+        choices=PAYMENT_METHOD_CHOICES,
+        default="BANK",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="SUCCESS",
+    )
+
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.phone_number or 'Payment'} - {self.amount} - {self.status}"
+        reference = self.account_reference or self.payment_method
+        return f"{reference} - {self.amount} - {self.status}"

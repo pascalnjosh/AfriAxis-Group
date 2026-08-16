@@ -1,4 +1,5 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 
 from .models import (
     InventoryBatch,
@@ -9,6 +10,7 @@ from .models import (
     StorageLocation,
     Warehouse,
 )
+from .services import post_stock_adjustment
 
 
 class StorageLocationInline(admin.TabularInline):
@@ -203,6 +205,78 @@ class StockAdjustmentAdmin(admin.ModelAdmin):
     inlines = (
         StockAdjustmentLineInline,
     )
+
+    actions = (
+        "post_selected_stock_adjustments",
+    )
+
+    @admin.action(
+        description="Post selected stock adjustments"
+    )
+    def post_selected_stock_adjustments(
+        self,
+        request,
+        queryset,
+    ):
+        posted_count = 0
+        failed_count = 0
+
+        for adjustment in queryset:
+            try:
+                post_stock_adjustment(
+                    adjustment,
+                    user=request.user,
+                )
+                posted_count += 1
+
+            except (ValidationError, ValueError) as exc:
+                failed_count += 1
+
+                if hasattr(exc, "messages"):
+                    error_message = "; ".join(exc.messages)
+                else:
+                    error_message = str(exc)
+
+                self.message_user(
+                    request,
+                    (
+                        f"{adjustment.adjustment_number}: "
+                        f"{error_message}"
+                    ),
+                    level=messages.ERROR,
+                )
+
+            except Exception as exc:
+                failed_count += 1
+
+                self.message_user(
+                    request,
+                    (
+                        f"{adjustment.adjustment_number}: "
+                        f"Unexpected posting error — {exc}"
+                    ),
+                    level=messages.ERROR,
+                )
+
+        if posted_count:
+            self.message_user(
+                request,
+                (
+                    f"Successfully posted {posted_count} "
+                    f"stock adjustment(s)."
+                ),
+                level=messages.SUCCESS,
+            )
+
+        if failed_count:
+            self.message_user(
+                request,
+                (
+                    f"{failed_count} stock adjustment(s) "
+                    f"were not posted."
+                ),
+                level=messages.WARNING,
+            )
 
 
 @admin.register(StockAdjustmentLine)

@@ -1,0 +1,220 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}
+Customer Statement | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+<style>
+    .statement-header {
+        margin-bottom: 20px;
+    }
+
+    .statement-filter {
+        padding: 18px;
+        margin-bottom: 22px;
+        border: 1px solid var(--hairline-color);
+        background: var(--darkened-bg);
+        border-radius: 6px;
+    }
+
+    .statement-filter select,
+    .statement-filter input {
+        padding: 8px;
+        margin: 5px 10px 5px 0;
+    }
+
+    .statement-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .summary-card {
+        padding: 16px;
+        border: 1px solid var(--hairline-color);
+        border-radius: 6px;
+        background: var(--body-bg);
+    }
+
+    .summary-card strong {
+        display: block;
+        margin-bottom: 7px;
+    }
+
+    .statement-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .statement-table th,
+    .statement-table td {
+        border: 1px solid var(--hairline-color);
+        padding: 10px;
+    }
+
+    .statement-table th {
+        background: var(--primary);
+        color: white;
+        text-align: left;
+    }
+
+    .money {
+        text-align: right;
+    }
+
+    .opening-row,
+    .total-row {
+        font-weight: bold;
+        background: var(--darkened-bg);
+    }
+
+    @media print {
+        .statement-filter,
+        .breadcrumbs,
+        #header {
+            display: none !important;
+        }
+    }
+</style>
+
+<div class="statement-header">
+    <h1>Customer Statement</h1>
+
+    {% if selected_customer %}
+    <h2>{{ selected_customer }}</h2>
+    {% endif %}
+</div>
+
+<form method="get" class="statement-filter">
+    <label for="customer"><strong>Customer:</strong></label>
+
+    <select id="customer" name="customer" required>
+        <option value="">Select customer</option>
+
+        {% for customer in customers %}
+        <option
+            value="{{ customer }}"
+            {% if selected_customer == customer %}selected{% endif %}
+        >
+            {{ customer }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label for="date_from"><strong>From:</strong></label>
+
+    <input
+        id="date_from"
+        type="date"
+        name="date_from"
+        value="{{ date_from|date:'Y-m-d' }}"
+    >
+
+    <label for="date_to"><strong>To:</strong></label>
+
+    <input
+        id="date_to"
+        type="date"
+        name="date_to"
+        value="{{ date_to|date:'Y-m-d' }}"
+    >
+
+    <button type="submit" class="button">
+        Generate Statement
+    </button>
+
+    {% if selected_customer %}
+    <button type="button" class="button" onclick="window.print()">
+        Print
+    </button>
+    {% endif %}
+</form>
+
+{% if selected_customer %}
+<div class="statement-summary">
+    <div class="summary-card">
+        <strong>Opening Balance</strong>
+        KES {{ opening_balance|floatformat:2 }}
+    </div>
+
+    <div class="summary-card">
+        <strong>Total Invoices</strong>
+        KES {{ total_charges|floatformat:2 }}
+    </div>
+
+    <div class="summary-card">
+        <strong>Total Payments</strong>
+        KES {{ total_payments|floatformat:2 }}
+    </div>
+
+    <div class="summary-card">
+        <strong>Closing Balance</strong>
+        KES {{ closing_balance|floatformat:2 }}
+    </div>
+</div>
+
+<div style="overflow-x:auto;">
+    <table class="statement-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Reference</th>
+                <th>Description</th>
+                <th class="money">Invoice</th>
+                <th class="money">Payment</th>
+                <th class="money">Balance</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr class="opening-row">
+                <td colspan="6">Opening Balance</td>
+                <td class="money">
+                    {{ opening_balance|floatformat:2 }}
+                </td>
+            </tr>
+
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.date|date:"d M Y" }}</td>
+                <td>{{ transaction.type }}</td>
+                <td>{{ transaction.reference }}</td>
+                <td>{{ transaction.description }}</td>
+                <td class="money">
+                    {{ transaction.charge|floatformat:2 }}
+                </td>
+                <td class="money">
+                    {{ transaction.payment|floatformat:2 }}
+                </td>
+                <td class="money">
+                    {{ transaction.balance|floatformat:2 }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">
+                    No transactions found for this period.
+                </td>
+            </tr>
+            {% endfor %}
+
+            <tr class="total-row">
+                <td colspan="4">Period Totals</td>
+                <td class="money">
+                    {{ total_charges|floatformat:2 }}
+                </td>
+                <td class="money">
+                    {{ total_payments|floatformat:2 }}
+                </td>
+                <td class="money">
+                    {{ closing_balance|floatformat:2 }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Inventory Dashboard | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+
+<h1>Inventory Dashboard</h1>
+
+<div class="grid">
+    <div class="card">
+        <h2>{{ product_count }}</h2>
+        <p>Active Products</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ warehouse_count }}</h2>
+        <p>Active Warehouses</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ location_count }}</h2>
+        <p>Storage Locations</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ batch_count }}</h2>
+        <p>Active Batches</p>
+    </div>
+
+    <div class="card">
+        <h2>KES {{ total_inventory_value|floatformat:2 }}</h2>
+        <p>Inventory Value</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ positive_stock_count }}</h2>
+        <p>Positive Stock Lines</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ zero_stock_count }}</h2>
+        <p>Zero Stock Lines</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ negative_stock_count }}</h2>
+        <p>Negative Stock Lines</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Quick Actions</h2>
+
+    <p>
+        <a href="{% url 'stock_balances' %}">Stock Balances</a>
+        |
+        <a href="{% url 'movement_history' %}">Movement History</a>
+        |
+        <a href="{% url 'stock_ledger' %}">Stock Ledger</a>
+        |
+        <a href="/admin/inventory/stockadjustment/add/">
+            New Stock Adjustment
+        </a>
+        |
+        <a href="/admin/inventory/warehouse/add/">
+            New Warehouse
+        </a>
+    </p>
+</div>
+
+<div class="card">
+    <h2>Low Stock</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Warehouse</th>
+                <th>Location</th>
+                <th>Batch</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for row in low_stock_rows %}
+            <tr>
+                <td>{{ row.product }}</td>
+                <td>{{ row.warehouse }}</td>
+                <td>{{ row.location }}</td>
+                <td>{{ row.batch|default:"-" }}</td>
+                <td>{{ row.quantity|floatformat:3 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No low-stock items found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Recent Stock Movements</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Movement</th>
+                <th>Type</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Reference</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for movement in recent_movements %}
+            <tr>
+                <td>{{ movement.created_at }}</td>
+                <td>{{ movement.movement_number }}</td>
+                <td>{{ movement.get_movement_type_display }}</td>
+                <td>{{ movement.product }}</td>
+                <td>{{ movement.quantity|floatformat:3 }}</td>
+                <td>{{ movement.reference|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No stock movements recorded.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

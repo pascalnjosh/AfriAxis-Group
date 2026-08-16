@@ -1,0 +1,67 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Customer Statement | AfriAxis ERP{% endblock %}
+
+{% block content %}
+<h1>Customer Statement</h1>
+
+<form method="get" style="margin-bottom:20px;">
+    <label>Customer:</label>
+    <select name="customer">
+        <option value="">Select Customer</option>
+        {% for customer in customers %}
+        <option value="{{ customer.id }}" {% if selected_customer and customer.id == selected_customer.id %}selected{% endif %}>
+            {{ customer.customer_code }} - {{ customer.name }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label>From:</label>
+    <input type="date" name="date_from" value="{{ date_from|date:'Y-m-d' }}">
+
+    <label>To:</label>
+    <input type="date" name="date_to" value="{{ date_to|date:'Y-m-d' }}">
+
+    <button type="submit" class="button">View Statement</button>
+</form>
+
+{% if selected_customer %}
+<p><strong>Customer:</strong> {{ selected_customer.customer_code }} - {{ selected_customer.name }}</p>
+<p><strong>Opening Balance:</strong> {{ opening_balance }}</p>
+
+<table style="width:100%; border-collapse:collapse;">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Reference</th>
+            <th>Description</th>
+            <th>Charge</th>
+            <th>Payment</th>
+            <th>Balance</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tx in transactions %}
+        <tr>
+            <td>{{ tx.date }}</td>
+            <td>{{ tx.type }}</td>
+            <td>{{ tx.reference }}</td>
+            <td>{{ tx.description }}</td>
+            <td>{{ tx.charge }}</td>
+            <td>{{ tx.payment }}</td>
+            <td><strong>{{ tx.balance }}</strong></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No transactions found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p><strong>Total Charges:</strong> {{ total_charges }}</p>
+<p><strong>Total Payments:</strong> {{ total_payments }}</p>
+<p><strong>Closing Balance:</strong> {{ closing_balance }}</p>
+{% endif %}
+{% endblock %}

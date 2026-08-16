@@ -1,0 +1,61 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Aged Payables | AfriAxis ERP{% endblock %}
+
+{% block content %}
+<h1>Aged Payables</h1>
+
+<form method="get" style="margin-bottom:20px;">
+    <label>As of:</label>
+    <input type="date" name="as_of" value="{{ as_of|date:'Y-m-d' }}">
+    <button type="submit" class="button">Run Report</button>
+</form>
+
+<table style="width:100%; border-collapse:collapse;">
+    <thead>
+        <tr>
+            <th>Invoice</th>
+            <th>Supplier</th>
+            <th>Due Date</th>
+            <th>Days</th>
+            <th>Current</th>
+            <th>1-30</th>
+            <th>31-60</th>
+            <th>61-90</th>
+            <th>90+</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.invoice.invoice_number }}</td>
+            <td>{{ row.supplier }}</td>
+            <td>{{ row.due_date }}</td>
+            <td>{{ row.days_overdue }}</td>
+            <td>{{ row.current }}</td>
+            <td>{{ row.days_1_30 }}</td>
+            <td>{{ row.days_31_60 }}</td>
+            <td>{{ row.days_61_90 }}</td>
+            <td>{{ row.days_over_90 }}</td>
+            <td><strong>{{ row.balance }}</strong></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="10">No outstanding payables.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="4">TOTAL</th>
+            <th>{{ totals.current }}</th>
+            <th>{{ totals.days_1_30 }}</th>
+            <th>{{ totals.days_31_60 }}</th>
+            <th>{{ totals.days_61_90 }}</th>
+            <th>{{ totals.days_over_90 }}</th>
+            <th>{{ totals.total }}</th>
+        </tr>
+    </tfoot>
+</table>
+{% endblock %}

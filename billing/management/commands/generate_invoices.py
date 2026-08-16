@@ -1,67 +1,44 @@
-from django.core.management.base import BaseCommand
-from django.utils import timezone
+from datetime import date
 
-from billing.models import Invoice
-from rentals.models import Rent
-from services.models import WaterBill
+from django.core.management import call_command
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = "Generate monthly invoices from unpaid rent and water bills"
+    help = (
+        "Compatibility alias for generate_monthly_invoices. "
+        "Uses the protected invoice generator."
+    )
 
-    def handle(self, *args, **kwargs):
+    def add_arguments(self, parser):
+        today = date.today()
 
-        today = timezone.now().date()
-
-        created = 0
-        skipped = 0
-
-        rents = Rent.objects.filter(
-            paid=False
-        ).select_related(
-            "tenant",
-            "house",
-            "house__apartment"
+        parser.add_argument(
+            "--year",
+            type=int,
+            default=today.year,
+        )
+        parser.add_argument(
+            "--month",
+            type=int,
+            default=today.month,
+        )
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
         )
 
-        for rent in rents:
-
-            water_total = 0
-
-            water_bills = WaterBill.objects.filter(
-                tenant=rent.tenant,
-                paid=False
-            )
-
-            for bill in water_bills:
-                water_total += bill.total_amount
-
-            invoice_number = f"INV-{today.year}{today.month:02d}-{rent.id}"
-
-            exists = Invoice.objects.filter(
-                invoice_number=invoice_number
-            ).exists()
-
-            if exists:
-                skipped += 1
-                continue
-
-            total_amount = rent.amount + water_total
-
-            Invoice.objects.create(
-                tenant=rent.tenant,
-                apartment=rent.house.apartment,
-                invoice_number=invoice_number,
-                rent_amount=rent.amount,
-                wifi_amount=0,
-                water_amount=water_total,
-                total_amount=total_amount,
-                amount_paid=0,
-                status="PENDING",
-            )
-
-            created += 1
-
+    def handle(self, *args, **options):
         self.stdout.write(
-            f"Monthly invoices generated. Created: {created}, Skipped: {skipped}"
+            self.style.WARNING(
+                "generate_invoices is deprecated. "
+                "Running generate_monthly_invoices."
+            )
+        )
+
+        call_command(
+            "generate_monthly_invoices",
+            year=options["year"],
+            month=options["month"],
+            dry_run=options["dry_run"],
         )

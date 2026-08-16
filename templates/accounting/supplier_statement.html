@@ -1,0 +1,66 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Supplier Statement | AfriAxis ERP{% endblock %}
+
+{% block content %}
+<h1>Supplier Statement</h1>
+
+<form method="get" style="margin-bottom:20px;">
+    <label>Supplier:</label>
+    <select name="supplier">
+        <option value="">Select Supplier</option>
+        {% for supplier in suppliers %}
+        <option value="{{ supplier.id }}" {% if selected_supplier and supplier.id == selected_supplier.id %}selected{% endif %}>
+            {{ supplier }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label>From:</label>
+    <input type="date" name="date_from" value="{{ date_from|date:'Y-m-d' }}">
+
+    <label>To:</label>
+    <input type="date" name="date_to" value="{{ date_to|date:'Y-m-d' }}">
+
+    <button type="submit" class="button">View Statement</button>
+</form>
+
+{% if selected_supplier %}
+<p><strong>Opening Balance:</strong> {{ opening_balance }}</p>
+
+<table style="width:100%; border-collapse:collapse;">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Reference</th>
+            <th>Description</th>
+            <th>Bill</th>
+            <th>Payment</th>
+            <th>Balance</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tx in transactions %}
+        <tr>
+            <td>{{ tx.date }}</td>
+            <td>{{ tx.type }}</td>
+            <td>{{ tx.reference }}</td>
+            <td>{{ tx.description }}</td>
+            <td>{{ tx.bill }}</td>
+            <td>{{ tx.payment }}</td>
+            <td><strong>{{ tx.balance }}</strong></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No transactions found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p><strong>Total Bills:</strong> {{ total_bills }}</p>
+<p><strong>Total Payments:</strong> {{ total_payments }}</p>
+<p><strong>Closing Balance:</strong> {{ closing_balance }}</p>
+{% endif %}
+{% endblock %}

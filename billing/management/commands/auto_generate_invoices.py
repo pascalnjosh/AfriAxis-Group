@@ -1,103 +1,44 @@
-from decimal import Decimal
+from datetime import date
 
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-
-from billing.models import Invoice
-from rentals.models import Tenant, Rent
-from services.models import WaterBill, WifiCustomer
 
 
 class Command(BaseCommand):
+    help = (
+        "Compatibility alias for generate_monthly_invoices. "
+        "Uses the protected invoice generator."
+    )
 
-    help = "Automatically generate monthly ERP invoices"
+    def add_arguments(self, parser):
+        today = date.today()
 
-    def handle(self, *args, **kwargs):
-
-        today = timezone.now().date()
-        month_code = today.strftime("%Y%m")
-
-        created = 0
-        skipped = 0
-
-        tenants = Tenant.objects.select_related(
-            "apartment"
+        parser.add_argument(
+            "--year",
+            type=int,
+            default=today.year,
+        )
+        parser.add_argument(
+            "--month",
+            type=int,
+            default=today.month,
+        )
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
         )
 
-        for tenant in tenants:
-
-            invoice_number = f"AFX-{month_code}-{tenant.id}"
-
-            exists = Invoice.objects.filter(
-                invoice_number=invoice_number
-            ).exists()
-
-            if exists:
-                skipped += 1
-                continue
-
-            rent = (
-                Rent.objects
-                .filter(
-                    tenant=tenant,
-                    paid=False
-                )
-                .order_by("-due_date")
-                .first()
-            )
-
-            rent_amount = (
-                rent.amount
-                if rent
-                else Decimal("0.00")
-            )
-
-            wifi_customer = WifiCustomer.objects.filter(
-                phone=tenant.phone
-            ).select_related(
-                "package"
-            ).first()
-
-            wifi_amount = Decimal("0.00")
-
-            if (
-                wifi_customer and
-                wifi_customer.package
-            ):
-                wifi_amount = wifi_customer.package.price
-
-            water_total = Decimal("0.00")
-
-            water_bills = WaterBill.objects.filter(
-                tenant=tenant,
-                paid=False
-            )
-
-            for bill in water_bills:
-                water_total += bill.total_amount
-
-            total_amount = (
-                rent_amount +
-                wifi_amount +
-                water_total
-            )
-
-            Invoice.objects.create(
-                tenant=tenant,
-                apartment=tenant.apartment,
-                invoice_number=invoice_number,
-                rent_amount=rent_amount,
-                wifi_amount=wifi_amount,
-                water_amount=water_total,
-                total_amount=total_amount,
-                amount_paid=Decimal("0.00"),
-                status="PENDING",
-            )
-
-            created += 1
-
+    def handle(self, *args, **options):
         self.stdout.write(
-            self.style.SUCCESS(
-                f"ERP invoice automation complete. Created: {created}, Skipped: {skipped}"
+            self.style.WARNING(
+                "auto_generate_invoices is deprecated. "
+                "Running generate_monthly_invoices."
             )
+        )
+
+        call_command(
+            "generate_monthly_invoices",
+            year=options["year"],
+            month=options["month"],
+            dry_run=options["dry_run"],
         )

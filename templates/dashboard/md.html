@@ -54,7 +54,7 @@
 {% for rent in unpaid_rents %}
 <tr>
 <td>{{ rent.tenant.name }}</td>
-<td>KES {{ rent.amount }}</td>
+<td>KES {{ rent.balance }}</td>
 <td>{{ rent.due_date }}</td>
 <td>{{ rent.days_overdue }}</td>
 <td>UNPAID</td>

@@ -1,0 +1,184 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Sales | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+
+<h1>Sales Dashboard</h1>
+<p>Customers, orders, deliveries, invoicing and receipts.</p>
+
+<div class="grid">
+
+    <div class="card">
+        <h2>{{ customer_count }}</h2>
+        <p>Customers</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ active_customer_count }}</h2>
+        <p>Active Customers</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ sales_order_count }}</h2>
+        <p>Sales Orders</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ delivery_note_count }}</h2>
+        <p>Delivery Notes</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ sales_invoice_count }}</h2>
+        <p>Sales Invoices</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ sales_receipt_count }}</h2>
+        <p>Sales Receipts</p>
+    </div>
+
+</div>
+
+
+<div class="card">
+<h2>Sales Orders</h2>
+
+<table>
+<tr>
+    <th>Order</th>
+    <th>Customer</th>
+    <th>Date</th>
+    <th>Total</th>
+    <th>Status</th>
+</tr>
+
+{% for order in sales_orders %}
+<tr>
+    <td>{{ order.order_number }}</td>
+    <td>{{ order.customer.name }}</td>
+    <td>{{ order.order_date }}</td>
+    <td>KES {{ order.total_amount }}</td>
+    <td>{{ order.status }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5">No sales orders.</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+
+<div class="card">
+<h2>Delivery Notes</h2>
+
+<table>
+<tr>
+    <th>Delivery</th>
+    <th>Sales Order</th>
+    <th>Customer</th>
+    <th>Date</th>
+    <th>Status</th>
+</tr>
+
+{% for delivery in delivery_notes %}
+<tr>
+    <td>{{ delivery.delivery_number }}</td>
+    <td>{{ delivery.sales_order.order_number }}</td>
+    <td>{{ delivery.customer.name }}</td>
+    <td>{{ delivery.delivery_date }}</td>
+    <td>{{ delivery.status }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5">No delivery notes.</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+
+<div class="card">
+<h2>Sales Invoices</h2>
+
+<table>
+<tr>
+    <th>Invoice</th>
+    <th>Customer</th>
+    <th>Date</th>
+    <th>Total</th>
+    <th>Paid</th>
+    <th>Status</th>
+</tr>
+
+{% for invoice in sales_invoices %}
+<tr>
+    <td>{{ invoice.invoice_number }}</td>
+    <td>{{ invoice.customer.name }}</td>
+    <td>{{ invoice.invoice_date }}</td>
+    <td>KES {{ invoice.total_amount }}</td>
+    <td>KES {{ invoice.amount_paid }}</td>
+    <td>{{ invoice.status }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6">No sales invoices.</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+
+<div class="card">
+<h2>Sales Receipts</h2>
+
+<table>
+<tr>
+    <th>Receipt</th>
+    <th>Customer</th>
+    <th>Date</th>
+    <th>Amount</th>
+    <th>Method</th>
+    <th>Status</th>
+</tr>
+
+{% for receipt in sales_receipts %}
+<tr>
+    <td>{{ receipt.receipt_number }}</td>
+    <td>{{ receipt.customer.name }}</td>
+    <td>{{ receipt.receipt_date }}</td>
+    <td>KES {{ receipt.amount }}</td>
+    <td>{{ receipt.payment_method }}</td>
+    <td>{{ receipt.status }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6">No sales receipts.</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+
+<div class="card">
+<h2>Quick Actions</h2>
+
+<p>
+<a href="/admin/sales/customer/add/">New Customer</a> |
+<a href="/admin/sales/salesorder/add/">New Sales Order</a> |
+<a href="/admin/sales/deliverynote/add/">New Delivery Note</a> |
+<a href="/admin/sales/salesinvoice/add/">New Sales Invoice</a> |
+<a href="/admin/sales/salesreceipt/add/">New Sales Receipt</a>
+</p>
+
+</div>
+
+{% endblock %}

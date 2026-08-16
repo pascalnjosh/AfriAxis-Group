@@ -1,0 +1,192 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Purchasing | AfriAxis ERP
+{% endblock %}
+
+{% block content %}
+
+<h1>Purchasing Dashboard</h1>
+<p>Procurement, receiving, supplier invoicing and supplier payments.</p>
+
+<div class="grid">
+
+    <div class="card">
+        <h2>{{ supplier_count }}</h2>
+        <p>Suppliers</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ active_supplier_count }}</h2>
+        <p>Active Suppliers</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ purchase_request_count }}</h2>
+        <p>Purchase Requests</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ purchase_order_count }}</h2>
+        <p>Purchase Orders</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ goods_receipt_count }}</h2>
+        <p>Goods Receipts</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ supplier_invoice_count }}</h2>
+        <p>Supplier Invoices</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ supplier_payment_count }}</h2>
+        <p>Supplier Payments</p>
+    </div>
+
+</div>
+
+
+<div class="card">
+<h2>Purchase Orders</h2>
+
+<table>
+    <tr>
+        <th>PO Number</th>
+        <th>Supplier</th>
+        <th>Date</th>
+        <th>Total</th>
+        <th>Status</th>
+    </tr>
+
+    {% for po in purchase_orders %}
+    <tr>
+        <td>{{ po.order_number }}</td>
+        <td>{{ po.supplier.name }}</td>
+        <td>{{ po.order_date }}</td>
+        <td>KES {{ po.total_amount }}</td>
+        <td>{{ po.status }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No purchase orders.</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+
+<div class="card">
+<h2>Goods Receipts</h2>
+
+<table>
+    <tr>
+        <th>Receipt</th>
+        <th>Purchase Order</th>
+        <th>Supplier</th>
+        <th>Date</th>
+        <th>Status</th>
+    </tr>
+
+    {% for receipt in goods_receipts %}
+    <tr>
+        <td>{{ receipt.receipt_number }}</td>
+        <td>{{ receipt.purchase_order.order_number }}</td>
+        <td>{{ receipt.supplier.name }}</td>
+        <td>{{ receipt.receipt_date }}</td>
+        <td>{{ receipt.status }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No goods receipts.</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+
+<div class="card">
+<h2>Supplier Invoices</h2>
+
+<table>
+    <tr>
+        <th>Invoice</th>
+        <th>Supplier</th>
+        <th>Date</th>
+        <th>Total</th>
+        <th>Paid</th>
+        <th>Status</th>
+    </tr>
+
+    {% for invoice in supplier_invoices %}
+    <tr>
+        <td>{{ invoice.invoice_number }}</td>
+        <td>{{ invoice.supplier.name }}</td>
+        <td>{{ invoice.invoice_date }}</td>
+        <td>KES {{ invoice.total_amount }}</td>
+        <td>KES {{ invoice.amount_paid }}</td>
+        <td>{{ invoice.status }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">No supplier invoices.</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+
+<div class="card">
+<h2>Supplier Payments</h2>
+
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Supplier</th>
+        <th>Amount</th>
+        <th>Method</th>
+        <th>Reference</th>
+        <th>Posted</th>
+    </tr>
+
+    {% for payment in supplier_payments %}
+    <tr>
+        <td>{{ payment.payment_date }}</td>
+        <td>{{ payment.supplier.name }}</td>
+        <td>KES {{ payment.amount }}</td>
+        <td>{{ payment.payment_method }}</td>
+        <td>{{ payment.reference }}</td>
+        <td>
+            {% if payment.posted %}
+                YES
+            {% else %}
+                NO
+            {% endif %}
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">No supplier payments.</td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+
+<div class="card">
+<h2>Quick Actions</h2>
+
+<p>
+    <a href="/admin/purchasing/supplier/add/">New Supplier</a> |
+    <a href="/admin/purchasing/purchaserequest/add/">New Purchase Request</a> |
+    <a href="/admin/purchasing/purchaseorder/add/">New Purchase Order</a> |
+    <a href="/admin/purchasing/goodsreceipt/add/">New Goods Receipt</a> |
+    <a href="/admin/purchasing/supplierinvoice/add/">New Supplier Invoice</a> |
+    <a href="/admin/purchasing/supplierpayment/add/">New Supplier Payment</a>
+</p>
+
+</div>
+
+{% endblock %}
