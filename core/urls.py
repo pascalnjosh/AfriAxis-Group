@@ -1,3 +1,4 @@
+from accounts.views import role_home
 from django.contrib import admin
 from django.urls import include, path
 
@@ -19,7 +20,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     # Home
-    path("", md_dashboard, name="erp_home"),
+    path("", role_home, name="erp_home"),
 
     # Dashboard
     path("dashboard/", md_dashboard, name="dashboard_page"),
@@ -72,6 +73,7 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("tenant/", include("accounts.tenant_urls")),
 ]
+
 
 
 

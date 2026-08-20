@@ -29,3 +29,26 @@ def erp_home(request):
         request,
         "accounts/home.html"
     )
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+
+
+@login_required
+def role_home(request):
+    if request.user.is_superuser:
+        return redirect("/dashboard/")
+
+    role = getattr(
+        getattr(request.user, "userprofile", None),
+        "role",
+        None
+    )
+
+    if role in ("MD", "GM"):
+        return redirect("/dashboard/")
+
+    if role == "ACCOUNTS":
+        return redirect("/dashboard/finance/")
+
+    return redirect("/auth/login/")
