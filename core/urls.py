@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import include, path
 
+from core.pwa import service_worker
+
 from dashboard.views import (
     charts_page,
     finance_dashboard,
@@ -11,6 +13,7 @@ from dashboard.views import (
 )
 
 urlpatterns = [
+    path("service-worker.js", service_worker, name="service_worker"),
     path("dashboard/", include("dashboard.ceo_urls")),
     # Django Admin
     path("admin/", admin.site.urls),
@@ -69,6 +72,7 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("tenant/", include("accounts.tenant_urls")),
 ]
+
 
 
 
