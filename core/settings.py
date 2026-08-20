@@ -184,3 +184,5 @@ else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
+
+LOGOUT_REDIRECT_URL = '/auth/login/'
