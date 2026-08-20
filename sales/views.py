@@ -1,3 +1,4 @@
+from accounts.decorators import operations_required
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
@@ -10,7 +11,7 @@ from .models import (
 )
 
 
-@login_required
+@operations_required
 def sales_dashboard(request):
     customers = (
         Customer.objects
@@ -92,3 +93,4 @@ def sales_dashboard(request):
         "sales/dashboard.html",
         context,
     )
+

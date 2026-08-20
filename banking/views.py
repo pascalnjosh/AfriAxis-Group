@@ -1,3 +1,4 @@
+from accounts.decorators import finance_required
 from decimal import Decimal
 
 from django.contrib import messages
@@ -19,7 +20,7 @@ from .models import BankTransaction
 from .utils import process_bank_statement
 
 
-@login_required
+@finance_required
 def reconciliation_dashboard(request):
     transactions = (
         BankTransaction.objects
@@ -215,7 +216,7 @@ def reconciliation_dashboard(request):
         context,
     )
 
-@login_required
+@finance_required
 def upload_statement(request):
     if request.method == "POST":
         form = BankStatementUploadForm(
@@ -443,7 +444,7 @@ def _post_bank_charge_transaction(transaction, user=None):
     return True, "Bank charge posted and approved."
 
 
-@login_required
+@finance_required
 def approve_transaction(request, transaction_id):
     transaction = get_object_or_404(
         BankTransaction,
@@ -477,7 +478,7 @@ def approve_transaction(request, transaction_id):
     return redirect("bank_reconciliation")
 
 
-@login_required
+@finance_required
 def approve_all_high_confidence(request):
     transactions = (
         BankTransaction.objects
@@ -514,7 +515,7 @@ def approve_all_high_confidence(request):
     return redirect("bank_reconciliation")
 
 
-@login_required
+@finance_required
 @db_transaction.atomic
 def undo_transaction(request, transaction_id):
     bank_item = get_object_or_404(
@@ -579,7 +580,7 @@ def undo_transaction(request, transaction_id):
     return redirect("bank_reconciliation")
 
 
-@login_required
+@finance_required
 def reject_transaction(request, transaction_id):
     bank_item = get_object_or_404(
         BankTransaction,
@@ -735,6 +736,7 @@ def _approve_erp_bank_transaction(bank_item):
         )
 
     return False, "No ERP transaction is matched."
+
 
 
 

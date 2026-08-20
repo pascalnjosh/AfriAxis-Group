@@ -1,3 +1,4 @@
+from accounts.decorators import finance_required
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
@@ -10,7 +11,7 @@ from billing.utils import apply_mpesa_to_invoice
 from rentals.models import Tenant
 
 
-@login_required
+@finance_required
 def commercial_invoice_create(request):
     if request.method == "POST":
         form = CommercialInvoiceForm(request.POST)
@@ -123,6 +124,7 @@ def commercial_invoice_create(request):
         },
     )
 
+@finance_required
 def invoice_list(request):
 
     invoices = Invoice.objects.select_related(
@@ -139,6 +141,7 @@ def invoice_list(request):
     )
 
 
+@finance_required
 def invoice_detail(request, invoice_id):
 
     invoice = get_object_or_404(
@@ -155,6 +158,7 @@ def invoice_detail(request, invoice_id):
     )
 
 
+@finance_required
 def tenant_status(request, tenant_id):
 
     tenant = get_object_or_404(
@@ -176,6 +180,7 @@ def tenant_status(request, tenant_id):
     )
 
 
+@finance_required
 def pay_invoice(request, invoice_id):
 
     invoice = get_object_or_404(
@@ -209,6 +214,7 @@ def pay_invoice(request, invoice_id):
     )
 
 
+@finance_required
 def invoice_pdf(request, invoice_id):
     from io import BytesIO
 
@@ -777,6 +783,7 @@ def tenant_portal(request, tenant_id):
     )
 
 
+@finance_required
 def receipt_detail(request, payment_id):
     payment = get_object_or_404(
         InvoicePayment,
@@ -791,3 +798,4 @@ def receipt_detail(request, payment_id):
             "invoice": payment.invoice,
         },
     )
+

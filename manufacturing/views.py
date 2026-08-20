@@ -1,3 +1,4 @@
+from accounts.decorators import operations_required
 from decimal import Decimal
 
 from django.contrib import messages
@@ -12,7 +13,7 @@ from .models import BillOfMaterial, ProductionOrder
 from .services import complete_production_order
 
 
-@login_required
+@operations_required
 def manufacturing_dashboard(request):
     boms = BillOfMaterial.objects.select_related(
         "finished_product",
@@ -64,7 +65,7 @@ def manufacturing_dashboard(request):
     )
 
 
-@login_required
+@operations_required
 def production_order_list(request):
     orders = (
         ProductionOrder.objects
@@ -86,7 +87,7 @@ def production_order_list(request):
     )
 
 
-@login_required
+@operations_required
 def production_order_detail(request, pk):
     order = get_object_or_404(
         ProductionOrder.objects.select_related(
@@ -174,7 +175,7 @@ def _validate_production_order_setup(order):
     return errors
 
 
-@login_required
+@operations_required
 def release_production_order(request, pk):
     if request.method != "POST":
         return redirect(
@@ -232,7 +233,7 @@ def release_production_order(request, pk):
     )
 
 
-@login_required
+@operations_required
 def start_production_order(request, pk):
     if request.method != "POST":
         return redirect(
@@ -294,7 +295,7 @@ def start_production_order(request, pk):
     )
 
 
-@login_required
+@operations_required
 def complete_production_order_view(request, pk):
     if request.method != "POST":
         return redirect(
@@ -356,7 +357,7 @@ def complete_production_order_view(request, pk):
     )
 
 
-@login_required
+@operations_required
 def bom_list(request):
     boms = (
         BillOfMaterial.objects
@@ -380,7 +381,7 @@ def bom_list(request):
     )
 
 
-@login_required
+@operations_required
 def bom_detail(request, pk):
     from sales.models import Product
 
@@ -422,7 +423,7 @@ def bom_detail(request, pk):
     )
 
 
-@login_required
+@operations_required
 def activate_bom(request, pk):
     if request.method != "POST":
         return redirect(
@@ -482,7 +483,7 @@ def activate_bom(request, pk):
     )
 
 
-@login_required
+@operations_required
 def deactivate_bom(request, pk):
     if request.method != "POST":
         return redirect(
@@ -509,7 +510,7 @@ def deactivate_bom(request, pk):
     )
 
 
-@login_required
+@operations_required
 def add_bom_component(request, pk):
     bom = get_object_or_404(
         BillOfMaterial,
@@ -607,7 +608,7 @@ def add_bom_component(request, pk):
     )
 
 
-@login_required
+@operations_required
 def delete_bom_component(request, pk, line_id):
     if request.method != "POST":
         return redirect(
@@ -648,4 +649,5 @@ def delete_bom_component(request, pk, line_id):
         "manufacturing:bom_detail",
         pk=pk,
     )
+
 

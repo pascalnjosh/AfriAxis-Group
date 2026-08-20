@@ -1,3 +1,4 @@
+from accounts.decorators import operations_required
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
@@ -24,7 +25,7 @@ from .models import (
 )
 
 
-@login_required
+@operations_required
 def inventory_dashboard(request):
     stock_value_expression = ExpressionWrapper(
         F("quantity") * F("average_cost"),
@@ -132,7 +133,7 @@ def inventory_dashboard(request):
     )
 
 
-@login_required
+@operations_required
 def stock_balances(request):
     warehouse_id = request.GET.get("warehouse")
     product_id = request.GET.get("product")
@@ -210,7 +211,7 @@ def stock_balances(request):
     )
 
 
-@login_required
+@operations_required
 def movement_history(request):
     warehouse_id = request.GET.get("warehouse")
     product_id = request.GET.get("product")
@@ -284,7 +285,7 @@ def movement_history(request):
     )
 
 
-@login_required
+@operations_required
 def stock_ledger(request):
     product_id = request.GET.get("product")
     warehouse_id = request.GET.get("warehouse")
@@ -379,3 +380,4 @@ def stock_ledger(request):
             "closing_value": running_value,
         },
     )
+

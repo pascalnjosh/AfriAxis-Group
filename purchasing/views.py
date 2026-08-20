@@ -1,3 +1,4 @@
+from accounts.decorators import operations_required
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
@@ -11,7 +12,7 @@ from .models import (
 )
 
 
-@login_required
+@operations_required
 def purchasing_dashboard(request):
     suppliers = Supplier.objects.filter(active=True).order_by("name")
 
@@ -67,3 +68,4 @@ def purchasing_dashboard(request):
         "purchasing/dashboard.html",
         context,
     )
+

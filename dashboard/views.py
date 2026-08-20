@@ -1,3 +1,7 @@
+from accounts.decorators import (
+    management_required,
+    finance_required,
+)
 from django.contrib.auth.decorators import login_required
 from decimal import Decimal
 
@@ -22,6 +26,7 @@ def user_role(request):
     return None
 
 
+@management_required
 def md_dashboard(request):
     if not request.user.is_authenticated:
         return redirect("/admin/login/")
@@ -151,6 +156,7 @@ def md_dashboard(request):
     return render(request, "dashboard/md.html", context)
 
 
+@finance_required
 def rent_report_page(request):
     if not request.user.is_authenticated:
         return redirect("/admin/login/")
@@ -197,6 +203,7 @@ def rent_report_page(request):
     )
 
 
+@management_required
 def vacant_houses_page(request):
     if not request.user.is_authenticated:
         return redirect("/admin/login/")
@@ -226,6 +233,7 @@ def vacant_houses_page(request):
     )
 
 
+@management_required
 def tenants_page(request):
     if not request.user.is_authenticated:
         return redirect("/admin/login/")
@@ -252,6 +260,7 @@ def tenants_page(request):
     )
 
 
+@management_required
 def charts_page(request):
     total_rent = Rent.objects.aggregate(total=Sum("amount"))["total"] or 0
     unpaid_rent = Rent.objects.aggregate(total=Sum("balance"))["total"] or 0
@@ -342,7 +351,7 @@ def apartment_performance():
         reverse=True
     )
 
-@login_required
+@finance_required
 def finance_dashboard(request):
     from decimal import Decimal
 
@@ -561,6 +570,7 @@ def finance_dashboard(request):
         "dashboard/finance_dashboard.html",
         context,
     )
+
 
 
 

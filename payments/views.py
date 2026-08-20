@@ -1,3 +1,4 @@
+from accounts.decorators import finance_required
 from decimal import Decimal, InvalidOperation
 
 from django.db import models, transaction
@@ -20,6 +21,7 @@ def user_role(request):
     return None
 
 
+@finance_required
 def dashboard(request):
     if not request.user.is_authenticated:
         return redirect("/admin/login/")
@@ -213,4 +215,5 @@ def payment_receipt(request, payment_id):
             "payment": payment
         }
     )
+
 

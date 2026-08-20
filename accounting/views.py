@@ -1,3 +1,4 @@
+from accounts.decorators import finance_required
 from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
@@ -39,7 +40,7 @@ def get_company():
     return company
 
 
-@login_required
+@finance_required
 def trial_balance(request):
     company = get_company()
 
@@ -68,7 +69,7 @@ def trial_balance(request):
     )
 
 
-@login_required
+@finance_required
 def general_ledger(request):
     company = get_company()
 
@@ -115,7 +116,7 @@ def general_ledger(request):
     )
 
 
-@login_required
+@finance_required
 def profit_and_loss(request):
     company = get_company()
 
@@ -144,7 +145,7 @@ def profit_and_loss(request):
     )
 
 
-@login_required
+@finance_required
 def balance_sheet(request):
     company = get_company()
 
@@ -168,7 +169,7 @@ def balance_sheet(request):
     )
 
 
-@login_required
+@finance_required
 def cash_flow(request):
     from .reports import get_cash_flow
 
@@ -228,7 +229,7 @@ def _empty_aging_totals():
     }
 
 
-@login_required
+@finance_required
 def aged_receivables(request):
     as_of = parse_date(
         request.GET.get("as_of")
@@ -288,7 +289,7 @@ def aged_receivables(request):
     )
 
 
-@login_required
+@finance_required
 def aged_payables(request):
     as_of = parse_date(
         request.GET.get("as_of")
@@ -352,7 +353,7 @@ def aged_payables(request):
     )
 
 
-@login_required
+@finance_required
 def customer_statement(request):
     customer_id = request.GET.get("customer", "").strip()
 
@@ -531,7 +532,7 @@ def customer_statement(request):
     )
 
 
-@login_required
+@finance_required
 def supplier_statement(request):
     supplier_id = request.GET.get("supplier")
 
@@ -711,6 +712,7 @@ def supplier_statement(request):
             "date_to": date_to,
         },
     )
+
 
 
 

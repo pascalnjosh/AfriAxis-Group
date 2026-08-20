@@ -3,7 +3,7 @@
 <head>
 <title>{% block title %}AfriAxis ERP{% endblock %}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
+<meta name="theme-color" content="#07172f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,51 +14,229 @@
 <link rel="icon" type="image/png" href="/static/pwa/icon-192.png">
 
 <style>
-body{
+:root{
+    --navy:#07172f;
+    --navy2:#0d2850;
+    --blue:#2563eb;
+    --green:#22c55e;
+    --surface:#ffffff;
+    --bg:#eef3f8;
+    --text:#0f172a;
+    --muted:#64748b;
+    --border:#dbe4ee;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+html,body{
     margin:0;
-    font-family:Arial;
-    background:#f3f4f6;
+    min-height:100%;
+    font-family:Arial,Helvetica,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+}
+
+body{
+    overflow-x:hidden;
+}
+
+.app-shell{
+    min-height:100vh;
 }
 
 .sidebar{
     position:fixed;
-    left:0;
-    top:0;
-    width:240px;
-    height:100%;
-    background:#111827;
+    inset:0 auto 0 0;
+    width:250px;
+    background:linear-gradient(180deg,#06152b 0%,#0a2344 100%);
     color:white;
-    padding:20px;
+    display:flex;
+    flex-direction:column;
+    z-index:1000;
+    box-shadow:8px 0 24px rgba(2,12,27,.12);
 }
 
-.sidebar h2{
-    margin-top:0;
+.brand{
+    padding:22px 20px 18px;
+    border-bottom:1px solid rgba(255,255,255,.08);
 }
 
-.sidebar a{
-    display:block;
-    color:white;
+.brand-title{
+    font-size:24px;
+    font-weight:900;
+    letter-spacing:.3px;
+}
+
+.brand-sub{
+    margin-top:4px;
+    font-size:11px;
+    color:#9fb4cf;
+    letter-spacing:1px;
+    text-transform:uppercase;
+}
+
+.nav{
+    flex:1;
+    padding:14px 10px;
+    overflow-y:auto;
+}
+
+.nav-section{
+    margin:14px 12px 8px;
+    font-size:10px;
+    font-weight:800;
+    color:#6f8eb5;
+    text-transform:uppercase;
+    letter-spacing:1.2px;
+}
+
+.nav a{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:#d8e5f5;
     text-decoration:none;
-    padding:10px;
-    margin-bottom:6px;
-    border-radius:8px;
+    padding:10px 12px;
+    margin:3px 0;
+    border-radius:10px;
+    font-size:14px;
+    transition:.18s ease;
 }
 
-.sidebar a:hover{
-    background:#2563eb;
+.nav a:hover{
+    background:rgba(37,99,235,.22);
+    color:white;
+    transform:translateX(2px);
+}
+
+.nav a.active{
+    background:linear-gradient(90deg,#1d4ed8,#2563eb);
+    color:white;
+    box-shadow:0 6px 16px rgba(37,99,235,.28);
+}
+
+.nav-icon{
+    width:22px;
+    text-align:center;
+    flex:0 0 22px;
+}
+
+.sidebar-footer{
+    padding:16px;
+    border-top:1px solid rgba(255,255,255,.08);
+}
+
+.user-card{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:12px;
+    padding:12px;
+}
+
+.user-name{
+    font-weight:800;
+    font-size:13px;
+}
+
+.user-role{
+    margin-top:4px;
+    font-size:11px;
+    color:#9fb4cf;
+}
+
+.live-line{
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    color:#4ade80;
+    font-size:11px;
+    font-weight:800;
+}
+
+.live-dot{
+    width:8px;
+    height:8px;
+    background:#22c55e;
+    border-radius:50%;
 }
 
 .main{
-    margin-left:280px;
-    padding:25px;
+    margin-left:250px;
+    min-height:100vh;
+}
+
+.topbar{
+    height:64px;
+    background:white;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 24px;
+    position:sticky;
+    top:0;
+    z-index:900;
+}
+
+.topbar-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.menu-btn{
+    display:none;
+    border:0;
+    background:#eef3f8;
+    width:40px;
+    height:40px;
+    border-radius:10px;
+    font-size:20px;
+    cursor:pointer;
+}
+
+.page-label{
+    font-weight:800;
+    color:#0f172a;
+}
+
+.topbar-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.production-pill{
+    background:#dcfce7;
+    color:#166534;
+    border:1px solid #86efac;
+    padding:7px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:800;
+}
+
+.logout-link{
+    text-decoration:none;
+    color:#475569;
+    font-size:13px;
+    font-weight:700;
+}
+
+.content{
+    padding:24px;
 }
 
 .card{
     background:white;
     padding:20px;
-    border-radius:12px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    border-radius:14px;
+    box-shadow:0 4px 14px rgba(15,23,42,.06);
     margin-bottom:20px;
+    border:1px solid #e5e7eb;
 }
 
 .grid{
@@ -74,7 +252,7 @@ table{
 }
 
 th{
-    background:#2563eb;
+    background:#0d2850;
     color:white;
     padding:12px;
     text-align:left;
@@ -85,15 +263,36 @@ td{
     border-bottom:1px solid #e5e7eb;
 }
 
-@media(max-width:800px){
+@media(max-width:980px){
     .sidebar{
-        position:relative;
-        width:auto;
-        height:auto;
+        transform:translateX(-100%);
+        transition:transform .2s ease;
+    }
+
+    .sidebar.open{
+        transform:translateX(0);
     }
 
     .main{
         margin-left:0;
+    }
+
+    .menu-btn{
+        display:block;
+    }
+}
+
+@media(max-width:650px){
+    .content{
+        padding:14px;
+    }
+
+    .topbar{
+        padding:0 14px;
+    }
+
+    .production-pill{
+        display:none;
     }
 }
 </style>
@@ -101,40 +300,233 @@ td{
 
 <body>
 
-<div class="sidebar">
-<h2>AfriAxis ERP</h2>
+<div class="app-shell">
 
-<a href="/">Home</a>
-<a href="/dashboard/">Dashboard</a>
-<a href="/dashboard/finance/">Finance Dashboard</a>
-<a href="/dashboard/charts/">Analytics</a>
-<a href="/dashboard/rent-report/">Rent Report</a>
-<a href="/dashboard/tenants/">Tenants</a>
-<a href="/dashboard/vacant-houses/">Vacant Houses</a>
-<a href="/billing/invoices/">Invoices</a>
-<a href="/sales/">Sales</a>
-<a href="/purchasing/">Purchasing</a>
-<a href="/inventory/">Inventory</a>
-<a href="/manufacturing/">Manufacturing</a>
-<a href="/inventory/balances/">Stock Balances</a>
-<a href="/inventory/stock-ledger/">Stock Ledger</a>
-<a href="/payments/">Payments</a>
-<a href="/banking/reconciliation/">Bank Reconciliation</a>
-<a href="/accounting/general-ledger/">General Ledger</a>
-<a href="/accounting/trial-balance/">Trial Balance</a>
-<a href="/admin/">Admin</a>
+<aside class="sidebar" id="sidebar">
+
+    <div class="brand">
+        <div class="brand-title">AfriAxis ERP</div>
+        <div class="brand-sub">Africa's Business Operating System</div>
+    </div>
+
+    <nav class="nav">
+
+        {% if request.user.is_authenticated %}
+            {% with role=request.user.userprofile.role %}
+
+                <div class="nav-section">Overview</div>
+
+                {% if role == "MD" or role == "GM" or request.user.is_superuser %}
+                <a href="/">
+                    <span class="nav-icon">⌂</span>
+                    <span>Home</span>
+                </a>
+
+                <a href="/dashboard/">
+                    <span class="nav-icon">▦</span>
+                    <span>Executive Dashboard</span>
+                </a>
+                {% endif %}
+
+
+                {% if role == "MD" or role == "GM" or role == "ACCOUNTS" or request.user.is_superuser %}
+                <a href="/dashboard/finance/">
+                    <span class="nav-icon">◈</span>
+                    <span>Finance Dashboard</span>
+                </a>
+                {% endif %}
+
+
+                {% if role == "MD" or role == "GM" or request.user.is_superuser %}
+
+                <div class="nav-section">Management</div>
+
+                <a href="/dashboard/charts/">
+                    <span class="nav-icon">◫</span>
+                    <span>Analytics</span>
+                </a>
+
+                <a href="/dashboard/rent-report/">
+                    <span class="nav-icon">▤</span>
+                    <span>Rent Report</span>
+                </a>
+
+                <a href="/dashboard/tenants/">
+                    <span class="nav-icon">👥</span>
+                    <span>Tenants</span>
+                </a>
+
+                <a href="/dashboard/vacant-houses/">
+                    <span class="nav-icon">⌂</span>
+                    <span>Vacant Houses</span>
+                </a>
+
+
+                <div class="nav-section">Operations</div>
+
+                <a href="/sales/">
+                    <span class="nav-icon">🛒</span>
+                    <span>Sales</span>
+                </a>
+
+                <a href="/purchasing/">
+                    <span class="nav-icon">🛍</span>
+                    <span>Purchasing</span>
+                </a>
+
+                <a href="/inventory/">
+                    <span class="nav-icon">▣</span>
+                    <span>Inventory</span>
+                </a>
+
+                <a href="/manufacturing/">
+                    <span class="nav-icon">🏭</span>
+                    <span>Manufacturing</span>
+                </a>
+
+                <a href="/inventory/balances/">
+                    <span class="nav-icon">▦</span>
+                    <span>Stock Balances</span>
+                </a>
+
+                <a href="/inventory/stock-ledger/">
+                    <span class="nav-icon">▤</span>
+                    <span>Stock Ledger</span>
+                </a>
+
+                {% endif %}
+
+
+                {% if role == "MD" or role == "GM" or role == "ACCOUNTS" or request.user.is_superuser %}
+
+                <div class="nav-section">Finance</div>
+
+                <a href="/billing/invoices/">
+                    <span class="nav-icon">▧</span>
+                    <span>Invoices</span>
+                </a>
+
+                <a href="/payments/">
+                    <span class="nav-icon">💳</span>
+                    <span>Payments</span>
+                </a>
+
+                <a href="/banking/reconciliation/">
+                    <span class="nav-icon">🏦</span>
+                    <span>Bank Reconciliation</span>
+                </a>
+
+                <a href="/accounting/general-ledger/">
+                    <span class="nav-icon">▥</span>
+                    <span>General Ledger</span>
+                </a>
+
+                <a href="/accounting/trial-balance/">
+                    <span class="nav-icon">⚖</span>
+                    <span>Trial Balance</span>
+                </a>
+
+                {% endif %}
+
+
+                {% if request.user.is_superuser %}
+
+                <div class="nav-section">System</div>
+
+                <a href="/admin/">
+                    <span class="nav-icon">⚙</span>
+                    <span>Administration</span>
+                </a>
+
+                {% endif %}
+
+            {% endwith %}
+        {% endif %}
+
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-card">
+            {% if request.user.is_authenticated %}
+                <div class="user-name">{{ request.user.username }}</div>
+
+                <div class="user-role">
+                    {% if request.user.is_superuser %}
+                        System Administrator
+                    {% elif request.user.userprofile.role == "MD" %}
+                        Managing Director
+                    {% elif request.user.userprofile.role == "GM" %}
+                        General Manager
+                    {% elif request.user.userprofile.role == "ACCOUNTS" %}
+                        Accounts
+                    {% else %}
+                        User
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="user-name">AfriAxis User</div>
+            {% endif %}
+
+            <div class="live-line">
+                <span class="live-dot"></span>
+                LIVE PRODUCTION
+            </div>
+        </div>
+    </div>
+
+</aside>
+
+
+<main class="main">
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+            <button class="menu-btn" id="menuBtn" type="button">☰</button>
+            <div class="page-label">AfriAxis Enterprise Resource Planning</div>
+        </div>
+
+        <div class="topbar-right">
+
+            <div class="production-pill">
+                ● SYSTEM ONLINE
+            </div>
+
+            {% if request.user.is_authenticated %}
+                <a class="logout-link" href="/admin/logout/">Logout</a>
+            {% endif %}
+
+        </div>
+
+    </header>
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+</main>
+
 </div>
 
-<div class="main">
-{% block content %}{% endblock %}
-</div>
 
 <script>
+const menuBtn = document.getElementById("menuBtn");
+const sidebar = document.getElementById("sidebar");
+
+if (menuBtn && sidebar) {
+    menuBtn.addEventListener("click", function () {
+        sidebar.classList.toggle("open");
+    });
+}
+
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
         navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
             .catch(function (error) {
-                console.log("AfriAxis service worker registration failed:", error);
+                console.log(
+                    "AfriAxis service worker registration failed:",
+                    error
+                );
             });
     });
 }
@@ -142,10 +534,5 @@ if ("serviceWorker" in navigator) {
 
 </body>
 </html>
-
-
-
-
-
 
 

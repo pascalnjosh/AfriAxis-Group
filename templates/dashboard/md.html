@@ -1,70 +1,507 @@
 {% extends "base/erp.html" %}
 
-{% block title %}Dashboard | AfriAxis ERP{% endblock %}
+{% block title %}Executive Dashboard | AfriAxis ERP{% endblock %}
 
 {% block content %}
 
-<h1>Executive Dashboard</h1>
-<p>Control center for rentals, billing, payments, water, WiFi and operations.</p>
+<style>
+.dashboard-shell{
+    max-width:1600px;
+    margin:0 auto;
+}
 
-<div class="grid">
+.hero{
+    background:linear-gradient(135deg,#07172f,#0d2850);
+    color:white;
+    padding:28px;
+    border-radius:18px;
+    margin-bottom:22px;
+    box-shadow:0 10px 30px rgba(2,12,27,.18);
+}
 
-<div class="card"><h2>{{ total_houses }}</h2><p>Total Houses</p></div>
-<div class="card"><h2>{{ occupied_houses }}</h2><p>Occupied Houses</p></div>
-<div class="card"><h2>{{ vacant_houses }}</h2><p>Vacant Houses</p></div>
-<div class="card"><h2>{{ occupancy_rate }}%</h2><p>Occupancy Rate</p></div>
+.hero-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    flex-wrap:wrap;
+}
 
-<div class="card"><h2>KES {{ revenue_potential }}</h2><p>Revenue Potential</p></div>
-<div class="card"><h2>KES {{ total_unpaid }}</h2><p>Total Unpaid Rent</p></div>
-<div class="card"><h2>{{ rent_arrears }}</h2><p>Unpaid Rent Cases</p></div>
+.hero h1{
+    margin:0;
+    font-size:30px;
+}
 
-<div class="card"><h2>KES {{ total_money_in }}</h2><p>Money In</p></div>
-<div class="card"><h2>KES {{ total_money_out }}</h2><p>Money Out</p></div>
-<div class="card"><h2>KES {{ cash_balance }}</h2><p>Cash Balance</p></div>
+.hero p{
+    margin:8px 0 0;
+    color:#cbd5e1;
+}
 
-<div class="card"><h2>KES {{ water_total }}</h2><p>Water Billed</p></div>
-<div class="card"><h2>KES {{ water_paid }}</h2><p>Water Paid</p></div>
-<div class="card"><h2>KES {{ water_balance }}</h2><p>Water Balance</p></div>
+.live-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:#123c2d;
+    color:#4ade80;
+    border:1px solid #22c55e;
+    padding:9px 14px;
+    border-radius:999px;
+    font-weight:700;
+}
 
-<div class="card"><h2>KES {{ deposits_held }}</h2><p>Deposits Held</p></div>
+.live-dot{
+    width:9px;
+    height:9px;
+    background:#22c55e;
+    border-radius:50%;
+    box-shadow:0 0 0 5px rgba(34,197,94,.15);
+}
 
-<div class="card"><h2>{{ sms_drafts }}</h2><p>SMS Drafts</p></div>
-<div class="card"><h2>{{ sms_sent }}</h2><p>SMS Sent</p></div>
-<div class="card"><h2>{{ sms_failed }}</h2><p>SMS Failed</p></div>
+.section-title{
+    margin:28px 0 14px;
+    font-size:18px;
+    font-weight:800;
+    color:#0f172a;
+}
 
-<div class="card"><h2>{{ total_payments }}</h2><p>Total Payments</p></div>
-<div class="card"><h2>{{ successful }}</h2><p>Successful Payments</p></div>
-<div class="card"><h2>{{ pending }}</h2><p>Pending Payments</p></div>
-<div class="card"><h2>{{ failed }}</h2><p>Failed Payments</p></div>
+.kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:16px;
+}
+
+.kpi{
+    background:white;
+    border-radius:16px;
+    padding:20px;
+    border:1px solid #e5e7eb;
+    box-shadow:0 6px 18px rgba(15,23,42,.06);
+    min-height:120px;
+}
+
+.kpi-top{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    align-items:flex-start;
+}
+
+.kpi-icon{
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    background:#eff6ff;
+}
+
+.kpi-value{
+    margin-top:16px;
+    font-size:25px;
+    font-weight:800;
+    color:#0f172a;
+    word-break:break-word;
+}
+
+.kpi-label{
+    color:#64748b;
+    font-size:13px;
+    margin-top:5px;
+}
+
+.kpi-good{
+    border-top:4px solid #22c55e;
+}
+
+.kpi-blue{
+    border-top:4px solid #2563eb;
+}
+
+.kpi-orange{
+    border-top:4px solid #f59e0b;
+}
+
+.kpi-red{
+    border-top:4px solid #ef4444;
+}
+
+.module-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:16px;
+}
+
+.module-card{
+    background:#0b1f3a;
+    color:white;
+    border-radius:16px;
+    padding:20px;
+    min-height:130px;
+    border:1px solid #18395f;
+}
+
+.module-card h3{
+    margin:0 0 8px;
+}
+
+.module-card p{
+    margin:0;
+    color:#b7c8dc;
+    line-height:1.5;
+    font-size:14px;
+}
+
+.module-link{
+    display:inline-block;
+    margin-top:14px;
+    color:#4ade80;
+    text-decoration:none;
+    font-weight:700;
+}
+
+.panel-grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:18px;
+    margin-top:18px;
+}
+
+.panel{
+    background:white;
+    border-radius:16px;
+    border:1px solid #e5e7eb;
+    box-shadow:0 6px 18px rgba(15,23,42,.06);
+    overflow:hidden;
+}
+
+.panel-header{
+    padding:18px 20px;
+    font-weight:800;
+    color:white;
+    background:#0d2850;
+}
+
+.panel-body{
+    padding:18px;
+}
+
+.health-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid #eef2f7;
+}
+
+.health-row:last-child{
+    border-bottom:none;
+}
+
+.status-ok{
+    background:#dcfce7;
+    color:#166534;
+    padding:4px 9px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+}
+
+.arrears-table-wrap{
+    overflow:auto;
+    max-height:520px;
+}
+
+.arrears-table{
+    min-width:760px;
+}
+
+.arrears-table th{
+    position:sticky;
+    top:0;
+    z-index:1;
+}
+
+.badge-unpaid{
+    display:inline-block;
+    background:#fee2e2;
+    color:#991b1b;
+    border-radius:999px;
+    padding:5px 9px;
+    font-size:12px;
+    font-weight:700;
+}
+
+@media(max-width:1200px){
+    .kpi-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .module-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+
+@media(max-width:900px){
+    .panel-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:650px){
+    .kpi-grid,
+    .module-grid{
+        grid-template-columns:1fr;
+    }
+
+    .hero{
+        padding:20px;
+    }
+
+    .hero h1{
+        font-size:24px;
+    }
+}
+</style>
+
+<div class="dashboard-shell">
+
+<div class="hero">
+    <div class="hero-top">
+        <div>
+            <h1>AfriAxis Executive Dashboard</h1>
+            <p>Live control center for property, finance, payments, inventory, manufacturing and operations.</p>
+        </div>
+
+        <div class="live-badge">
+            <span class="live-dot"></span>
+            LIVE PRODUCTION
+        </div>
+    </div>
+</div>
+
+
+<div class="section-title">Property Performance</div>
+
+<div class="kpi-grid">
+
+    <div class="kpi kpi-blue">
+        <div class="kpi-top">
+            <div class="kpi-icon">🏠</div>
+        </div>
+        <div class="kpi-value">{{ total_houses }}</div>
+        <div class="kpi-label">Total Houses</div>
+    </div>
+
+    <div class="kpi kpi-good">
+        <div class="kpi-top">
+            <div class="kpi-icon">🔑</div>
+        </div>
+        <div class="kpi-value">{{ occupied_houses }}</div>
+        <div class="kpi-label">Occupied Houses</div>
+    </div>
+
+    <div class="kpi kpi-orange">
+        <div class="kpi-top">
+            <div class="kpi-icon">🏘️</div>
+        </div>
+        <div class="kpi-value">{{ vacant_houses }}</div>
+        <div class="kpi-label">Vacant Houses</div>
+    </div>
+
+    <div class="kpi kpi-good">
+        <div class="kpi-top">
+            <div class="kpi-icon">📊</div>
+        </div>
+        <div class="kpi-value">{{ occupancy_rate }}%</div>
+        <div class="kpi-label">Occupancy Rate</div>
+    </div>
 
 </div>
 
-<div class="card">
-<h2>Unpaid Rent List</h2>
 
-<table>
-<tr>
-<th>Tenant</th>
-<th>Amount</th>
-<th>Due Date</th>
-<th>Days Overdue</th>
-<th>Status</th>
-</tr>
+<div class="section-title">Financial Position</div>
 
-{% for rent in unpaid_rents %}
-<tr>
-<td>{{ rent.tenant.name }}</td>
-<td>KES {{ rent.balance }}</td>
-<td>{{ rent.due_date }}</td>
-<td>{{ rent.days_overdue }}</td>
-<td>UNPAID</td>
-</tr>
-{% empty %}
-<tr>
-<td colspan="5">No unpaid rents</td>
-</tr>
-{% endfor %}
-</table>
+<div class="kpi-grid">
+
+    <div class="kpi kpi-blue">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-value">KES {{ revenue_potential }}</div>
+        <div class="kpi-label">Revenue Potential</div>
+    </div>
+
+    <div class="kpi kpi-red">
+        <div class="kpi-icon">⚠️</div>
+        <div class="kpi-value">KES {{ total_unpaid }}</div>
+        <div class="kpi-label">Total Unpaid Rent</div>
+    </div>
+
+    <div class="kpi kpi-orange">
+        <div class="kpi-icon">📋</div>
+        <div class="kpi-value">{{ rent_arrears }}</div>
+        <div class="kpi-label">Unpaid Rent Cases</div>
+    </div>
+
+    <div class="kpi kpi-good">
+        <div class="kpi-icon">⬇️</div>
+        <div class="kpi-value">KES {{ total_money_in }}</div>
+        <div class="kpi-label">Money In</div>
+    </div>
+
+    <div class="kpi kpi-red">
+        <div class="kpi-icon">⬆️</div>
+        <div class="kpi-value">KES {{ total_money_out }}</div>
+        <div class="kpi-label">Money Out</div>
+    </div>
+
+    <div class="kpi kpi-good">
+        <div class="kpi-icon">🏦</div>
+        <div class="kpi-value">KES {{ cash_balance }}</div>
+        <div class="kpi-label">Cash Balance</div>
+    </div>
+
+    <div class="kpi kpi-blue">
+        <div class="kpi-icon">💧</div>
+        <div class="kpi-value">KES {{ water_total }}</div>
+        <div class="kpi-label">Water Billed</div>
+    </div>
+
+    <div class="kpi kpi-good">
+        <div class="kpi-icon">✅</div>
+        <div class="kpi-value">KES {{ water_paid }}</div>
+        <div class="kpi-label">Water Paid</div>
+    </div>
+
+</div>
+
+
+<div class="section-title">Core ERP Modules</div>
+
+<div class="module-grid">
+
+    <div class="module-card">
+        <h3>Sales</h3>
+        <p>Create and manage sales orders, deliveries, invoices and customer receipts.</p>
+        <a class="module-link" href="/sales/">Open Sales →</a>
+    </div>
+
+    <div class="module-card">
+        <h3>Purchasing</h3>
+        <p>Manage suppliers, purchase orders, goods received and supplier payments.</p>
+        <a class="module-link" href="/purchasing/">Open Purchasing →</a>
+    </div>
+
+    <div class="module-card">
+        <h3>Inventory</h3>
+        <p>Stock balances, stock ledger, batches, movements and warehouse control.</p>
+        <a class="module-link" href="/inventory/">Open Inventory →</a>
+    </div>
+
+    <div class="module-card">
+        <h3>Manufacturing</h3>
+        <p>Bills of Materials, production orders, raw-material consumption and finished goods.</p>
+        <a class="module-link" href="/manufacturing/">Open Manufacturing →</a>
+    </div>
+
+    <div class="module-card">
+        <h3>Banking</h3>
+        <p>Bank transaction reconciliation, matching and financial controls.</p>
+        <a class="module-link" href="/banking/reconciliation/">Open Banking →</a>
+    </div>
+
+    <div class="module-card">
+        <h3>Accounting</h3>
+        <p>General Ledger, Trial Balance, financial statements and reporting.</p>
+        <a class="module-link" href="/accounting/general-ledger/">Open Ledger →</a>
+    </div>
+
+</div>
+
+
+<div class="panel-grid">
+
+    <div class="panel">
+        <div class="panel-header">
+            Unpaid Rent Cases
+        </div>
+
+        <div class="panel-body arrears-table-wrap">
+            <table class="arrears-table">
+                <tr>
+                    <th>Tenant</th>
+                    <th>Amount</th>
+                    <th>Due Date</th>
+                    <th>Days Overdue</th>
+                    <th>Status</th>
+                </tr>
+
+                {% for rent in unpaid_rents %}
+                <tr>
+                    <td>{{ rent.tenant.name }}</td>
+                    <td>KES {{ rent.balance }}</td>
+                    <td>{{ rent.due_date }}</td>
+                    <td>{{ rent.days_overdue }}</td>
+                    <td><span class="badge-unpaid">UNPAID</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No unpaid rents.</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+
+    <div class="panel">
+        <div class="panel-header">
+            System Health
+        </div>
+
+        <div class="panel-body">
+
+            <div class="health-row">
+                <span>Web Application</span>
+                <span class="status-ok">ONLINE</span>
+            </div>
+
+            <div class="health-row">
+                <span>PostgreSQL Database</span>
+                <span class="status-ok">ONLINE</span>
+            </div>
+
+            <div class="health-row">
+                <span>Payments</span>
+                <span class="status-ok">{{ successful }} SUCCESS</span>
+            </div>
+
+            <div class="health-row">
+                <span>Pending Payments</span>
+                <span>{{ pending }}</span>
+            </div>
+
+            <div class="health-row">
+                <span>Failed Payments</span>
+                <span>{{ failed }}</span>
+            </div>
+
+            <div class="health-row">
+                <span>SMS Sent</span>
+                <span>{{ sms_sent }}</span>
+            </div>
+
+            <div class="health-row">
+                <span>Deposits Held</span>
+                <span>KES {{ deposits_held }}</span>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
 </div>
 
 {% endblock %}
