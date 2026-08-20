@@ -1,4 +1,4 @@
-const CACHE_NAME = "afriaxis-v2";
+const CACHE_NAME = "afriaxis-v3";
 
 const CORE_ASSETS = [
   "/",
@@ -40,4 +40,5 @@ self.addEventListener("fetch", event => {
       .catch(() => caches.match(event.request))
   );
 });
+
 

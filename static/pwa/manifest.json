@@ -2,7 +2,7 @@
   "name": "AfriAxis ERP",
   "short_name": "AfriAxis",
   "description": "AfriAxis ERP - Africa's all-in-one business operating system.",
-  "start_url": "/dashboard/",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#111827",
@@ -21,3 +21,4 @@
     }
   ]
 }
+
