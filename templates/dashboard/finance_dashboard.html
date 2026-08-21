@@ -117,11 +117,152 @@ Finance Dashboard | AfriAxis ERP
         font-size:21px;
     }
 }
+
+/* ===== AFRIAXIS FINANCE MOBILE V2 ===== */
+
+.dashboard-header{
+    background:linear-gradient(135deg,#07172f,#0d2850);
+    color:#fff;
+    padding:22px;
+    border-radius:18px;
+    box-shadow:0 10px 28px rgba(7,23,47,.15);
+}
+
+.dashboard-header h1{
+    font-size:26px;
+    color:#fff;
+}
+
+.dashboard-header p{
+    color:#cbd5e1;
+}
+
+.kpi-card{
+    border-left:0;
+    border-top:4px solid #2563eb;
+    border-radius:16px;
+    border-right:1px solid #e5e7eb;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.quick-actions{
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    padding-bottom:6px;
+    scrollbar-width:none;
+}
+
+.quick-actions::-webkit-scrollbar{
+    display:none;
+}
+
+.quick-actions a{
+    flex:0 0 auto;
+    white-space:nowrap;
+    border-radius:10px;
+    font-size:12px;
+    font-weight:700;
+}
+
+.table-card{
+    border-radius:16px;
+}
+
+@media(max-width:700px){
+
+    .dashboard-header{
+        padding:16px;
+        border-radius:14px;
+        margin-bottom:15px;
+    }
+
+    .dashboard-header h1{
+        font-size:19px;
+        line-height:1.2;
+    }
+
+    .dashboard-header p{
+        font-size:11px;
+    }
+
+    .section-title{
+        margin:18px 0 9px;
+        font-size:14px;
+    }
+
+    .kpi-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:9px;
+        margin-bottom:15px;
+    }
+
+    .kpi-card{
+        padding:12px;
+        min-height:105px;
+        border-radius:13px;
+        border-top-width:3px;
+    }
+
+    .kpi-label{
+        font-size:9px;
+        margin-bottom:6px;
+        line-height:1.25;
+    }
+
+    .kpi-value{
+        font-size:15px !important;
+        line-height:1.2;
+        word-break:break-word;
+    }
+
+    .kpi-note{
+        font-size:9px;
+        line-height:1.35;
+        margin-top:6px;
+    }
+
+    .quick-actions{
+        display:flex;
+        overflow-x:auto;
+        flex-wrap:nowrap;
+        gap:8px;
+    }
+
+    .quick-actions a{
+        padding:9px 11px;
+        font-size:10px;
+    }
+
+    .two-column{
+        grid-template-columns:1fr !important;
+        gap:12px;
+    }
+
+    .table-card{
+        overflow-x:auto;
+        border-radius:13px;
+    }
+
+    .table-card h2{
+        font-size:14px;
+    }
+
+    .table-card table{
+        min-width:620px;
+    }
+
+    .table-card th,
+    .table-card td{
+        padding:9px 10px;
+        font-size:10px;
+    }
+}
+
 </style>
 
 <div class="dashboard-header">
     <div>
-        <h1>AfriAxis Executive Finance Dashboard</h1>
+        <h1>AfriAxis Finance</h1>
         <p>
             {% if company %}
                 {{ company }}
@@ -407,3 +548,5 @@ Finance Dashboard | AfriAxis ERP
 </div>
 
 {% endblock %}
+
+
