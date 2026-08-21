@@ -5,6 +5,186 @@
 {% block content %}
 
 <style>
+
+/* ===== AFRIAXIS BILLING MOBILE V2 ===== */
+
+.billing-scroll{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+.billing-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+@media(max-width:700px){
+
+    .page-header,
+    .invoice-actions{
+        gap:8px !important;
+    }
+
+    .page-header{
+        background:linear-gradient(135deg,#07172f,#0d2850);
+        color:#fff;
+        padding:15px !important;
+        border-radius:14px;
+        margin-bottom:13px !important;
+        align-items:flex-start !important;
+    }
+
+    .page-header h1{
+        color:#fff !important;
+        font-size:19px !important;
+        margin:0 0 5px !important;
+        line-height:1.2;
+    }
+
+    .page-header p{
+        color:#cbd5e1 !important;
+        font-size:10px !important;
+        line-height:1.4;
+    }
+
+    .invoice-actions{
+        display:flex !important;
+        overflow-x:auto;
+        flex-wrap:nowrap !important;
+        padding-bottom:5px;
+        scrollbar-width:none;
+    }
+
+    .invoice-actions::-webkit-scrollbar{
+        display:none;
+    }
+
+    .invoice-actions a,
+    .invoice-actions button{
+        flex:0 0 auto;
+        white-space:nowrap;
+        font-size:10px !important;
+        padding:8px 10px !important;
+    }
+
+    .invoice-document{
+        border-radius:13px !important;
+        overflow:hidden;
+    }
+
+    .invoice-header{
+        padding:16px !important;
+    }
+
+    .invoice-body{
+        padding:15px !important;
+    }
+
+    .invoice-title h1{
+        font-size:22px !important;
+    }
+
+    .invoice-grid,
+    .form-grid{
+        grid-template-columns:1fr !important;
+        gap:10px !important;
+    }
+
+    .info-box,
+    .form-card,
+    .notes-box,
+    .etims-box{
+        padding:12px !important;
+        border-radius:12px !important;
+    }
+
+    .info-box h3,
+    .form-card h2{
+        font-size:12px !important;
+    }
+
+    .info-row{
+        gap:8px !important;
+        font-size:10px;
+    }
+
+    .info-label{
+        font-size:9px !important;
+    }
+
+    .info-value{
+        font-size:10px !important;
+        word-break:break-word;
+    }
+
+    .status-badge{
+        font-size:9px !important;
+        padding:4px 7px !important;
+    }
+
+    .billing-scroll table,
+    .items-wrap table,
+    .invoice-table{
+        min-width:680px;
+    }
+
+    .billing-scroll th,
+    .billing-scroll td,
+    .items-wrap th,
+    .items-wrap td,
+    .invoice-table th,
+    .invoice-table td{
+        padding:8px 9px !important;
+        font-size:10px !important;
+        white-space:nowrap;
+    }
+
+    .totals-panel{
+        width:100% !important;
+        box-sizing:border-box;
+        margin-top:12px !important;
+    }
+
+    .summary-wrap{
+        justify-content:stretch !important;
+    }
+
+    .summary-table{
+        width:100% !important;
+    }
+
+    .actions{
+        display:flex !important;
+        flex-direction:column;
+        gap:8px !important;
+    }
+
+    .actions .btn,
+    .actions a,
+    .actions button{
+        width:100%;
+        box-sizing:border-box;
+        text-align:center;
+    }
+
+    .field-group input,
+    .field-group select,
+    .field-group textarea{
+        min-height:40px;
+        font-size:12px !important;
+    }
+
+    #add-item{
+        width:100%;
+    }
+}
+
+</style>
+
+
+<style>
 .page-header{
     display:flex;
     justify-content:space-between;
@@ -410,3 +590,4 @@ calculateTotals();
 </script>
 
 {% endblock %}
+

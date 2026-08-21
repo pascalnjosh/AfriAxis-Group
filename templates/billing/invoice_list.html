@@ -11,6 +11,76 @@ td{padding:10px;border-bottom:1px solid #ddd;}
 .pending{color:orange;font-weight:bold;}
 .paid{color:green;font-weight:bold;}
 .partial{color:#2563eb;font-weight:bold;}
+
+/* ===== AFRIAXIS BILLING MOBILE V2 ===== */
+
+.billing-scroll{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+@media(max-width:700px){
+
+    body{
+        margin:0 !important;
+        padding:12px !important;
+        background:#f3f4f6;
+    }
+
+    h1{
+        font-size:20px !important;
+        line-height:1.2;
+    }
+
+    h2{
+        font-size:14px !important;
+    }
+
+    .card,
+    .receipt{
+        padding:14px !important;
+        border-radius:13px !important;
+    }
+
+    .grid{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:9px !important;
+    }
+
+    .billing-scroll table{
+        min-width:650px;
+    }
+
+    .billing-scroll th,
+    .billing-scroll td{
+        padding:8px 9px !important;
+        font-size:10px !important;
+        white-space:nowrap;
+    }
+
+    a,
+    button{
+        font-size:10px !important;
+    }
+
+    button{
+        width:100%;
+        min-height:42px;
+        border:0;
+        border-radius:9px;
+        background:#0d2850;
+        color:white;
+        font-weight:700;
+    }
+
+    .row{
+        font-size:11px;
+        line-height:1.45;
+        margin-bottom:9px !important;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -26,7 +96,7 @@ td{padding:10px;border-bottom:1px solid #ddd;}
 <h2>Total Invoices: {{ invoice_count }}</h2>
 </div>
 
-<table>
+<div class="billing-scroll"><table>
 <tr>
 <th>Invoice</th>
 <th>Tenant</th>
@@ -59,7 +129,11 @@ td{padding:10px;border-bottom:1px solid #ddd;}
 </tr>
 {% endfor %}
 
-</table>
+</table></div>
 
 </body>
 </html>
+
+
+
+
