@@ -1,56 +1,326 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Tenant Dashboard</title>
+<title>Tenant Dashboard | AfriAxis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+/* ===== AFRIAXIS TENANT DASHBOARD V5 ===== */
+
+*{
+    box-sizing:border-box;
+}
+
+html,body{
+    margin:0;
+    min-height:100%;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f4f7fb;
+    color:#0f172a;
+}
+
+.topbar{
+    position:sticky;
+    top:0;
+    z-index:10;
+    min-height:58px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 14px;
+    background:linear-gradient(135deg,#061426,#0b2446);
+    color:white;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.logo{
+    width:36px;
+    height:36px;
+    border-radius:11px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    font-weight:900;
+}
+
+.brand-name{
+    font-size:13px;
+    font-weight:900;
+}
+
+.version{
+    color:#4ade80;
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:1px;
+}
+
+.logout{
+    color:white;
+    text-decoration:none;
+    font-size:10px;
+    font-weight:800;
+    padding:8px 10px;
+    border-radius:8px;
+    background:rgba(255,255,255,.10);
+}
+
+.page{
+    width:100%;
+    max-width:1100px;
+    margin:0 auto;
+    padding:16px;
+}
+
+.hero{
+    background:#fff;
+    border:1px solid #e5eaf1;
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:14px;
+    box-shadow:0 5px 20px rgba(15,23,42,.05);
+}
+
+.hero h1{
+    margin:0 0 5px;
+    font-size:21px;
+}
+
+.hero p{
+    margin:0;
+    color:#64748b;
+    font-size:11px;
+}
+
+.profile-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    margin-top:14px;
+}
+
+.info{
+    background:#f8fafc;
+    border:1px solid #e8edf3;
+    border-radius:12px;
+    padding:12px;
+}
+
+.info-label{
+    color:#64748b;
+    font-size:9px;
+    text-transform:uppercase;
+    font-weight:800;
+}
+
+.info-value{
+    margin-top:5px;
+    font-size:13px;
+    font-weight:800;
+}
+
+.card{
+    background:#fff;
+    border:1px solid #e5eaf1;
+    border-radius:16px;
+    padding:16px;
+    box-shadow:0 5px 20px rgba(15,23,42,.04);
+}
+
+.card h2{
+    margin:0 0 12px;
+    font-size:15px;
+}
+
+.table-wrap{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    min-width:620px;
+    border-collapse:collapse;
+}
+
+th{
+    background:#07172f;
+    color:white;
+    padding:10px;
+    text-align:left;
+    font-size:10px;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #edf1f5;
+    font-size:10px;
+}
+
+.empty{
+    padding:30px 15px;
+    text-align:center;
+    color:#64748b;
+    font-size:11px;
+}
+
+@media(max-width:700px){
+
+    .page{
+        padding:10px;
+    }
+
+    .hero{
+        padding:14px;
+        border-radius:14px;
+    }
+
+    .hero h1{
+        font-size:18px;
+    }
+
+    .profile-grid{
+        grid-template-columns:1fr 1fr;
+        gap:8px;
+    }
+
+    .info{
+        padding:10px;
+    }
+
+    .info-value{
+        font-size:11px;
+    }
+
+    .card{
+        padding:12px;
+        border-radius:14px;
+    }
+
+    table{
+        min-width:570px;
+    }
+
+    th,
+    td{
+        padding:8px;
+        font-size:9px;
+    }
+}
+
+</style>
 </head>
 
 <body>
 
-<h1>Tenant Dashboard</h1>
+<header class="topbar">
+
+    <div class="brand">
+        <div class="logo">A</div>
+
+        <div>
+            <div class="version">AFRIAXIS V5</div>
+            <div class="brand-name">Tenant Portal</div>
+        </div>
+    </div>
+
+    <a class="logout" href="/tenant/logout/">
+        Sign Out
+    </a>
+
+</header>
+
+<main class="page">
 
 {% if tenant %}
 
-<h2>{{ tenant.name }}</h2>
+<div class="hero">
 
-<p>
-Phone: {{ tenant.phone }}
-</p>
+    <h1>Welcome, {{ tenant.name }}</h1>
+    <p>Your property account and invoice position.</p>
 
-<table border="1" cellpadding="10">
+    <div class="profile-grid">
 
-<tr>
-<th>Invoice</th>
-<th>Total</th>
-<th>Paid</th>
-<th>Balance</th>
-<th>Status</th>
-</tr>
+        <div class="info">
+            <div class="info-label">Tenant</div>
+            <div class="info-value">{{ tenant.name }}</div>
+        </div>
 
-{% for invoice in invoices %}
+        <div class="info">
+            <div class="info-label">Phone</div>
+            <div class="info-value">{{ tenant.phone|default:"-" }}</div>
+        </div>
 
-<tr>
-<td>{{ invoice.invoice_number }}</td>
-<td>KES {{ invoice.total_amount }}</td>
-<td>KES {{ invoice.amount_paid }}</td>
-<td>KES {{ invoice.balance }}</td>
-<td>{{ invoice.status }}</td>
-</tr>
+    </div>
 
-{% endfor %}
+</div>
 
-</table>
+<div class="card">
+
+    <h2>Invoices</h2>
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Invoice</th>
+                    <th>Total</th>
+                    <th>Paid</th>
+                    <th>Balance</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for invoice in invoices %}
+
+                <tr>
+                    <td>{{ invoice.invoice_number }}</td>
+                    <td>KES {{ invoice.total_amount }}</td>
+                    <td>KES {{ invoice.amount_paid }}</td>
+                    <td>KES {{ invoice.balance }}</td>
+                    <td>{{ invoice.status }}</td>
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="5" class="empty">
+                        No invoices available.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
 
 {% else %}
 
-<p>No tenant profile found.</p>
+<div class="card">
+    <div class="empty">
+        No tenant profile found.
+    </div>
+</div>
 
 {% endif %}
 
-<p>
-<a href="/tenant/logout/">
-Logout
-</a>
-</p>
+</main>
 
 </body>
 </html>
