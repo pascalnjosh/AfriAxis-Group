@@ -6,7 +6,141 @@ Inventory Dashboard | AfriAxis ERP
 
 {% block content %}
 
-<h1>Inventory Dashboard</h1>
+<style>
+
+/* ===== AFRIAXIS INVENTORY MOBILE V2 ===== */
+
+.inventory-head{
+    background:linear-gradient(135deg,#07172f,#0d2850);
+    color:#fff;
+    padding:22px;
+    border-radius:18px;
+    margin-bottom:18px;
+}
+
+.inventory-head h1{
+    margin:0;
+    color:#fff;
+    font-size:26px;
+}
+
+.inventory-head p{
+    margin:6px 0 0;
+    color:#cbd5e1;
+    font-size:13px;
+}
+
+.inventory-actions{
+    display:flex;
+    gap:9px;
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    padding-bottom:5px;
+    scrollbar-width:none;
+}
+
+.inventory-actions::-webkit-scrollbar{
+    display:none;
+}
+
+.inventory-actions a{
+    display:inline-block;
+    flex:0 0 auto;
+    padding:10px 13px;
+    border-radius:10px;
+    background:#0d2850;
+    color:#fff;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+}
+
+.inventory-table-wrap{
+    overflow-x:auto;
+    width:100%;
+}
+
+.inventory-table-wrap table{
+    width:100%;
+}
+
+@media(max-width:700px){
+
+    .inventory-head{
+        padding:16px;
+        border-radius:14px;
+        margin-bottom:13px;
+    }
+
+    .inventory-head h1{
+        font-size:19px;
+        line-height:1.2;
+    }
+
+    .inventory-head p{
+        font-size:10px;
+        line-height:1.4;
+    }
+
+    .grid{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:9px !important;
+    }
+
+    .grid .card{
+        padding:12px !important;
+        min-height:92px;
+        border-radius:13px;
+    }
+
+    .grid .card h2{
+        font-size:16px !important;
+        line-height:1.2;
+        margin-bottom:5px;
+        word-break:break-word;
+    }
+
+    .grid .card p{
+        font-size:9px;
+        line-height:1.3;
+    }
+
+    .inventory-actions{
+        gap:7px;
+    }
+
+    .inventory-actions a{
+        padding:9px 11px;
+        font-size:10px;
+    }
+
+    .inventory-table-wrap table{
+        min-width:650px;
+    }
+
+    .inventory-table-wrap th,
+    .inventory-table-wrap td{
+        padding:8px 9px;
+        font-size:10px;
+    }
+
+    .card{
+        border-radius:13px;
+    }
+
+    .card h2{
+        font-size:14px;
+    }
+}
+
+</style>
+
+
+<div class="inventory-head">
+    <h1>AfriAxis Inventory</h1>
+    <p>Stock, warehouses, batches and movement control.</p>
+</div>
 
 <div class="grid">
     <div class="card">
@@ -53,27 +187,22 @@ Inventory Dashboard | AfriAxis ERP
 <div class="card">
     <h2>Quick Actions</h2>
 
-    <p>
-        <a href="{% url 'stock_balances' %}">Stock Balances</a>
-        |
-        <a href="{% url 'movement_history' %}">Movement History</a>
-        |
-        <a href="{% url 'stock_ledger' %}">Stock Ledger</a>
-        |
-        <a href="/admin/inventory/stockadjustment/add/">
-            New Stock Adjustment
-        </a>
-        |
-        <a href="/admin/inventory/warehouse/add/">
-            New Warehouse
-        </a>
-    </p>
+<div class="inventory-actions">
+    <a href="{% url 'stock_balances' %}">Stock Balances</a>
+    <a href="{% url 'movement_history' %}">Movements</a>
+    <a href="{% url 'stock_ledger' %}">Stock Ledger</a>
+
+    {% if request.user.is_superuser %}
+    <a href="/admin/inventory/stockadjustment/add/">New Adjustment</a>
+    <a href="/admin/inventory/warehouse/add/">New Warehouse</a>
+    {% endif %}
+</div>
 </div>
 
 <div class="card">
     <h2>Low Stock</h2>
 
-    <table>
+    <div class="inventory-table-wrap"><table>
         <thead>
             <tr>
                 <th>Product</th>
@@ -99,13 +228,13 @@ Inventory Dashboard | AfriAxis ERP
             </tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 </div>
 
 <div class="card">
     <h2>Recent Stock Movements</h2>
 
-    <table>
+    <div class="inventory-table-wrap"><table>
         <thead>
             <tr>
                 <th>Date</th>
@@ -133,7 +262,8 @@ Inventory Dashboard | AfriAxis ERP
             </tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 </div>
 
 {% endblock %}
+
