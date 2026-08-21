@@ -504,6 +504,197 @@ td{
     }
 }
 
+
+/* ===== AFRIAXIS V6 - GLOBAL DARK EXECUTIVE THEME ===== */
+
+:root{
+    --v6-bg:#07111f;
+    --v6-bg2:#0a1626;
+    --v6-card:#101d2d;
+    --v6-card2:#142235;
+    --v6-border:#24344a;
+    --v6-text:#f8fafc;
+    --v6-muted:#94a3b8;
+    --v6-blue:#3b82f6;
+    --v6-green:#22c55e;
+}
+
+html,
+body{
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(59,130,246,.08),
+            transparent 30%
+        ),
+        linear-gradient(
+            180deg,
+            #07111f 0%,
+            #091524 100%
+        ) !important;
+
+    color:var(--v6-text);
+}
+
+.main{
+    background:transparent !important;
+}
+
+.content{
+    background:transparent !important;
+    color:var(--v6-text);
+}
+
+.topbar{
+    background:rgba(7,17,31,.96) !important;
+    border-bottom:1px solid rgba(148,163,184,.12);
+    box-shadow:0 5px 20px rgba(0,0,0,.16);
+}
+
+.page-label{
+    color:#f8fafc !important;
+}
+
+.menu-btn,
+.back-btn{
+    background:#111f31 !important;
+    color:#f8fafc !important;
+    border:1px solid rgba(148,163,184,.16) !important;
+}
+
+.sidebar{
+    background:
+        radial-gradient(
+            circle at top left,
+            rgba(34,197,94,.08),
+            transparent 28%
+        ),
+        linear-gradient(
+            180deg,
+            #06111f 0%,
+            #08182b 100%
+        ) !important;
+
+    border-right:1px solid rgba(148,163,184,.12);
+}
+
+.brand-title{
+    color:#fff !important;
+}
+
+.brand-sub{
+    color:#8fa4bd !important;
+}
+
+.nav-section{
+    color:#7189a6 !important;
+}
+
+.nav a{
+    color:#cbd5e1 !important;
+}
+
+.nav a:hover{
+    background:rgba(59,130,246,.10) !important;
+    color:#fff !important;
+}
+
+.content .card{
+    background:
+        linear-gradient(
+            145deg,
+            #111e2e,
+            #0d1928
+        ) !important;
+
+    color:#f8fafc !important;
+
+    border:
+        1px solid rgba(148,163,184,.14) !important;
+
+    box-shadow:
+        0 8px 24px rgba(0,0,0,.17) !important;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4{
+    color:#f8fafc !important;
+}
+
+.content p{
+    color:#aab8ca;
+}
+
+.content label{
+    color:#cbd5e1 !important;
+}
+
+.content input,
+.content select,
+.content textarea{
+    background:#0c1827 !important;
+    color:#f8fafc !important;
+    border:1px solid #26374d !important;
+}
+
+.content input:focus,
+.content select:focus,
+.content textarea:focus{
+    border-color:#3b82f6 !important;
+    box-shadow:0 0 0 3px rgba(59,130,246,.12) !important;
+}
+
+.content table{
+    background:#0e1a29 !important;
+    color:#e2e8f0 !important;
+    border:1px solid rgba(148,163,184,.13);
+}
+
+.content thead,
+.content th{
+    background:#142235 !important;
+    color:#cbd5e1 !important;
+}
+
+.content tbody tr{
+    background:#0e1a29 !important;
+}
+
+.content tbody tr:nth-child(even){
+    background:#101e2f !important;
+}
+
+.content tbody tr:hover{
+    background:#15263a !important;
+}
+
+@media(max-width:700px){
+
+    .page-label{
+        font-size:0 !important;
+    }
+
+    .page-label::after{
+        content:"AFRIAXIS V6";
+        font-size:12px;
+        font-weight:900;
+        letter-spacing:.8px;
+        color:#f8fafc;
+    }
+
+    .topbar{
+        background:rgba(7,17,31,.98) !important;
+    }
+
+    .menu-btn,
+    .back-btn{
+        background:#111f31 !important;
+        color:#fff !important;
+    }
+}
+
 </style>
 </head>
 
@@ -789,6 +980,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 </body>
 </html>
+
 
 
 

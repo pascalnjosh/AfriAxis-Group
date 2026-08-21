@@ -427,7 +427,7 @@
         padding:4px 7px;
     }
 }
-/* ===== AFRIAXIS V4 VISUAL IDENTITY ===== */
+/* ===== AFRIAXIS V6 VISUAL IDENTITY ===== */
 
 .v4-brand-row{
     display:flex;
@@ -536,6 +536,218 @@
     }
 }
 
+
+
+/* ===== AFRIAXIS V6 EXECUTIVE DASHBOARD ===== */
+
+body{
+    background:#07111f !important;
+}
+
+/* HERO */
+
+.hero,
+.v4-hero{
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(59,130,246,.18),
+            transparent 40%
+        ),
+        linear-gradient(
+            145deg,
+            #0b1728,
+            #101f33
+        ) !important;
+
+    border:1px solid rgba(148,163,184,.14) !important;
+    box-shadow:0 12px 32px rgba(0,0,0,.20) !important;
+}
+
+.v4-version{
+    color:#60a5fa !important;
+}
+
+.v4-logo{
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #1d4ed8
+        ) !important;
+
+    box-shadow:
+        0 7px 20px rgba(37,99,235,.28) !important;
+}
+
+/* QUICK NAVIGATION */
+
+.v4-quick-nav a{
+    background:#14243a !important;
+    color:#dbeafe !important;
+    border:1px solid rgba(96,165,250,.16) !important;
+}
+
+.v4-quick-nav a:hover{
+    background:#1b3150 !important;
+}
+
+/* SECTION TITLES */
+
+.section-title{
+    color:#f8fafc !important;
+}
+
+/* KPI CARDS */
+
+.kpi-grid .kpi{
+    background:
+        linear-gradient(
+            145deg,
+            #111e2e,
+            #0d1928
+        ) !important;
+
+    border:1px solid rgba(148,163,184,.14) !important;
+
+    box-shadow:
+        0 8px 22px rgba(0,0,0,.16) !important;
+}
+
+.kpi-value{
+    color:#f8fafc !important;
+}
+
+.kpi-label{
+    color:#94a3b8 !important;
+}
+
+.kpi-icon{
+    background:#16283e !important;
+    color:#60a5fa !important;
+}
+
+/* MODULE CARDS */
+
+.module-card{
+    background:
+        linear-gradient(
+            145deg,
+            #101d2d,
+            #0c1827
+        ) !important;
+
+    border:1px solid rgba(148,163,184,.13) !important;
+
+    box-shadow:
+        0 8px 22px rgba(0,0,0,.15) !important;
+}
+
+.module-card h3{
+    color:#f8fafc !important;
+}
+
+.module-card p{
+    color:#94a3b8 !important;
+}
+
+.module-link{
+    color:#60a5fa !important;
+}
+
+/* PANELS */
+
+.panel{
+    background:
+        linear-gradient(
+            145deg,
+            #101d2d,
+            #0c1827
+        ) !important;
+
+    border:1px solid rgba(148,163,184,.13) !important;
+
+    box-shadow:
+        0 8px 22px rgba(0,0,0,.15) !important;
+}
+
+.panel-header{
+    background:#142235 !important;
+    color:#f8fafc !important;
+    border-bottom:1px solid rgba(148,163,184,.12) !important;
+}
+
+.panel-body{
+    background:transparent !important;
+    color:#cbd5e1 !important;
+}
+
+/* HEALTH ROWS */
+
+.health-row{
+    color:#cbd5e1 !important;
+    border-color:rgba(148,163,184,.12) !important;
+}
+
+/* ARREARS TABLE */
+
+.arrears-table{
+    background:#0d1928 !important;
+    color:#e2e8f0 !important;
+}
+
+.arrears-table th{
+    background:#142235 !important;
+    color:#cbd5e1 !important;
+}
+
+.arrears-table td{
+    border-color:rgba(148,163,184,.10) !important;
+}
+
+.arrears-table tr{
+    background:#0d1928 !important;
+}
+
+.arrears-table tbody tr:nth-child(even){
+    background:#101e2f !important;
+}
+
+/* MOBILE V6 */
+
+@media(max-width:700px){
+
+    .dashboard-shell{
+        background:transparent !important;
+    }
+
+    .hero,
+    .v4-hero{
+        background:
+            radial-gradient(
+                circle at top right,
+                rgba(59,130,246,.16),
+                transparent 42%
+            ),
+            linear-gradient(
+                145deg,
+                #0a1728,
+                #102238
+            ) !important;
+    }
+
+    .kpi-grid .kpi,
+    .module-card,
+    .panel{
+        background:
+            linear-gradient(
+                145deg,
+                #111f31,
+                #0c1928
+            ) !important;
+    }
+}
+
 </style>
 
 <div class="dashboard-shell">
@@ -547,7 +759,7 @@
             <div class="v4-logo">A</div>
 
             <div>
-                <div class="v4-version">AFRIAXIS V4</div>
+                <div class="v4-version">AFRIAXIS V6</div>
                 <h1>Executive Command</h1>
                 <p>Business intelligence & operational control center.</p>
             </div>
@@ -791,6 +1003,9 @@
 </div>
 
 {% endblock %}
+
+
+
 
 
 
