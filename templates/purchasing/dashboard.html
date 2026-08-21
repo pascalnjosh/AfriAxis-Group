@@ -6,8 +6,168 @@ Purchasing | AfriAxis ERP
 
 {% block content %}
 
-<h1>Purchasing Dashboard</h1>
-<p>Procurement, receiving, supplier invoicing and supplier payments.</p>
+<style>
+
+/* ===== AFRIAXIS PURCHASING MOBILE V2 ===== */
+
+.purchasing-head{
+    background:linear-gradient(135deg,#07172f,#0d2850);
+    color:#fff;
+    padding:22px;
+    border-radius:18px;
+    margin-bottom:18px;
+    box-shadow:0 10px 28px rgba(7,23,47,.15);
+}
+
+.purchasing-head h1{
+    margin:0;
+    color:#fff;
+    font-size:26px;
+}
+
+.purchasing-head p{
+    margin:6px 0 0;
+    color:#cbd5e1;
+    font-size:13px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:13px;
+}
+
+.grid .card{
+    border-top:4px solid #2563eb;
+    border-radius:15px;
+    padding:16px;
+}
+
+.grid .card h2{
+    margin:0;
+    font-size:22px;
+}
+
+.grid .card p{
+    margin:6px 0 0;
+    color:#64748b;
+    font-size:11px;
+}
+
+.purchase-table-wrap{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+.purchase-table-wrap table{
+    width:100%;
+    min-width:680px;
+}
+
+.purchase-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.purchase-actions a{
+    display:inline-block;
+    padding:9px 12px;
+    border-radius:9px;
+    background:#2563eb;
+    color:#fff;
+    text-decoration:none;
+    font-size:11px;
+    font-weight:700;
+}
+
+@media(max-width:900px){
+    .grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+
+@media(max-width:700px){
+
+    .purchasing-head{
+        padding:16px;
+        border-radius:14px;
+        margin-bottom:13px;
+    }
+
+    .purchasing-head h1{
+        font-size:20px;
+    }
+
+    .purchasing-head p{
+        font-size:10px;
+    }
+
+    .grid{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:9px !important;
+    }
+
+    .grid .card{
+        padding:12px !important;
+        min-height:92px;
+        border-radius:13px;
+    }
+
+    .grid .card h2{
+        font-size:17px;
+    }
+
+    .grid .card p{
+        font-size:9px;
+    }
+
+    .card{
+        border-radius:13px !important;
+    }
+
+    .card h2{
+        font-size:14px;
+    }
+
+    .purchase-table-wrap table{
+        min-width:650px;
+    }
+
+    .purchase-table-wrap th,
+    .purchase-table-wrap td{
+        padding:8px 9px !important;
+        font-size:10px !important;
+        white-space:nowrap;
+    }
+
+    .purchase-actions{
+        flex-wrap:nowrap;
+        overflow-x:auto;
+        scrollbar-width:none;
+        padding-bottom:5px;
+    }
+
+    .purchase-actions::-webkit-scrollbar{
+        display:none;
+    }
+
+    .purchase-actions a{
+        flex:0 0 auto;
+        white-space:nowrap;
+        font-size:10px;
+        padding:8px 10px;
+    }
+}
+
+</style>
+
+
+<div class="purchasing-head">
+    <h1>AfriAxis Purchasing</h1>
+    <p>Procurement, receiving, supplier invoicing and supplier payments.</p>
+</div>
 
 <div class="grid">
 
@@ -52,7 +212,7 @@ Purchasing | AfriAxis ERP
 <div class="card">
 <h2>Purchase Orders</h2>
 
-<table>
+<div class="purchase-table-wrap"><table>
     <tr>
         <th>PO Number</th>
         <th>Supplier</th>
@@ -74,14 +234,14 @@ Purchasing | AfriAxis ERP
         <td colspan="5">No purchase orders.</td>
     </tr>
     {% endfor %}
-</table>
+</table></div>
 </div>
 
 
 <div class="card">
 <h2>Goods Receipts</h2>
 
-<table>
+<div class="purchase-table-wrap"><table>
     <tr>
         <th>Receipt</th>
         <th>Purchase Order</th>
@@ -103,14 +263,14 @@ Purchasing | AfriAxis ERP
         <td colspan="5">No goods receipts.</td>
     </tr>
     {% endfor %}
-</table>
+</table></div>
 </div>
 
 
 <div class="card">
 <h2>Supplier Invoices</h2>
 
-<table>
+<div class="purchase-table-wrap"><table>
     <tr>
         <th>Invoice</th>
         <th>Supplier</th>
@@ -134,14 +294,14 @@ Purchasing | AfriAxis ERP
         <td colspan="6">No supplier invoices.</td>
     </tr>
     {% endfor %}
-</table>
+</table></div>
 </div>
 
 
 <div class="card">
 <h2>Supplier Payments</h2>
 
-<table>
+<div class="purchase-table-wrap"><table>
     <tr>
         <th>Date</th>
         <th>Supplier</th>
@@ -171,22 +331,29 @@ Purchasing | AfriAxis ERP
         <td colspan="6">No supplier payments.</td>
     </tr>
     {% endfor %}
-</table>
+</table></div>
 </div>
 
 
 <div class="card">
 <h2>Quick Actions</h2>
 
-<p>
-    <a href="/admin/purchasing/supplier/add/">New Supplier</a> |
-    <a href="/admin/purchasing/purchaserequest/add/">New Purchase Request</a> |
-    <a href="/admin/purchasing/purchaseorder/add/">New Purchase Order</a> |
-    <a href="/admin/purchasing/goodsreceipt/add/">New Goods Receipt</a> |
-    <a href="/admin/purchasing/supplierinvoice/add/">New Supplier Invoice</a> |
+{% if request.user.is_superuser %}
+<div class="purchase-actions">
+    <a href="/admin/purchasing/supplier/add/">New Supplier</a>
+    <a href="/admin/purchasing/purchaserequest/add/">New Purchase Request</a>
+    <a href="/admin/purchasing/purchaseorder/add/">New Purchase Order</a>
+    <a href="/admin/purchasing/goodsreceipt/add/">New Goods Receipt</a>
+    <a href="/admin/purchasing/supplierinvoice/add/">New Supplier Invoice</a>
     <a href="/admin/purchasing/supplierpayment/add/">New Supplier Payment</a>
-</p>
+</div>
+{% else %}
+<p>Purchasing records are available according to your assigned operations role.</p>
+{% endif %}
 
 </div>
 
 {% endblock %}
+
+
+
