@@ -49,6 +49,169 @@ td{
     font-weight:bold;
 }
 
+
+/* ===== AFRIAXIS V6 STANDALONE DARK THEME ===== */
+
+*{
+    box-sizing:border-box;
+}
+
+html,
+body{
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(59,130,246,.08),
+            transparent 30%
+        ),
+        linear-gradient(
+            180deg,
+            #07111f,
+            #091524
+        ) !important;
+
+    color:#f8fafc !important;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4{
+    color:#f8fafc !important;
+}
+
+p,
+label{
+    color:#94a3b8 !important;
+}
+
+a{
+    color:#60a5fa;
+}
+
+.card,
+.container,
+.panel,
+.receipt,
+.box,
+.summary,
+.metric{
+    background:
+        linear-gradient(
+            145deg,
+            #142235,
+            #0d1928
+        ) !important;
+
+    color:#f8fafc !important;
+
+    border:
+        1px solid #26384e !important;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.18) !important;
+}
+
+table{
+    background:#142235 !important;
+    color:#f8fafc !important;
+    border-color:#26384e !important;
+}
+
+th{
+    background:#101e2f !important;
+    color:#cbd5e1 !important;
+    border-color:#26384e !important;
+}
+
+td{
+    background:#142235 !important;
+    color:#e2e8f0 !important;
+    border-color:#26384e !important;
+}
+
+tbody tr:nth-child(even) td{
+    background:#101e2f !important;
+}
+
+input,
+select,
+textarea{
+    background:#0d1928 !important;
+    color:#f8fafc !important;
+    border:1px solid #26384e !important;
+}
+
+input::placeholder,
+textarea::placeholder{
+    color:#64748b !important;
+}
+
+button,
+.btn{
+    border-radius:10px !important;
+}
+
+button{
+    background:#2563eb;
+    color:#fff;
+    border:0;
+}
+
+@media(max-width:700px){
+
+    body{
+        margin:0 !important;
+        padding:10px !important;
+    }
+
+    h1{
+        font-size:20px !important;
+    }
+
+    h2{
+        font-size:14px !important;
+    }
+
+    .card,
+    .container,
+    .panel,
+    .receipt,
+    .box,
+    .summary,
+    .metric{
+        border-radius:14px !important;
+        padding:13px !important;
+    }
+
+    table{
+        font-size:10px !important;
+    }
+
+    th,
+    td{
+        padding:8px !important;
+    }
+
+    input,
+    select,
+    textarea{
+        width:100% !important;
+        min-height:42px;
+        font-size:12px !important;
+    }
+
+    button,
+    .btn{
+        min-height:40px;
+        font-size:11px !important;
+    }
+}
+
 </style>
 
 </head>
@@ -95,3 +258,4 @@ Unpaid: KES {{ grand_unpaid }}
 
 </body>
 </html>
+

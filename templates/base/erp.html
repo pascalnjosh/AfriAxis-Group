@@ -695,6 +695,277 @@ body{
     }
 }
 
+
+
+/* ============================================================
+   AFRIAXIS V6 - UNIVERSAL MODULE DARK SYSTEM
+   Finance / Sales / Inventory / Manufacturing / Purchasing
+   Payments / Rentals / Reports
+   ============================================================ */
+
+:root{
+    --v6-bg:#07111f;
+    --v6-surface:#0d1928;
+    --v6-card:#142235;
+    --v6-card-hover:#182a41;
+    --v6-border:#26384e;
+    --v6-text:#f8fafc;
+    --v6-muted:#94a3b8;
+    --v6-blue:#3b82f6;
+    --v6-green:#22c55e;
+    --v6-orange:#f59e0b;
+    --v6-red:#ef4444;
+}
+
+/* APP BACKGROUND */
+
+html,
+body{
+    background:var(--v6-bg) !important;
+    color:var(--v6-text);
+}
+
+.main,
+.content{
+    background:var(--v6-bg) !important;
+}
+
+/* PAGE TITLES */
+
+.content h1,
+.content h2,
+.content h3,
+.content h4{
+    color:var(--v6-text) !important;
+}
+
+.content p,
+.content label{
+    color:var(--v6-muted);
+}
+
+/* CARDS */
+
+.content .card,
+.content .panel,
+.content .summary-card,
+.content .metric-card,
+.content .stat-card,
+.content .kpi-card{
+    background:var(--v6-card) !important;
+    border-color:var(--v6-border) !important;
+    color:var(--v6-text) !important;
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.16) !important;
+}
+
+.content .card:hover{
+    background:var(--v6-card-hover) !important;
+}
+
+/* TABLE CONTAINERS */
+
+.content .table-wrap,
+.content .table-container{
+    background:var(--v6-card) !important;
+    border-color:var(--v6-border) !important;
+}
+
+/* TABLES */
+
+.content table{
+    background:var(--v6-card) !important;
+    color:var(--v6-text) !important;
+    border-color:var(--v6-border) !important;
+}
+
+.content thead,
+.content thead tr{
+    background:#101e2f !important;
+}
+
+.content th{
+    background:#101e2f !important;
+    color:#cbd5e1 !important;
+    border-color:var(--v6-border) !important;
+}
+
+.content td{
+    background:var(--v6-card) !important;
+    color:#e2e8f0 !important;
+    border-color:var(--v6-border) !important;
+}
+
+.content tbody tr:hover td{
+    background:#192b42 !important;
+}
+
+/* FORMS */
+
+.content input,
+.content select,
+.content textarea{
+    background:#0d1928 !important;
+    color:var(--v6-text) !important;
+    border:1px solid var(--v6-border) !important;
+}
+
+.content input::placeholder,
+.content textarea::placeholder{
+    color:#64748b !important;
+}
+
+.content input:focus,
+.content select:focus,
+.content textarea:focus{
+    outline:none;
+    border-color:var(--v6-blue) !important;
+    box-shadow:0 0 0 3px rgba(59,130,246,.13);
+}
+
+/* SELECT OPTIONS */
+
+.content select option{
+    background:#0d1928;
+    color:#f8fafc;
+}
+
+/* LINKS */
+
+.content a{
+    color:#60a5fa;
+}
+
+/* GENERAL BUTTONS */
+
+.content button,
+.content .btn,
+.content a.btn{
+    border-radius:10px;
+}
+
+/* PRIMARY */
+
+.content .btn-primary{
+    background:#2563eb !important;
+    color:#fff !important;
+    border-color:#3b82f6 !important;
+}
+
+/* SUCCESS */
+
+.content .btn-success{
+    background:#15803d !important;
+    color:#fff !important;
+}
+
+/* WARNING */
+
+.content .btn-warning{
+    background:#b45309 !important;
+    color:#fff !important;
+}
+
+/* DANGER */
+
+.content .btn-danger{
+    background:#b91c1c !important;
+    color:#fff !important;
+}
+
+/* STATUS / BADGES */
+
+.content .badge,
+.content .status,
+.content .pill{
+    border:1px solid rgba(148,163,184,.20);
+}
+
+/* HORIZONTAL LINES */
+
+.content hr{
+    border-color:var(--v6-border) !important;
+}
+
+/* TOPBAR */
+
+.topbar{
+    background:rgba(7,17,31,.96) !important;
+    border-bottom:1px solid var(--v6-border) !important;
+    color:var(--v6-text) !important;
+}
+
+.page-label{
+    color:#cbd5e1 !important;
+}
+
+/* BACK + MENU */
+
+.back-btn,
+.menu-btn{
+    background:#142235 !important;
+    color:#f8fafc !important;
+    border-color:#26384e !important;
+}
+
+.back-btn:hover,
+.menu-btn:hover{
+    background:#1b3150 !important;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    background:
+        radial-gradient(
+            circle at top left,
+            rgba(37,99,235,.12),
+            transparent 30%
+        ),
+        linear-gradient(
+            180deg,
+            #050d18 0%,
+            #071426 100%
+        ) !important;
+
+    border-right:1px solid #17283d;
+}
+
+/* MOBILE */
+
+@media(max-width:700px){
+
+    html,
+    body,
+    .main,
+    .content{
+        background:#07111f !important;
+    }
+
+    .content{
+        padding:10px !important;
+    }
+
+    .content .card,
+    .content .panel,
+    .content .summary-card,
+    .content .metric-card,
+    .content .stat-card{
+        background:#142235 !important;
+        border:1px solid #26384e !important;
+        border-radius:14px !important;
+    }
+
+    .content table{
+        font-size:10px;
+    }
+
+    .content th,
+    .content td{
+        padding:9px 8px;
+    }
+}
+
 </style>
 </head>
 
@@ -980,6 +1251,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 </body>
 </html>
+
 
 
 
