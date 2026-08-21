@@ -272,11 +272,11 @@ Finance Dashboard | AfriAxis ERP
         </p>
     </div>
 
-    <div>
+    {% if request.user.is_superuser %}`r`n<div>
         <a href="/admin/" class="button">
             Open Administration
         </a>
-    </div>
+    </div>`r`n{% endif %}
 </div>
 
 <h2 class="section-title">Financial Position</h2>
@@ -469,9 +469,9 @@ Finance Dashboard | AfriAxis ERP
             Rent Report
         </a>
 
-        <a href="/admin/accounting/journalentry/add/">
+        {% if request.user.is_superuser %}`r`n<a href="/admin/accounting/journalentry/add/">
             New Journal Entry
-        </a>
+        </a>`r`n{% endif %}
     </div>
 </div>
 
@@ -548,5 +548,6 @@ Finance Dashboard | AfriAxis ERP
 </div>
 
 {% endblock %}
+
 
 
