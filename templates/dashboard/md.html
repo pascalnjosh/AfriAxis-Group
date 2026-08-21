@@ -265,115 +265,123 @@
     }
 }
 
-/* ===== AFRIAXIS MOBILE APP V2 ===== */
+/* ===== AFRIAXIS MOBILE APP V4 ===== */
 
 @media(max-width:700px){
 
     .dashboard-shell{
         width:100%;
         margin:0;
-        padding:0;
+        padding:0 2px 16px;
+        box-sizing:border-box;
     }
 
     .hero{
-        padding:16px;
-        border-radius:14px;
+        padding:17px;
+        border-radius:16px;
         margin-bottom:14px;
+        box-shadow:0 8px 22px rgba(2,12,27,.18);
     }
 
     .hero-top{
         gap:10px;
         align-items:center;
+        flex-wrap:nowrap;
     }
 
     .hero h1{
-        font-size:20px;
-        line-height:1.2;
+        font-size:21px;
+        line-height:1.15;
     }
 
     .hero p{
-        font-size:11px;
-        line-height:1.45;
+        font-size:10px;
+        line-height:1.4;
         margin-top:5px;
     }
 
     .live-badge{
-        padding:6px 9px;
-        font-size:9px;
+        flex:0 0 auto;
+        padding:6px 8px;
+        font-size:8px;
+        gap:5px;
+    }
+
+    .live-dot{
+        width:7px;
+        height:7px;
     }
 
     .section-title{
-        margin:18px 0 9px;
-        font-size:14px;
+        margin:17px 2px 9px;
+        font-size:13px;
+        letter-spacing:.2px;
     }
 
     .kpi-grid{
         grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-        gap:9px;
+        gap:8px;
     }
 
     .kpi{
-        padding:12px;
-        min-height:105px;
-        border-radius:13px;
+        padding:11px;
+        min-height:96px;
+        border-radius:14px;
+        box-shadow:0 4px 12px rgba(15,23,42,.05);
     }
 
     .kpi-icon{
-        width:31px;
-        height:31px;
+        width:29px;
+        height:29px;
         border-radius:9px;
-        font-size:16px;
+        font-size:15px;
     }
 
     .kpi-value{
-        margin-top:9px;
-        font-size:16px;
-        line-height:1.2;
+        margin-top:8px;
+        font-size:15px;
+        line-height:1.15;
     }
 
     .kpi-label{
         margin-top:4px;
-        font-size:10px;
+        font-size:9px;
+        line-height:1.25;
     }
 
     .module-grid{
-        display:flex !important;
-        overflow-x:auto;
-        gap:10px;
-        padding-bottom:8px;
-        scroll-snap-type:x mandatory;
-    }
-
-    .module-grid::-webkit-scrollbar{
-        display:none;
+        display:grid !important;
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:8px;
+        overflow:visible;
     }
 
     .module-card{
-        flex:0 0 150px;
-        min-height:115px;
-        padding:14px;
+        min-width:0;
+        min-height:118px;
+        padding:12px;
         border-radius:14px;
-        scroll-snap-align:start;
     }
 
     .module-card h3{
-        font-size:14px;
+        font-size:13px;
+        margin-bottom:6px;
     }
 
     .module-card p{
-        font-size:10px;
-        line-height:1.4;
+        font-size:9px;
+        line-height:1.35;
     }
 
     .module-link{
-        font-size:11px;
-        margin-top:10px;
+        font-size:10px;
+        margin-top:9px;
     }
 
     .panel-grid{
         grid-template-columns:1fr !important;
-        gap:12px;
-        margin-top:14px;
+        gap:10px;
+        margin-top:12px;
     }
 
     .panel{
@@ -381,31 +389,44 @@
     }
 
     .panel-header{
-        padding:13px 14px;
-        font-size:13px;
+        padding:12px 13px;
+        font-size:12px;
     }
 
     .panel-body{
-        padding:12px;
+        padding:11px;
     }
 
     .health-row{
-        font-size:11px;
-        padding:9px 0;
+        font-size:10px;
+        padding:8px 0;
+    }
+
+    .status-ok{
+        font-size:9px;
+        padding:3px 7px;
+    }
+
+    .arrears-table-wrap{
+        overflow-x:auto;
     }
 
     .arrears-table{
-        min-width:620px;
-        font-size:11px;
+        min-width:560px;
+        font-size:10px;
     }
 
     .arrears-table th,
     .arrears-table td{
-        padding:9px 10px;
+        padding:8px 9px;
+        white-space:nowrap;
     }
-}
 
-</style>
+    .badge-unpaid{
+        font-size:9px;
+        padding:4px 7px;
+    }
+}</style>
 
 <div class="dashboard-shell">
 
@@ -646,4 +667,5 @@
 </div>
 
 {% endblock %}
+
 
