@@ -264,6 +264,147 @@
         font-size:24px;
     }
 }
+
+/* ===== AFRIAXIS MOBILE APP V2 ===== */
+
+@media(max-width:700px){
+
+    .dashboard-shell{
+        width:100%;
+        margin:0;
+        padding:0;
+    }
+
+    .hero{
+        padding:16px;
+        border-radius:14px;
+        margin-bottom:14px;
+    }
+
+    .hero-top{
+        gap:10px;
+        align-items:center;
+    }
+
+    .hero h1{
+        font-size:20px;
+        line-height:1.2;
+    }
+
+    .hero p{
+        font-size:11px;
+        line-height:1.45;
+        margin-top:5px;
+    }
+
+    .live-badge{
+        padding:6px 9px;
+        font-size:9px;
+    }
+
+    .section-title{
+        margin:18px 0 9px;
+        font-size:14px;
+    }
+
+    .kpi-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:9px;
+    }
+
+    .kpi{
+        padding:12px;
+        min-height:105px;
+        border-radius:13px;
+    }
+
+    .kpi-icon{
+        width:31px;
+        height:31px;
+        border-radius:9px;
+        font-size:16px;
+    }
+
+    .kpi-value{
+        margin-top:9px;
+        font-size:16px;
+        line-height:1.2;
+    }
+
+    .kpi-label{
+        margin-top:4px;
+        font-size:10px;
+    }
+
+    .module-grid{
+        display:flex !important;
+        overflow-x:auto;
+        gap:10px;
+        padding-bottom:8px;
+        scroll-snap-type:x mandatory;
+    }
+
+    .module-grid::-webkit-scrollbar{
+        display:none;
+    }
+
+    .module-card{
+        flex:0 0 150px;
+        min-height:115px;
+        padding:14px;
+        border-radius:14px;
+        scroll-snap-align:start;
+    }
+
+    .module-card h3{
+        font-size:14px;
+    }
+
+    .module-card p{
+        font-size:10px;
+        line-height:1.4;
+    }
+
+    .module-link{
+        font-size:11px;
+        margin-top:10px;
+    }
+
+    .panel-grid{
+        grid-template-columns:1fr !important;
+        gap:12px;
+        margin-top:14px;
+    }
+
+    .panel{
+        border-radius:14px;
+    }
+
+    .panel-header{
+        padding:13px 14px;
+        font-size:13px;
+    }
+
+    .panel-body{
+        padding:12px;
+    }
+
+    .health-row{
+        font-size:11px;
+        padding:9px 0;
+    }
+
+    .arrears-table{
+        min-width:620px;
+        font-size:11px;
+    }
+
+    .arrears-table th,
+    .arrears-table td{
+        padding:9px 10px;
+    }
+}
+
 </style>
 
 <div class="dashboard-shell">
@@ -271,8 +412,8 @@
 <div class="hero">
     <div class="hero-top">
         <div>
-            <h1>AfriAxis Executive Dashboard</h1>
-            <p>Live control center for property, finance, payments, inventory, manufacturing and operations.</p>
+            <h1>AfriAxis Executive</h1>
+            <p>Business intelligence & operational control center.</p>
         </div>
 
         <div class="live-badge">
@@ -505,3 +646,4 @@
 </div>
 
 {% endblock %}
+
