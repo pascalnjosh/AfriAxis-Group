@@ -6,9 +6,130 @@ Stock Balances | AfriAxis ERP
 
 {% block content %}
 
-<h1>Stock Balances</h1>
+<style>
 
-<form method="get" class="card">
+/* ===== AFRIAXIS INVENTORY DETAIL MOBILE V2 ===== */
+
+.inv-head{
+    background:linear-gradient(135deg,#07172f,#0d2850);
+    color:#fff;
+    padding:20px;
+    border-radius:17px;
+    margin-bottom:16px;
+}
+
+.inv-head h1{
+    margin:0;
+    color:#fff;
+    font-size:24px;
+}
+
+.inv-head p{
+    margin:5px 0 0;
+    color:#cbd5e1;
+    font-size:12px;
+}
+
+.inv-filter{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:end;
+    gap:9px;
+}
+
+.inv-filter select,
+.inv-filter input{
+    min-height:39px;
+    padding:8px 10px;
+    border:1px solid #cbd5e1;
+    border-radius:9px;
+    background:#fff;
+}
+
+.inv-filter button{
+    min-height:39px;
+    border:0;
+    border-radius:9px;
+    padding:8px 13px;
+    background:#2563eb;
+    color:#fff;
+    font-weight:700;
+}
+
+.inv-filter > a{
+    min-height:39px;
+    display:inline-flex;
+    align-items:center;
+    padding:0 12px;
+    background:#e2e8f0;
+    color:#334155;
+    border-radius:9px;
+    text-decoration:none;
+    font-size:11px;
+    font-weight:700;
+}
+
+.inv-table-wrap{
+    overflow-x:auto;
+    width:100%;
+}
+
+.inv-table-wrap table{
+    width:100%;
+    min-width:760px;
+}
+
+@media(max-width:700px){
+
+    .inv-head{
+        padding:15px;
+        border-radius:13px;
+        margin-bottom:12px;
+    }
+
+    .inv-head h1{
+        font-size:19px;
+    }
+
+    .inv-head p{
+        font-size:10px;
+    }
+
+    .inv-filter{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:8px;
+    }
+
+    .inv-filter label{
+        font-size:10px;
+    }
+
+    .inv-filter select,
+    .inv-filter input,
+    .inv-filter button,
+    .inv-filter > a{
+        width:100%;
+        box-sizing:border-box;
+    }
+
+    .inv-table-wrap table{
+        min-width:680px;
+    }
+
+    .inv-table-wrap th,
+    .inv-table-wrap td{
+        padding:8px 9px;
+        font-size:10px;
+    }
+}
+
+</style>
+
+
+<div class="inv-head"><h1>Stock Balances</h1><p>Warehouse stock quantities and valuation.</p></div>
+
+<form method="get" class="card inv-filter">
     <label>Warehouse:</label>
     <select name="warehouse">
         <option value="">All Warehouses</option>
@@ -59,7 +180,7 @@ Stock Balances | AfriAxis ERP
     </p>
 </div>
 
-<table>
+<div class="inv-table-wrap"><table>
     <thead>
         <tr>
             <th>Warehouse</th>
@@ -89,6 +210,8 @@ Stock Balances | AfriAxis ERP
         </tr>
         {% endfor %}
     </tbody>
-</table>
+</table></div>
 
 {% endblock %}
+
+
