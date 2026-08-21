@@ -6,8 +6,189 @@ Sales | AfriAxis ERP
 
 {% block content %}
 
-<h1>Sales Dashboard</h1>
-<p>Customers, orders, deliveries, invoicing and receipts.</p>
+<style>
+
+/* ===== AFRIAXIS SALES MOBILE V2 ===== */
+
+.sales-hero{
+    background:linear-gradient(135deg,#07172f,#0d2850);
+    color:white;
+    padding:22px;
+    border-radius:18px;
+    margin-bottom:20px;
+    box-shadow:0 10px 28px rgba(7,23,47,.15);
+}
+
+.sales-hero h1{
+    margin:0;
+    font-size:26px;
+}
+
+.sales-hero p{
+    margin:6px 0 0;
+    color:#cbd5e1;
+    font-size:13px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px;
+}
+
+.grid .card{
+    border-top:4px solid #2563eb;
+    border-radius:16px;
+    padding:17px;
+}
+
+.grid .card h2{
+    margin:0;
+    font-size:24px;
+}
+
+.grid .card p{
+    margin:6px 0 0;
+    color:#64748b;
+    font-size:12px;
+}
+
+.sales-card{
+    background:white;
+    border:1px solid #e5e7eb;
+    border-radius:16px;
+    box-shadow:0 5px 16px rgba(15,23,42,.05);
+    margin-top:16px;
+    overflow:hidden;
+}
+
+.sales-card h2{
+    margin:0;
+    padding:14px 16px;
+    background:#0d2850;
+    color:white;
+    font-size:14px;
+}
+
+.sales-table-wrap{
+    overflow-x:auto;
+}
+
+.sales-card table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:700px;
+}
+
+.sales-card th,
+.sales-card td{
+    padding:11px 12px;
+    border-bottom:1px solid #eef2f7;
+    text-align:left;
+    font-size:12px;
+}
+
+.sales-card th{
+    background:#f8fafc;
+    color:#475569;
+    font-weight:800;
+}
+
+.sales-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:14px;
+}
+
+.sales-actions a{
+    display:inline-block;
+    padding:9px 12px;
+    background:#2563eb;
+    color:white;
+    border-radius:9px;
+    text-decoration:none;
+    font-size:11px;
+    font-weight:700;
+}
+
+@media(max-width:700px){
+
+    .sales-hero{
+        padding:16px;
+        border-radius:14px;
+        margin-bottom:14px;
+    }
+
+    .sales-hero h1{
+        font-size:20px;
+    }
+
+    .sales-hero p{
+        font-size:11px;
+    }
+
+    .grid{
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:9px;
+    }
+
+    .grid .card{
+        padding:12px;
+        min-height:92px;
+        border-radius:13px;
+    }
+
+    .grid .card h2{
+        font-size:18px;
+    }
+
+    .grid .card p{
+        font-size:10px;
+    }
+
+    .sales-card{
+        border-radius:13px;
+        margin-top:12px;
+    }
+
+    .sales-card h2{
+        font-size:12px;
+        padding:12px 13px;
+    }
+
+    .sales-card table{
+        min-width:620px;
+    }
+
+    .sales-card th,
+    .sales-card td{
+        padding:9px 10px;
+        font-size:10px;
+    }
+
+    .sales-actions{
+        overflow-x:auto;
+        flex-wrap:nowrap;
+        scrollbar-width:none;
+    }
+
+    .sales-actions::-webkit-scrollbar{
+        display:none;
+    }
+
+    .sales-actions a{
+        flex:0 0 auto;
+        white-space:nowrap;
+        font-size:10px;
+        padding:8px 10px;
+    }
+}
+
+</style>
+
+
+<div class="sales-hero"><h1>AfriAxis Sales</h1><p>Customers, orders, deliveries, invoicing and receipts.</p></div>
 
 <div class="grid">
 
@@ -44,8 +225,7 @@ Sales | AfriAxis ERP
 </div>
 
 
-<div class="card">
-<h2>Sales Orders</h2>
+<div class="sales-card"><h2>Sales Orders</h2><div class="sales-table-wrap">
 
 <table>
 <tr>
@@ -70,12 +250,7 @@ Sales | AfriAxis ERP
 </tr>
 {% endfor %}
 
-</table>
-</div>
-
-
-<div class="card">
-<h2>Delivery Notes</h2>
+</table></div></div><div class="sales-card"><h2>Delivery Notes</h2><div class="sales-table-wrap">
 
 <table>
 <tr>
@@ -100,12 +275,7 @@ Sales | AfriAxis ERP
 </tr>
 {% endfor %}
 
-</table>
-</div>
-
-
-<div class="card">
-<h2>Sales Invoices</h2>
+</table></div></div><div class="sales-card"><h2>Sales Invoices</h2><div class="sales-table-wrap">
 
 <table>
 <tr>
@@ -132,12 +302,7 @@ Sales | AfriAxis ERP
 </tr>
 {% endfor %}
 
-</table>
-</div>
-
-
-<div class="card">
-<h2>Sales Receipts</h2>
+</table></div></div><div class="sales-card"><h2>Sales Receipts</h2><div class="sales-table-wrap">
 
 <table>
 <tr>
@@ -168,17 +333,14 @@ Sales | AfriAxis ERP
 </div>
 
 
-<div class="card">
-<h2>Quick Actions</h2>
-
-<p>
+<div class="sales-card"><h2>Quick Actions</h2>{% if request.user.is_superuser %}<div class="sales-actions">
 <a href="/admin/sales/customer/add/">New Customer</a> |
 <a href="/admin/sales/salesorder/add/">New Sales Order</a> |
 <a href="/admin/sales/deliverynote/add/">New Delivery Note</a> |
 <a href="/admin/sales/salesinvoice/add/">New Sales Invoice</a> |
 <a href="/admin/sales/salesreceipt/add/">New Sales Receipt</a>
-</p>
-
-</div>
+</div>{% else %}<div class="sales-actions"><a href="/sales/">View Sales</a></div>{% endif %}</div>
 
 {% endblock %}
+
+
