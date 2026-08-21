@@ -447,6 +447,63 @@ td{
     }
 }
 
+
+
+/* ===== AFRIAXIS V5 GLOBAL BACK BUTTON ===== */
+
+.back-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    width:38px;
+    height:38px;
+
+    padding:0;
+    border:1px solid #e2e8f0;
+    border-radius:11px;
+
+    background:#ffffff;
+    color:#07172f;
+
+    font-size:23px;
+    font-weight:700;
+    line-height:1;
+
+    cursor:pointer;
+
+    box-shadow:0 2px 8px rgba(15,23,42,.05);
+
+    transition:
+        background .15s ease,
+        transform .15s ease,
+        border-color .15s ease;
+}
+
+.back-btn:hover{
+    background:#f1f5f9;
+    border-color:#cbd5e1;
+}
+
+.back-btn:active{
+    transform:scale(.94);
+}
+
+@media(max-width:700px){
+
+    .topbar-left{
+        gap:8px;
+    }
+
+    .back-btn{
+        width:38px;
+        height:38px;
+        min-width:38px;
+        border-radius:11px;
+        font-size:22px;
+    }
+}
+
 </style>
 </head>
 
@@ -643,7 +700,17 @@ td{
     <header class="topbar">
 
         <div class="topbar-left">
-            <button class="menu-btn" id="menuBtn" type="button">☰</button>
+            <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+
+<button
+    class="back-btn"
+    id="backBtn"
+    type="button"
+    aria-label="Go back"
+    title="Back"
+>
+    ←
+</button>
             <div class="page-label">AfriAxis Enterprise Resource Planning</div>
         </div>
 
@@ -691,8 +758,38 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
+
+
+<script id="afriaxis-v5-back-navigation">
+document.addEventListener("DOMContentLoaded", function () {
+
+    const backBtn = document.getElementById("backBtn");
+
+    if (!backBtn) return;
+
+    backBtn.addEventListener("click", function () {
+
+        /*
+         * Use browser/WebView history when the user came
+         * from another AfriAxis screen.
+         *
+         * Otherwise return safely to the ERP dashboard.
+         */
+
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = "/dashboard/";
+        }
+
+    });
+
+});
+</script>
+
 </body>
 </html>
+
 
 
 
