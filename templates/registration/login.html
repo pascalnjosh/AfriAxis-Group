@@ -1,37 +1,181 @@
 {% extends "base/erp.html" %}
 
-{% block title %}Login{% endblock %}
-
-{% block content %}
-<div style="max-width:420px;margin:40px auto;">
-    <h1>AfriAxis ERP Login</h1>
-
-    {% if form.errors %}
-        <p style="color:red;">Invalid username or password.</p>
-    {% endif %}
-
-    <form method="post">
-        {% csrf_token %}
-
-        <p>
-            <label for="{{ form.username.id_for_label }}">Username</label><br>
-            {{ form.username }}
-        </p>
-
-        <p>
-            <label for="{{ form.password.id_for_label }}">Password</label><br>
-            {{ form.password }}
-        </p>
-
-        {% if next %}
-            <input type="hidden" name="next" value="{{ next }}">
-        {% endif %}
-
-        <button type="submit">Login</button>
-    </form>
-</div>
-<!-- AFRIAXIS-DEPLOY-V4-CHECK -->
+{% block title %}
+AfriAxis Login
 {% endblock %}
 
+{% block content %}
 
+<style>
 
+/* ===== AFRIAXIS STAFF LOGIN V5 ===== */
+
+.staff-login-wrap{
+    min-height:calc(100vh - 110px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.staff-login-card{
+    width:100%;
+    max-width:420px;
+    background:#fff;
+    border:1px solid #e5eaf1;
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 16px 45px rgba(15,23,42,.10);
+}
+
+.staff-login-brand{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.staff-login-logo{
+    width:58px;
+    height:58px;
+    margin:0 auto 12px;
+    border-radius:17px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    color:#fff;
+    font-size:28px;
+    font-weight:900;
+}
+
+.staff-login-version{
+    color:#16a34a;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:1.4px;
+}
+
+.staff-login-brand h1{
+    margin:6px 0 4px;
+    font-size:23px;
+}
+
+.staff-login-brand p{
+    margin:0;
+    color:#64748b;
+    font-size:11px;
+}
+
+.staff-field{
+    margin-bottom:14px;
+}
+
+.staff-field label{
+    display:block;
+    margin-bottom:6px;
+    font-size:11px;
+    font-weight:800;
+    color:#334155;
+}
+
+.staff-field input{
+    width:100%;
+    min-height:45px;
+    border:1px solid #dbe4ee;
+    border-radius:11px;
+    padding:10px 12px;
+    font-size:13px;
+}
+
+.staff-login-btn{
+    width:100%;
+    min-height:45px;
+    border:0;
+    border-radius:11px;
+    background:linear-gradient(135deg,#0d2850,#2563eb);
+    color:#fff;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.staff-error{
+    background:#fef2f2;
+    color:#b91c1c;
+    border:1px solid #fecaca;
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:14px;
+    font-size:11px;
+}
+
+@media(max-width:700px){
+
+    .staff-login-wrap{
+        min-height:calc(100vh - 80px);
+        padding:10px;
+    }
+
+    .staff-login-card{
+        padding:18px;
+        border-radius:15px;
+    }
+
+    .staff-login-brand h1{
+        font-size:20px;
+    }
+}
+
+</style>
+
+<div class="staff-login-wrap">
+
+    <div class="staff-login-card">
+
+        <div class="staff-login-brand">
+            <div class="staff-login-logo">A</div>
+            <div class="staff-login-version">AFRIAXIS V5</div>
+            <h1>Staff Login</h1>
+            <p>Secure access to AfriAxis ERP.</p>
+        </div>
+
+        {% if form.errors %}
+        <div class="staff-error">
+            Invalid username or password.
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="staff-field">
+                <label for="{{ form.username.id_for_label }}">
+                    Username
+                </label>
+                {{ form.username }}
+            </div>
+
+            <div class="staff-field">
+                <label for="{{ form.password.id_for_label }}">
+                    Password
+                </label>
+                {{ form.password }}
+            </div>
+
+            {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            <button
+                type="submit"
+                class="staff-login-btn"
+            >
+                Sign In
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
