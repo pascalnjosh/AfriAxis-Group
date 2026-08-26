@@ -1,6 +1,5 @@
 from accounts.views import role_home
 from django.contrib import admin
-from .diagnostic import live_africore_diagnostic
 from django.urls import include, path
 
 from core.pwa import service_worker
@@ -15,7 +14,6 @@ from dashboard.views import (
 )
 
 urlpatterns = [
-    path("live-africore-check/", live_africore_diagnostic),
     path("service-worker.js", service_worker, name="service_worker"),
     path("dashboard/", include("dashboard.ceo_urls")),
     # Django Admin
