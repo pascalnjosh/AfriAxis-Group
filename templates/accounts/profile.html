@@ -1,0 +1,611 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+My Profile | AfriAxis V6
+{% endblock %}
+
+{% block content %}
+
+<style>
+
+/* ===== AFRIAXIS V6 EXECUTIVE PROFILE ===== */
+
+.profile-shell{
+    width:100%;
+    max-width:1050px;
+    margin:0 auto;
+}
+
+.profile-hero{
+    position:relative;
+    overflow:hidden;
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(59,130,246,.22),
+            transparent 34%
+        ),
+        linear-gradient(
+            145deg,
+            #101f33,
+            #0b1728
+        );
+
+    border:1px solid #26384e;
+    border-radius:20px;
+
+    padding:24px;
+
+    box-shadow:
+        0 18px 45px rgba(0,0,0,.22);
+}
+
+.profile-hero::after{
+    content:"";
+    position:absolute;
+    width:220px;
+    height:220px;
+    right:-90px;
+    bottom:-130px;
+    border-radius:50%;
+    background:rgba(96,165,250,.08);
+}
+
+.profile-identity{
+    position:relative;
+    z-index:2;
+
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+
+.profile-avatar{
+    flex:0 0 auto;
+
+    width:86px;
+    height:86px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:24px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #1d4ed8
+        );
+
+    color:#fff;
+
+    font-size:30px;
+    font-weight:900;
+
+    border:
+        3px solid rgba(255,255,255,.12);
+
+    box-shadow:
+        0 10px 30px rgba(37,99,235,.28);
+}
+
+.profile-version{
+    color:#60a5fa;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:1.5px;
+}
+
+.profile-name{
+    margin:5px 0 3px !important;
+    font-size:26px !important;
+}
+
+.profile-role{
+    color:#94a3b8;
+    font-size:12px;
+    font-weight:700;
+}
+
+.profile-status{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+
+    margin-top:10px;
+
+    padding:6px 9px;
+
+    border-radius:999px;
+
+    background:rgba(34,197,94,.10);
+
+    border:
+        1px solid rgba(34,197,94,.22);
+
+    color:#4ade80;
+
+    font-size:9px;
+    font-weight:900;
+}
+
+.profile-status-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:#22c55e;
+}
+
+.profile-grid{
+    display:grid;
+
+    grid-template-columns:
+        repeat(2,minmax(0,1fr));
+
+    gap:13px;
+
+    margin-top:16px;
+}
+
+.profile-card{
+    background:
+        linear-gradient(
+            145deg,
+            #142235,
+            #0e1a29
+        );
+
+    border:1px solid #26384e;
+
+    border-radius:17px;
+
+    padding:17px;
+
+    box-shadow:
+        0 10px 26px rgba(0,0,0,.14);
+}
+
+.profile-card-title{
+    margin-bottom:14px;
+
+    color:#f8fafc;
+
+    font-size:13px;
+    font-weight:900;
+}
+
+.profile-row{
+    display:flex;
+
+    justify-content:space-between;
+
+    gap:16px;
+
+    padding:11px 0;
+
+    border-bottom:
+        1px solid rgba(148,163,184,.10);
+}
+
+.profile-row:last-child{
+    border-bottom:0;
+}
+
+.profile-label{
+    color:#94a3b8;
+    font-size:10px;
+}
+
+.profile-value{
+    text-align:right;
+
+    color:#f8fafc;
+
+    font-size:11px;
+    font-weight:800;
+
+    word-break:break-word;
+}
+
+.role-panel{
+    display:grid;
+
+    grid-template-columns:
+        repeat(3,minmax(0,1fr));
+
+    gap:10px;
+}
+
+.role-item{
+    padding:13px;
+
+    border-radius:13px;
+
+    background:#0d1928;
+
+    border:1px solid #26384e;
+}
+
+.role-item-label{
+    color:#64748b;
+
+    font-size:8px;
+    font-weight:900;
+
+    text-transform:uppercase;
+
+    letter-spacing:.6px;
+}
+
+.role-item-value{
+    margin-top:6px;
+
+    color:#f8fafc;
+
+    font-size:11px;
+    font-weight:800;
+}
+
+.security-good{
+    color:#4ade80;
+}
+
+.profile-actions{
+    display:flex;
+    gap:9px;
+
+    margin-top:16px;
+
+    overflow-x:auto;
+}
+
+.profile-action{
+    flex:0 0 auto;
+
+    text-decoration:none;
+
+    padding:10px 13px;
+
+    border-radius:11px;
+
+    background:#142235;
+
+    border:1px solid #26384e;
+
+    color:#dbeafe !important;
+
+    font-size:10px;
+    font-weight:800;
+}
+
+.profile-action:hover{
+    background:#1b3150;
+}
+
+@media(max-width:700px){
+
+    .profile-shell{
+        padding:0;
+    }
+
+    .profile-hero{
+        padding:17px;
+
+        border-radius:16px;
+    }
+
+    .profile-identity{
+        align-items:flex-start;
+        gap:12px;
+    }
+
+    .profile-avatar{
+        width:62px;
+        height:62px;
+
+        border-radius:18px;
+
+        font-size:22px;
+    }
+
+    .profile-name{
+        font-size:19px !important;
+    }
+
+    .profile-role{
+        font-size:10px;
+    }
+
+    .profile-grid{
+        grid-template-columns:1fr;
+
+        gap:10px;
+
+        margin-top:11px;
+    }
+
+    .profile-card{
+        padding:14px;
+
+        border-radius:15px;
+    }
+
+    .profile-row{
+        padding:9px 0;
+    }
+
+    .role-panel{
+        grid-template-columns:
+            repeat(2,minmax(0,1fr));
+    }
+
+}
+
+</style>
+
+
+<div class="profile-shell">
+
+    <section class="profile-hero">
+
+        <div class="profile-identity">
+
+            <div class="profile-avatar">
+                {{ initials }}
+            </div>
+
+            <div>
+
+                <div class="profile-version">
+                    AFRIAXIS V6
+                </div>
+
+                <h1 class="profile-name">
+                    {{ full_name }}
+                </h1>
+
+                <div class="profile-role">
+                    {{ role_name }}
+                </div>
+
+                {% if profile_user.is_active %}
+                <div class="profile-status">
+                    <span class="profile-status-dot"></span>
+                    ACTIVE ACCOUNT
+                </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <div class="profile-grid">
+
+        <section class="profile-card">
+
+            <div class="profile-card-title">
+                Identity
+            </div>
+
+            <div class="profile-row">
+                <div class="profile-label">
+                    Full Name
+                </div>
+
+                <div class="profile-value">
+                    {{ full_name }}
+                </div>
+            </div>
+
+            <div class="profile-row">
+                <div class="profile-label">
+                    Username
+                </div>
+
+                <div class="profile-value">
+                    {{ profile_user.username }}
+                </div>
+            </div>
+
+            <div class="profile-row">
+                <div class="profile-label">
+                    Email
+                </div>
+
+                <div class="profile-value">
+                    {{ profile_user.email|default:"Not provided" }}
+                </div>
+            </div>
+
+        </section>
+
+
+        <section class="profile-card">
+
+            <div class="profile-card-title">
+                Access & Authority
+            </div>
+
+            <div class="role-panel">
+
+                <div class="role-item">
+                    <div class="role-item-label">
+                        Role
+                    </div>
+
+                    <div class="role-item-value">
+                        {{ role_name }}
+                    </div>
+                </div>
+
+                <div class="role-item">
+                    <div class="role-item-label">
+                        Staff
+                    </div>
+
+                    <div class="role-item-value">
+                        {% if profile_user.is_staff %}
+                            YES
+                        {% else %}
+                            NO
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="role-item">
+                    <div class="role-item-label">
+                        Administrator
+                    </div>
+
+                    <div class="role-item-value">
+                        {% if profile_user.is_superuser %}
+                            YES
+                        {% else %}
+                            NO
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="profile-card">
+
+            <div class="profile-card-title">
+                Account Security
+            </div>
+
+            <div class="profile-row">
+
+                <div class="profile-label">
+                    Account Status
+                </div>
+
+                <div class="profile-value security-good">
+                    {% if profile_user.is_active %}
+                        ACTIVE
+                    {% else %}
+                        DISABLED
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <div class="profile-row">
+
+                <div class="profile-label">
+                    Last Login
+                </div>
+
+                <div class="profile-value">
+                    {% if profile_user.last_login %}
+                        {{ profile_user.last_login|date:"d M Y, H:i" }}
+                    {% else %}
+                        No previous login
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <div class="profile-row">
+
+                <div class="profile-label">
+                    Account Created
+                </div>
+
+                <div class="profile-value">
+                    {{ profile_user.date_joined|date:"d M Y" }}
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="profile-card">
+
+            <div class="profile-card-title">
+                AfriAxis Account
+            </div>
+
+            <div class="profile-row">
+
+                <div class="profile-label">
+                    Platform
+                </div>
+
+                <div class="profile-value">
+                    AfriAxis ERP
+                </div>
+
+            </div>
+
+            <div class="profile-row">
+
+                <div class="profile-label">
+                    Interface
+                </div>
+
+                <div class="profile-value">
+                    V6 Executive
+                </div>
+
+            </div>
+
+            <div class="profile-row">
+
+                <div class="profile-label">
+                    Authentication
+                </div>
+
+                <div class="profile-value security-good">
+                    SECURE
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <div class="profile-actions">
+
+        <a
+            class="profile-action"
+            href="/accounts/home/"
+        >
+            My Workspace
+        </a>
+
+        {% if profile_user.is_superuser %}
+
+        <a
+            class="profile-action"
+            href="/admin/"
+        >
+            Administration
+        </a>
+
+        {% endif %}
+
+        <a
+            class="profile-action"
+            href="/auth/password_change/"
+        >
+            Change Password
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

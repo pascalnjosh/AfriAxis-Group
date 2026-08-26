@@ -83,3 +83,83 @@ def create_journal_entry(
         )
 
     return entry
+
+
+@transaction.atomic
+def reverse_journal_entry(
+    *,
+    journal_entry,
+    user=None,
+    reversal_date=None,
+    reason="",
+):
+    entry = (
+        JournalEntry.objects
+        .select_for_update()
+        .prefetch_related(
+            "lines",
+            "lines__account",
+        )
+        .get(pk=journal_entry.pk)
+    )
+
+
+    if entry.status != "POSTED":
+        raise ValidationError(
+            "Only a posted journal entry can be reversed."
+        )
+
+    reversal_reference = (
+        f"REV-{entry.journal_number}"
+    )
+
+    if JournalEntry.objects.filter(
+        company=entry.company,
+        reference=reversal_reference,
+    ).exists():
+        raise ValidationError(
+            "A reversal journal already exists for this entry."
+        )
+
+    reversal_lines = []
+
+    for line in entry.lines.all():
+        reversal_lines.append(
+            {
+                "account_code": line.account.code,
+                "debit": line.credit,
+                "credit": line.debit,
+                "description": (
+                    f"Reversal of {entry.journal_number}: "
+                    f"{line.description or entry.description}"
+                )[:255],
+            }
+        )
+
+    reversal_description = (
+        f"Reversal of {entry.journal_number}"
+    )
+
+    if reason:
+        reversal_description = (
+            f"{reversal_description}: {reason}"
+        )
+
+    reversal_entry = create_journal_entry(
+        company=entry.company,
+        currency=entry.currency,
+        reference=reversal_reference,
+        description=reversal_description,
+        entry_date=(
+            reversal_date
+            or timezone.localdate()
+        ),
+        lines=reversal_lines,
+        user=user,
+        auto_post=True,
+    )
+
+
+    return reversal_entry
+
+

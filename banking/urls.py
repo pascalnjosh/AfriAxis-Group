@@ -33,4 +33,10 @@ urlpatterns = [
         name="reject_transaction",
     ),
 path("undo/<int:transaction_id>/", views.undo_transaction, name="undo_transaction"),
+
+    path(
+        "statement/<int:upload_id>/delete/",
+        views.delete_statement,
+        name="delete_bank_statement",
+    ),
 ]

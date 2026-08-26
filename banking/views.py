@@ -7,9 +7,9 @@ from django.db import transaction as db_transaction
 from django.db.models import Sum
 from decimal import Decimal
 
-from accounting.models import Account, JournalEntryLine
+from accounting.models import Account, JournalEntry, JournalEntryLine
 from .models import BankStatementUpload
-from accounting.posting import create_journal_entry
+from accounting.posting import create_journal_entry, reverse_journal_entry
 from django.shortcuts import get_object_or_404, redirect, render
 
 from payments.models import Payment
@@ -393,10 +393,7 @@ def _post_bank_charge_transaction(transaction, user=None):
     if company is None:
         return False, "Cannot approve: bank account has no company."
 
-    reference = (
-        transaction.reference
-        or f"BANK-{transaction.id}"
-    )
+    reference = f"BANKCHG-{transaction.id}"
 
     description = (
         transaction.description
@@ -451,18 +448,18 @@ def approve_transaction(request, transaction_id):
         id=transaction_id,
     )
 
-    if transaction.money_out > 0:
-        posted, message = _post_bank_charge_transaction(
-            transaction,
-            user=request.user,
-        )
-
-    elif (
+    if (
         transaction.matched_sales_receipt_id
         or transaction.matched_supplier_payment_id
     ):
         posted, message = _approve_erp_bank_transaction(
             transaction
+        )
+
+    elif transaction.money_out > 0:
+        posted, message = _post_bank_charge_transaction(
+            transaction,
+            user=request.user,
         )
 
     else:
@@ -518,9 +515,10 @@ def approve_all_high_confidence(request):
 @finance_required
 @db_transaction.atomic
 def undo_transaction(request, transaction_id):
-    bank_item = get_object_or_404(
-        BankTransaction,
-        id=transaction_id,
+    bank_item = (
+        BankTransaction.objects
+        .select_for_update()
+        .get(id=transaction_id)
     )
 
     if bank_item.match_status != "approved":
@@ -529,6 +527,122 @@ def undo_transaction(request, transaction_id):
             "Transaction is not approved.",
         )
         return redirect("bank_reconciliation")
+
+    if bank_item.suggested_category == "bank_charge":
+        reference = f"BANKCHG-{bank_item.id}"
+
+        journal = (
+            JournalEntry.objects
+            .filter(
+                company=bank_item.bank_account.company,
+                reference=reference,
+                status="POSTED",
+            )
+            .order_by("-id")
+            .first()
+        )
+
+        if journal is None:
+            messages.error(
+                request,
+                (
+                    "Cannot undo bank charge: "
+                    f"journal {reference} was not found."
+                ),
+            )
+            return redirect("bank_reconciliation")
+
+        reverse_journal_entry(
+            journal_entry=journal,
+            user=request.user,
+            reason=(
+                f"Undo bank transaction {bank_item.id}"
+            ),
+        )
+
+        bank_item.match_status = "pending"
+        bank_item.suggested_category = "unknown"
+        bank_item.match_notes = (
+            f"Bank charge journal {reference} reversed."
+        )
+        bank_item.save(
+            update_fields=[
+                "match_status",
+                "suggested_category",
+                "match_notes",
+            ]
+        )
+
+        messages.success(
+            request,
+            (
+                "Bank charge reversed and transaction "
+                "returned to pending."
+            ),
+        )
+        return redirect("bank_reconciliation")
+
+    payments = list(
+        _payment_queryset(bank_item)
+        .select_related("rental_rent")
+    )
+
+    if not payments:
+        bank_item.match_status = "pending"
+        bank_item.save(
+            update_fields=[
+                "match_status",
+            ]
+        )
+
+        messages.warning(
+            request,
+            (
+                "No linked payment rows were found. "
+                "Transaction returned to pending."
+            ),
+        )
+        return redirect("bank_reconciliation")
+
+    reversed_total = Decimal("0")
+
+    for payment in payments:
+        rent = payment.rental_rent
+
+        if rent:
+            rent = (
+                Rent.objects
+                .select_for_update()
+                .get(id=rent.id)
+            )
+
+            rent.amount_paid = max(
+                Decimal("0"),
+                Decimal(rent.amount_paid)
+                - Decimal(payment.amount),
+            )
+            rent.save()
+
+        reversed_total += Decimal(payment.amount)
+        payment.delete()
+
+    bank_item.match_status = "pending"
+    bank_item.save(
+        update_fields=[
+            "match_status",
+        ]
+    )
+
+    messages.success(
+        request,
+        (
+            f"Transaction reversed. "
+            f"KES {reversed_total:,.2f} removed "
+            "from payments."
+        ),
+    )
+
+    return redirect("bank_reconciliation")
 
     payments = list(
         _payment_queryset(bank_item)
@@ -744,3 +858,54 @@ def _approve_erp_bank_transaction(bank_item):
 
 
 
+
+
+
+
+
+
+
+@finance_required
+def delete_statement(request, upload_id):
+    upload = get_object_or_404(
+        BankStatementUpload.objects.select_related(
+            "bank_account",
+            "bank_account__company",
+            "bank_account__apartment",
+        ),
+        id=upload_id,
+    )
+
+    if request.method != "POST":
+        messages.error(
+            request,
+            "Bank statements can only be deleted using the Delete button.",
+        )
+        return redirect("bank_reconciliation")
+
+    account = upload.bank_account
+    apartment = account.apartment
+
+    transaction_count = BankTransaction.objects.filter(
+        statement_upload=upload
+    ).count()
+
+    BankTransaction.objects.filter(
+        statement_upload=upload
+    ).delete()
+
+    file_name = upload.file.name if upload.file else ""
+
+    upload.delete()
+
+    messages.success(
+        request,
+        (
+            f"Wrong bank statement deleted successfully. "
+            f"{transaction_count} imported transaction(s) removed. "
+            f"Apartment: {apartment.name if apartment else 'N/A'}. "
+            f"File: {file_name}."
+        ),
+    )
+
+    return redirect("bank_reconciliation")
