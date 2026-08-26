@@ -11,6 +11,7 @@ services:
     buildCommand: >
       pip install -r requirements.txt &&
       python manage.py migrate &&
+      python manage.py shell -c "from enterprise.models import Company; from rentals.models import Apartment,House,Tenant; from banking.models import BankAccount,BankStatementUpload,BankTransaction; from accounts.models import CompanyAssignment; c=Company.objects.filter(name='AFRICORE HEIGHTS').first(); print('=== LIVE AFRICORE DATABASE ==='); print('COMPANY=',c.id if c else None); [print(a.name,'| units=',a.total_units,'| houses=',House.objects.filter(apartment=a).count(),'| tenants=',Tenant.objects.filter(apartment=a).count()) for a in Apartment.objects.filter(company=c).order_by('id')] if c else None; print('TOTAL HOUSES=',House.objects.filter(apartment__company=c).count() if c else 0); print('BANK ACCOUNTS=',BankAccount.objects.filter(company=c).count() if c else 0); print('STATEMENTS=',BankStatementUpload.objects.filter(bank_account__company=c).count() if c else 0); print('TRANSACTIONS=',BankTransaction.objects.filter(bank_account__company=c).count() if c else 0); print('ASSIGNMENTS=',CompanyAssignment.objects.filter(company=c).count() if c else 0)" &&
       python manage.py collectstatic --noinput
 
     startCommand: >
@@ -91,5 +92,6 @@ services:
         fromDatabase:
           name: afriaxis-db
           property: connectionString
+
 
 
