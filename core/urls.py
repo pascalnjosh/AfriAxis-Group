@@ -1,6 +1,7 @@
 from accounts.views import role_home
 from django.contrib import admin
-from .diagnostic import live_africore_diagnostic`r`nfrom django.urls import include, path
+from .diagnostic import live_africore_diagnostic
+from django.urls import include, path
 
 from core.pwa import service_worker
 
@@ -13,7 +14,8 @@ from dashboard.views import (
     vacant_houses_page,
 )
 
-urlpatterns = [`r`n    path("live-africore-check/", live_africore_diagnostic),
+urlpatterns = [
+    path("live-africore-check/", live_africore_diagnostic),
     path("service-worker.js", service_worker, name="service_worker"),
     path("dashboard/", include("dashboard.ceo_urls")),
     # Django Admin
@@ -73,6 +75,7 @@ urlpatterns = [`r`n    path("live-africore-check/", live_africore_diagnostic),
     path("accounts/", include("accounts.urls")),
     path("tenant/", include("accounts.tenant_urls")),
 ]
+
 
 
 
