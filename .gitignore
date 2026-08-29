@@ -1,48 +1,57 @@
-venv/
-__pycache__/
-*.pyc
-backups/
-staticfiles/
-.env
-db.sqlite3
-
-# Database backups
-db_before_*.sqlite3
-
-# Media uploads
-media/
-
-# Excel imports
-*.xlsx
-
-# Duplicate project folder
-apartment_system/
-
-# Temporary copied file
-tore coreurls.py
-
-# Local source backups
-*.bak_before_*
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
 
-# Local databases / backups
-*.sqlite3
-backups/
-*.bak
-*.backup
-*.backup.*
-*.pre_*
-*.phase2c_backup
-
-# Local environments
+# Virtual environments
 venv/
+.venv/
+env/
+
+# Secrets / environment
 .env
 .env.*
+!.env.example
 
-# Generated/static runtime files
+# Database
+db.sqlite3
+db.sqlite3.*
+*.sqlite3
+*.bak
+
+# User/media uploads
+media/
+
+# Static build output
 staticfiles/
 
-# Temporary files
-*.tmp
+# AfriAxis development backups
+SOURCE-BACKUP-*/
+final_build_backups/
+*_before_*.py
+*_before_*.html
+*_before_*.json
+*_backup_*.py
+*_backup_*.html
+*-BEFORE-*.py
+
+# Source/debug exports
+AFRIAXIS-FINAL-*
+AFRIAXIS-SOURCE-*
+afriaxis_urls.txt
+africore_export.json
+render_before_*.json
+
+# Test/debug scripts
+test_bank523_http.py
+test_bank523_posting.py
+reconstruct_historical_rent.py
+
+# Android build/source
+android_app/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

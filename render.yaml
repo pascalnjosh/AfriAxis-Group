@@ -1,97 +1,23 @@
-databases:
-  - name: afriaxis-db
-    plan: free
-
 services:
   - type: web
-    name: afriaxis-group
+    name: afriaxis-v7
     runtime: python
-    plan: free
-
-    buildCommand: >
-      pip install -r requirements.txt &&
-      python manage.py migrate &&
-      python manage.py shell -c "from enterprise.models import Company; from rentals.models import Apartment,House,Tenant; from banking.models import BankAccount,BankStatementUpload,BankTransaction; from accounts.models import CompanyAssignment; c=Company.objects.filter(name='AFRICORE HEIGHTS').first(); print('=== LIVE AFRICORE DATABASE ==='); print('COMPANY=',c.id if c else None); [print(a.name,'| units=',a.total_units,'| houses=',House.objects.filter(apartment=a).count(),'| tenants=',Tenant.objects.filter(apartment=a).count()) for a in Apartment.objects.filter(company=c).order_by('id')] if c else None; print('TOTAL HOUSES=',House.objects.filter(apartment__company=c).count() if c else 0); print('BANK ACCOUNTS=',BankAccount.objects.filter(company=c).count() if c else 0); print('STATEMENTS=',BankStatementUpload.objects.filter(bank_account__company=c).count() if c else 0); print('TRANSACTIONS=',BankTransaction.objects.filter(bank_account__company=c).count() if c else 0); print('ASSIGNMENTS=',CompanyAssignment.objects.filter(company=c).count() if c else 0)" &&
-      python manage.py collectstatic --noinput
-
-    startCommand: >
-      gunicorn core.wsgi:application
-
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn core.wsgi:application"
     envVars:
-      - key: AFRIAXIS_PRODUCTION
-        value: "1"
+      - key: PYTHON_VERSION
+        value: "3.11.9"
 
-      - key: SECRET_KEY
+      - key: DJANGO_DEBUG
+        value: "False"
+
+      - key: DJANGO_SECRET_KEY
         generateValue: true
 
       - key: DATABASE_URL
         fromDatabase:
-          name: afriaxis-db
+          name: afriaxis-v7-db
           property: connectionString
 
-      - key: MPESA_ENV
-        value: sandbox
-
-      - key: MPESA_CONSUMER_KEY
-        sync: false
-
-      - key: MPESA_CONSUMER_SECRET
-        sync: false
-
-      - key: MPESA_PASSKEY
-        sync: false
-
-      - key: MPESA_SHORTCODE
-        value: "174379"
-
-      - key: MPESA_CALLBACK_URL
-        value: "https://afriaxis-group.onrender.com/services/wifi/callback/"
-
-  - type: cron
-    name: afriaxis-daily-invoices
-    runtime: python
-    schedule: "0 6 * * *"
-
-    buildCommand: >
-      pip install -r requirements.txt
-
-    startCommand: >
-      python manage.py generate_invoices
-
-    envVars:
-      - key: AFRIAXIS_PRODUCTION
-        value: "1"
-
-      - key: SECRET_KEY
-        generateValue: true
-
-      - key: DATABASE_URL
-        fromDatabase:
-          name: afriaxis-db
-          property: connectionString
-
-  - type: cron
-    name: afriaxis-daily-reminders
-    runtime: python
-    schedule: "0 8 * * *"
-
-    buildCommand: >
-      pip install -r requirements.txt
-
-    startCommand: >
-      python manage.py auto_overdue_reminders
-
-    envVars:
-      - key: AFRIAXIS_PRODUCTION
-        value: "1"
-
-      - key: SECRET_KEY
-        generateValue: true
-
-      - key: DATABASE_URL
-        fromDatabase:
-          name: afriaxis-db
-          property: connectionString
-
-
-
+databases:
+  - name: afriaxis-v7-db

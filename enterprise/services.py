@@ -36,3 +36,14 @@ def get_invoice_reference(
         company_name=company_name,
         branch_code=branch_code,
     )
+
+
+def get_delivery_reference(
+    company_name="AfriAxis Group",
+    branch_code="HQ",
+):
+    return get_document_reference(
+        document_type="DELIVERY_NOTE",
+        company_name=company_name,
+        branch_code=branch_code,
+    )

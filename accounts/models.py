@@ -13,6 +13,7 @@ class UserProfile(models.Model):
         ("MANAGER", "Manager"),
         ("SUPERVISOR", "Supervisor"),
         ("FINANCE", "Finance"),
+        ("ACCOUNTS", "Accounts"),
         ("AUDITOR", "Auditor"),
         ("WIFI_TECHNICIAN", "Wi-Fi Technician"),
     ]
@@ -128,6 +129,7 @@ class CompanyAssignment(models.Model):
         ("MANAGER", "Manager"),
         ("SUPERVISOR", "Supervisor"),
         ("FINANCE", "Finance"),
+        ("ACCOUNTS", "Accounts"),
         ("AUDITOR", "Auditor"),
         ("WIFI_TECHNICIAN", "Wi-Fi Technician"),
     ]

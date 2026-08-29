@@ -5,7 +5,6 @@ from django.db import transaction
 
 from accounting.models import JournalEntry
 from accounting.posting import create_journal_entry
-from enterprise.models import Company
 
 
 @transaction.atomic
@@ -19,6 +18,7 @@ def post_rent_bank_advance(bank_transaction, user=None):
             "bank_account",
             "matched_tenant",
             "matched_house",
+            "matched_house__apartment",
         )
         .get(pk=bank_transaction.pk)
     )
@@ -48,22 +48,59 @@ def post_rent_bank_advance(bank_transaction, user=None):
             "Rent receipt has no matched house."
         )
 
-    company = Company.objects.get(
-        name="AfriAxis Group"
-    )
+    company = bank_item.matched_house.apartment.company
 
     reference = (
         f"RENTADV-BANK-{bank_item.id}"
     )
 
-    existing = JournalEntry.objects.filter(
+    base_reference = reference
+    cycle_journals = []
+
+    for candidate in JournalEntry.objects.filter(
         company=company,
-        reference=reference,
-    ).first()
+        reference__startswith=base_reference,
+    ).order_by("-id"):
+        candidate_reference = candidate.reference
 
-    if existing:
-        return existing
+        if candidate_reference == base_reference:
+            cycle_journals.append(candidate)
+            continue
 
+        prefix = f"{base_reference}-R"
+
+        if candidate_reference.startswith(prefix):
+            suffix = candidate_reference[len(prefix):]
+
+            if suffix.isdigit():
+                cycle_journals.append(candidate)
+
+    # If any cycle is still active, return it.
+    for candidate in cycle_journals:
+        reversal_exists = JournalEntry.objects.filter(
+            company=company,
+            reference=f"REV-{candidate.journal_number}",
+            status="POSTED",
+        ).exists()
+
+        if not reversal_exists:
+            return candidate
+
+    # All previous cycles were reversed. Create the next cycle.
+    if cycle_journals:
+        used_sequences = [1]
+
+        prefix = f"{base_reference}-R"
+
+        for candidate in cycle_journals:
+            if candidate.reference.startswith(prefix):
+                suffix = candidate.reference[len(prefix):]
+
+                if suffix.isdigit():
+                    used_sequences.append(int(suffix))
+
+        sequence = max(used_sequences) + 1
+        reference = f"{base_reference}-R{sequence}"
     amount = Decimal(str(bank_item.money_in))
 
     journal = create_journal_entry(
@@ -115,9 +152,7 @@ def post_rent_bill(rent, user=None):
         .get(pk=rent.pk)
     )
 
-    company = Company.objects.get(
-        name="AfriAxis Group"
-    )
+    company = rent.house.apartment.company
 
     amount = Decimal(str(rent.amount))
 
@@ -135,7 +170,6 @@ def post_rent_bill(rent, user=None):
 
     if existing:
         return existing
-
     journal = create_journal_entry(
         company=company,
         entry_date=rent.billing_month,
@@ -181,6 +215,7 @@ def apply_rent_bank_advance(bank_transaction, user=None):
         .select_related(
             "matched_tenant",
             "matched_house",
+            "matched_house__apartment",
         )
         .get(pk=bank_transaction.pk)
     )
@@ -225,29 +260,71 @@ def apply_rent_bank_advance(bank_transaction, user=None):
 
     bank_amount = Decimal(str(bank_item.money_in))
 
-    if total_applied != bank_amount:
+    if total_applied <= Decimal("0.00"):
+        raise ValidationError(
+            "Rental payment allocation must be greater than zero."
+        )
+
+    if total_applied > bank_amount:
         raise ValidationError(
             f"Rental payment allocations total "
-            f"{total_applied}, but bank receipt is "
+            f"{total_applied}, which exceeds bank receipt "
             f"{bank_amount}."
         )
 
-    company = Company.objects.get(
-        name="AfriAxis Group"
-    )
+    company = bank_item.matched_house.apartment.company
 
     reference = (
         f"RENTAPPLY-BANK-{bank_item.id}"
     )
 
-    existing = JournalEntry.objects.filter(
+    base_reference = reference
+    cycle_journals = []
+
+    for candidate in JournalEntry.objects.filter(
         company=company,
-        reference=reference,
-    ).first()
+        reference__startswith=base_reference,
+    ).order_by("-id"):
+        candidate_reference = candidate.reference
 
-    if existing:
-        return existing
+        if candidate_reference == base_reference:
+            cycle_journals.append(candidate)
+            continue
 
+        prefix = f"{base_reference}-R"
+
+        if candidate_reference.startswith(prefix):
+            suffix = candidate_reference[len(prefix):]
+
+            if suffix.isdigit():
+                cycle_journals.append(candidate)
+
+    # If any cycle is still active, return it.
+    for candidate in cycle_journals:
+        reversal_exists = JournalEntry.objects.filter(
+            company=company,
+            reference=f"REV-{candidate.journal_number}",
+            status="POSTED",
+        ).exists()
+
+        if not reversal_exists:
+            return candidate
+
+    # All previous cycles were reversed. Create the next cycle.
+    if cycle_journals:
+        used_sequences = [1]
+
+        prefix = f"{base_reference}-R"
+
+        for candidate in cycle_journals:
+            if candidate.reference.startswith(prefix):
+                suffix = candidate.reference[len(prefix):]
+
+                if suffix.isdigit():
+                    used_sequences.append(int(suffix))
+
+        sequence = max(used_sequences) + 1
+        reference = f"{base_reference}-R{sequence}"
     descriptions = ", ".join(
         (
             f"Rent {payment.rental_rent_id} "
@@ -258,10 +335,7 @@ def apply_rent_bank_advance(bank_transaction, user=None):
 
     journal = create_journal_entry(
         company=company,
-        entry_date=min(
-            payment.rental_rent.billing_month
-            for payment in payments
-        ),
+        entry_date=bank_item.transaction_date,
         reference=reference,
         description=(
             f"Apply tenant advance from bank transaction "
@@ -290,3 +364,6 @@ def apply_rent_bank_advance(bank_transaction, user=None):
     )
 
     return journal
+
+
+

@@ -13,6 +13,7 @@ ALLOWED_HOSTS = [
     ".onrender.com",
     ".ngrok-free.dev",
     ".ngrok-free.app",
+    '192.168.0.101',
 ]
 
 INSTALLED_APPS = [
@@ -186,3 +187,4 @@ else:
 
 
 LOGOUT_REDIRECT_URL = '/auth/login/'
+

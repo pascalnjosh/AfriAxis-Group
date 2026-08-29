@@ -1,29 +1,91 @@
-from accounts.decorators import finance_required
+from accounts.decorators import (
+    audit_required,
+    finance_required,
+    get_user_company_ids,
+)
 from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction as db_transaction
 from django.db.models import Sum
-from decimal import Decimal
 
 from accounting.models import Account, JournalEntry, JournalEntryLine
-from .models import BankStatementUpload
+from .models import (
+    BankAccount,
+    BankStatementUpload,
+)
 from accounting.posting import create_journal_entry, reverse_journal_entry
 from django.shortcuts import get_object_or_404, redirect, render
 
 from payments.models import Payment
 from rentals.models import Rent
+from rentals.services import (
+    apply_rent_bank_advance,
+    post_rent_bank_advance,
+)
 
 from .forms import BankStatementUploadForm
 from .models import BankTransaction
 from .utils import process_bank_statement
 
 
-@finance_required
+def _bank_accounts_for_user(user):
+    """
+    Return active bank accounts available to the user.
+    """
+
+    queryset = (
+        BankAccount.objects
+        .filter(active=True)
+        .select_related(
+            "company",
+            "apartment",
+        )
+    )
+
+    company_ids = get_user_company_ids(
+        user
+    )
+
+    if company_ids is None:
+        return queryset
+
+    return queryset.filter(
+        company_id__in=company_ids,
+    )
+
+
+def _bank_transactions_for_user(user):
+    """
+    Restrict bank transactions to permitted bank accounts.
+    """
+
+    return BankTransaction.objects.filter(
+        bank_account__in=_bank_accounts_for_user(
+            user
+        )
+    )
+
+
+def _statement_uploads_for_user(user):
+    """
+    Restrict statement uploads to permitted bank accounts.
+    """
+
+    return BankStatementUpload.objects.filter(
+        bank_account__in=_bank_accounts_for_user(
+            user
+        )
+    )
+
+
+@audit_required
 def reconciliation_dashboard(request):
     transactions = (
-        BankTransaction.objects
+        _bank_transactions_for_user(
+            request.user
+        )
         .select_related(
             "bank_account",
             "matched_tenant",
@@ -36,7 +98,9 @@ def reconciliation_dashboard(request):
     )
 
     latest_upload = (
-        BankStatementUpload.objects
+        _statement_uploads_for_user(
+            request.user
+        )
         .filter(processed=True)
         .select_related("bank_account")
         .order_by("-uploaded_at", "-id")
@@ -77,6 +141,7 @@ def reconciliation_dashboard(request):
             cash_account = (
                 Account.objects
                 .filter(
+                    company=bank_account.company,
                     code="1000",
                     active=True,
                 )
@@ -218,11 +283,19 @@ def reconciliation_dashboard(request):
 
 @finance_required
 def upload_statement(request):
+    allowed_accounts = _bank_accounts_for_user(
+        request.user
+    )
+
     if request.method == "POST":
         form = BankStatementUploadForm(
             request.POST,
             request.FILES,
         )
+
+        form.fields[
+            "bank_account"
+        ].queryset = allowed_accounts
 
         if form.is_valid():
             upload = form.save(commit=False)
@@ -245,6 +318,10 @@ def upload_statement(request):
     else:
         form = BankStatementUploadForm()
 
+        form.fields[
+            "bank_account"
+        ].queryset = allowed_accounts
+
     return render(
         request,
         "banking/upload_statement.html",
@@ -260,7 +337,7 @@ def _payment_queryset(transaction):
 
 
 @db_transaction.atomic
-def _post_bank_transaction(transaction):
+def _post_bank_transaction(transaction, user=None):
     """
     Post one bank transaction to the matched tenant and house.
 
@@ -282,14 +359,34 @@ def _post_bank_transaction(transaction):
 
     existing_payments = _payment_queryset(transaction)
 
-    # If linked payment rows already exist, do not post twice.
+    # If linked rent payment rows already exist, keep the operation
+    # idempotent but also ensure the accounting journals are active.
     if existing_payments.filter(
         rental_rent__isnull=False,
     ).exists():
         transaction.match_status = "approved"
-        transaction.save(update_fields=["match_status"])
+        transaction.suggested_category = "rent"
+        transaction.save(
+            update_fields=[
+                "match_status",
+                "suggested_category",
+            ]
+        )
 
-        return False, "This transaction was already posted."
+        post_rent_bank_advance(
+            transaction,
+            user=user,
+        )
+
+        apply_rent_bank_advance(
+            transaction,
+            user=user,
+        )
+
+        return False, (
+            "This transaction was already posted; "
+            "rent accounting was verified."
+        )
 
     # Remove old orphan rows created by the previous broken approval code.
     existing_payments.filter(
@@ -309,8 +406,37 @@ def _post_bank_transaction(transaction):
     )
 
     if not rents.exists():
-        return False, (
-            "No open rent record exists for the matched tenant and house."
+        # Valid matched tenant/house with no open rent remaining.
+        # Preserve the complete bank receipt as a tenant advance.
+        Payment.objects.create(
+            rental_rent=None,
+            amount=Decimal(transaction.money_in),
+            phone_number="",
+            account_reference="BANK-ADVANCE",
+            transaction_desc=transaction.description,
+            mpesa_receipt_number=transaction.reference,
+            payment_method="BANK",
+            status="SUCCESS",
+        )
+
+        transaction.match_status = "approved"
+        transaction.suggested_category = "rent"
+        transaction.save(
+            update_fields=[
+                "match_status",
+                "suggested_category",
+            ]
+        )
+
+        post_rent_bank_advance(
+            transaction,
+            user=user,
+        )
+
+        return True, (
+            f"Transaction approved. KES "
+            f"{Decimal(transaction.money_in):,.2f} "
+            "recorded as a tenant advance."
         )
 
     remaining = Decimal(transaction.money_in)
@@ -367,6 +493,18 @@ def _post_bank_transaction(transaction):
             "match_status",
             "suggested_category",
         ]
+    )
+
+    # Accounting: record the full bank receipt as tenant advance,
+    # then apply only the amount allocated to rent.
+    post_rent_bank_advance(
+        transaction,
+        user=user,
+    )
+
+    apply_rent_bank_advance(
+        transaction,
+        user=user,
     )
 
     if remaining > 0:
@@ -444,7 +582,9 @@ def _post_bank_charge_transaction(transaction, user=None):
 @finance_required
 def approve_transaction(request, transaction_id):
     transaction = get_object_or_404(
-        BankTransaction,
+        _bank_transactions_for_user(
+            request.user
+        ),
         id=transaction_id,
     )
 
@@ -457,14 +597,43 @@ def approve_transaction(request, transaction_id):
         )
 
     elif transaction.money_out > 0:
-        posted, message = _post_bank_charge_transaction(
-            transaction,
-            user=request.user,
+        description = str(
+            transaction.description or ""
+        ).upper()
+
+        bank_charge_markers = (
+            "EXCISE DUTY",
+            "ACCOUNT STATEMENT CHARGE",
+            "TRANSACTION + SMS CHARGE",
+            "SMS CHARGE",
+            "BANK CHARGE",
+            "TRANSFER CHARGE",
+            "LEDGER FEE",
+            "SERVICE CHARGE",
+            "COMMISSION",
         )
+
+        is_bank_charge = any(
+            marker in description
+            for marker in bank_charge_markers
+        )
+
+        if is_bank_charge:
+            posted, message = _post_bank_charge_transaction(
+                transaction,
+                user=request.user,
+            )
+        else:
+            posted = False
+            message = (
+                "Money-out transaction requires Finance review. "
+                "It was not posted as a bank charge."
+            )
 
     else:
         posted, message = _post_bank_transaction(
-            transaction
+            transaction,
+            user=request.user,
         )
 
     if posted:
@@ -478,7 +647,9 @@ def approve_transaction(request, transaction_id):
 @finance_required
 def approve_all_high_confidence(request):
     transactions = (
-        BankTransaction.objects
+        _bank_transactions_for_user(
+            request.user
+        )
         .filter(
             match_status="pending",
             auto_matched=True,
@@ -494,7 +665,10 @@ def approve_all_high_confidence(request):
     skipped_count = 0
 
     for bank_item in transactions:
-        posted, _message = _post_bank_transaction(bank_item)
+        posted, _message = _post_bank_transaction(
+            bank_item,
+            user=request.user,
+        )
 
         if posted:
             approved_count += 1
@@ -515,10 +689,11 @@ def approve_all_high_confidence(request):
 @finance_required
 @db_transaction.atomic
 def undo_transaction(request, transaction_id):
-    bank_item = (
-        BankTransaction.objects
-        .select_for_update()
-        .get(id=transaction_id)
+    bank_item = get_object_or_404(
+        _bank_transactions_for_user(
+            request.user
+        ).select_for_update(),
+        id=transaction_id,
     )
 
     if bank_item.match_status != "approved":
@@ -561,9 +736,10 @@ def undo_transaction(request, transaction_id):
         )
 
         bank_item.match_status = "pending"
-        bank_item.suggested_category = "unknown"
+        bank_item.suggested_category = "bank_charge"
         bank_item.match_notes = (
-            f"Bank charge journal {reference} reversed."
+            f"Bank charge journal {reference} reversed. "
+            "Transaction returned to pending Finance review."
         )
         bank_item.save(
             update_fields=[
@@ -582,122 +758,185 @@ def undo_transaction(request, transaction_id):
         )
         return redirect("bank_reconciliation")
 
-    payments = list(
-        _payment_queryset(bank_item)
-        .select_related("rental_rent")
-    )
+    if bank_item.suggested_category == "rent":
+        advance_reference = f"RENTADV-BANK-{bank_item.id}"
+        apply_reference = f"RENTAPPLY-BANK-{bank_item.id}"
 
-    if not payments:
+        company = (
+            bank_item.matched_house.apartment.company
+            if bank_item.matched_house_id
+            else bank_item.bank_account.company
+        )
+
+        # Locate the latest active posted accounting entries.
+        # Historical cycles remain in the ledger for audit purposes.
+        advance_journal = None
+
+        for candidate in (
+            JournalEntry.objects
+            .filter(
+                company=company,
+                reference__startswith=advance_reference,
+                status="POSTED",
+            )
+            .order_by("-id")
+        ):
+            reversal_exists = JournalEntry.objects.filter(
+                company=company,
+                reference=f"REV-{candidate.journal_number}",
+                status="POSTED",
+            ).exists()
+
+            if not reversal_exists:
+                advance_journal = candidate
+                break
+
+        apply_journal = None
+
+        for candidate in (
+            JournalEntry.objects
+            .filter(
+                company=company,
+                reference__startswith=apply_reference,
+                status="POSTED",
+            )
+            .order_by("-id")
+        ):
+            reversal_exists = JournalEntry.objects.filter(
+                company=company,
+                reference=f"REV-{candidate.journal_number}",
+                status="POSTED",
+            ).exists()
+
+            if not reversal_exists:
+                apply_journal = candidate
+                break
+
+        if advance_journal is None:
+            messages.error(
+                request,
+                (
+                    "Cannot undo rent receipt: "
+                    f"journal {advance_reference} was not found."
+                ),
+            )
+            return redirect("bank_reconciliation")
+
+        payments = list(
+            _payment_queryset(bank_item)
+            .select_for_update()
+            .select_related("rental_rent")
+            .order_by("id")
+        )
+
+        rental_payments = [
+            payment
+            for payment in payments
+            if payment.rental_rent_id is not None
+        ]
+
+        allocated_total = sum(
+            (
+                Decimal(payment.amount)
+                for payment in rental_payments
+            ),
+            Decimal("0.00"),
+        )
+
+        # If money was allocated to rent, the application journal
+        # must exist before we alter operational balances.
+        if allocated_total > 0 and apply_journal is None:
+            messages.error(
+                request,
+                (
+                    "Cannot undo rent receipt: "
+                    f"journal {apply_reference} was not found."
+                ),
+            )
+            return redirect("bank_reconciliation")
+
+        # Reverse the allocation first:
+        # Dr Accounts Receivable / Cr Tenant Advances.
+        if apply_journal is not None:
+            reverse_journal_entry(
+                journal_entry=apply_journal,
+                user=request.user,
+                reason=(
+                    f"Undo rent allocation for bank "
+                    f"transaction {bank_item.id}"
+                ),
+            )
+
+        # Reverse the original bank receipt:
+        # Dr Tenant Advances / Cr Cash and Bank.
+        reverse_journal_entry(
+            journal_entry=advance_journal,
+            user=request.user,
+            reason=(
+                f"Undo rent bank receipt "
+                f"{bank_item.id}"
+            ),
+        )
+
+        # Restore each affected rent obligation.
+        for payment in rental_payments:
+            rent = (
+                Rent.objects
+                .select_for_update()
+                .get(id=payment.rental_rent_id)
+            )
+
+            restored_paid = (
+                Decimal(rent.amount_paid)
+                - Decimal(payment.amount)
+            )
+
+            if restored_paid < 0:
+                raise ValueError(
+                    f"Cannot undo bank transaction "
+                    f"{bank_item.id}: rent {rent.id} "
+                    "would have negative amount_paid."
+                )
+
+            rent.amount_paid = restored_paid
+            rent.save()
+
+        # Remove both allocated BANK payments and any
+        # unallocated BANK-ADVANCE payment for this receipt.
+        for payment in payments:
+            payment.delete()
+
         bank_item.match_status = "pending"
+        bank_item.suggested_category = "rent"
+        bank_item.match_notes = (
+            "Rent receipt accounting reversed. "
+            "Payment allocations removed and transaction "
+            "returned to pending Finance review."
+        )
         bank_item.save(
             update_fields=[
                 "match_status",
+                "suggested_category",
+                "match_notes",
             ]
         )
 
-        messages.warning(
+        messages.success(
             request,
             (
-                "No linked payment rows were found. "
-                "Transaction returned to pending."
+                "Rent receipt reversed, rent balances restored, "
+                "and transaction returned to pending."
             ),
         )
         return redirect("bank_reconciliation")
-
-    reversed_total = Decimal("0")
-
-    for payment in payments:
-        rent = payment.rental_rent
-
-        if rent:
-            rent = (
-                Rent.objects
-                .select_for_update()
-                .get(id=rent.id)
-            )
-
-            rent.amount_paid = max(
-                Decimal("0"),
-                Decimal(rent.amount_paid)
-                - Decimal(payment.amount),
-            )
-            rent.save()
-
-        reversed_total += Decimal(payment.amount)
-        payment.delete()
-
-    bank_item.match_status = "pending"
-    bank_item.save(
-        update_fields=[
-            "match_status",
-        ]
-    )
-
-    messages.success(
-        request,
-        (
-            f"Transaction reversed. "
-            f"KES {reversed_total:,.2f} removed "
-            "from payments."
-        ),
-    )
-
-    return redirect("bank_reconciliation")
-
-    payments = list(
-        _payment_queryset(bank_item)
-        .select_related("rental_rent")
-    )
-
-    if not payments:
-        bank_item.match_status = "pending"
-        bank_item.save(update_fields=["match_status"])
-
-        messages.warning(
-            request,
-            "No linked payment rows were found. Transaction returned to pending.",
-        )
-        return redirect("bank_reconciliation")
-
-    reversed_total = Decimal("0")
-
-    for payment in payments:
-        rent = payment.rental_rent
-
-        if rent:
-            rent = (
-                Rent.objects
-                .select_for_update()
-                .get(id=rent.id)
-            )
-
-            rent.amount_paid = max(
-                Decimal("0"),
-                Decimal(rent.amount_paid) - Decimal(payment.amount),
-            )
-            rent.save()
-
-        reversed_total += Decimal(payment.amount)
-        payment.delete()
-
-    bank_item.match_status = "pending"
-    bank_item.save(update_fields=["match_status"])
-
-    messages.success(
-        request,
-        (
-            f"Transaction reversed. KES {reversed_total:,.2f} removed "
-            "from payments."
-        ),
-    )
-
-    return redirect("bank_reconciliation")
 
 
 @finance_required
 def reject_transaction(request, transaction_id):
     bank_item = get_object_or_404(
-        BankTransaction,
+        _bank_transactions_for_user(
+            request.user
+        ),
         id=transaction_id,
     )
 
@@ -868,7 +1107,9 @@ def _approve_erp_bank_transaction(bank_item):
 @finance_required
 def delete_statement(request, upload_id):
     upload = get_object_or_404(
-        BankStatementUpload.objects.select_related(
+        _statement_uploads_for_user(
+            request.user
+        ).select_related(
             "bank_account",
             "bank_account__company",
             "bank_account__apartment",
@@ -909,3 +1150,7 @@ def delete_statement(request, upload_id):
     )
 
     return redirect("bank_reconciliation")
+
+
+
+

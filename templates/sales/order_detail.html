@@ -1,0 +1,593 @@
+{% extends "admin/base_site.html" %}
+{% load sales_extras %}
+
+{% block title %}
+{{ order.order_number }} | FAS
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+
+<style>
+
+.fas-page {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.fas-hero {
+    background:
+        linear-gradient(
+            135deg,
+            #123c28,
+            #26754c
+        );
+    color: white;
+    padding: 24px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.fas-hero h1 {
+    margin: 0 0 7px 0;
+    color: white;
+}
+
+.fas-card {
+    border: 1px solid var(--hairline-color);
+    border-radius: 9px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.fas-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+    gap: 13px 28px;
+}
+
+.fas-table-wrap {
+    overflow-x: auto;
+}
+
+.fas-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.fas-table th {
+    background: #163f2b;
+    color: white;
+    padding: 10px;
+    text-align: left;
+}
+
+.fas-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.right {
+    text-align: right !important;
+}
+
+.center {
+    text-align: center !important;
+}
+
+.total-box {
+    width: min(440px, 100%);
+    margin-left: auto;
+    margin-top: 18px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 4px;
+    border-bottom: 1px solid #ddd;
+}
+
+.grand-total {
+    font-size: 19px;
+    font-weight: 800;
+    border-top: 2px solid #163f2b;
+}
+
+.status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 14px;
+    background: #e7e7e7;
+    color: #222;
+    font-weight: 700;
+}
+
+.doc-box {
+    background: #f5f7f5;
+    color: #222;
+    border-left: 5px solid #1f6a43;
+    padding: 16px;
+    border-radius: 7px;
+    margin-top: 14px;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.btn-fas {
+    border: 0;
+    padding: 10px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.btn-green {
+    background: #1f6a43;
+    color: white !important;
+}
+
+.btn-blue {
+    background: #245c8a;
+    color: white !important;
+}
+
+.btn-orange {
+    background: #a55c12;
+    color: white !important;
+}
+
+.btn-light {
+    background: #e1e1e1;
+    color: #222 !important;
+}
+
+.stock-warning {
+    background: #fff3cd;
+    color: #6b5200;
+    border-left: 5px solid #c99b19;
+    padding: 12px;
+    margin-top: 12px;
+}
+
+@media(max-width:800px) {
+
+    .fas-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="fas-page">
+
+    <div class="fas-hero">
+
+        <h1>
+            {{ order.order_number }}
+        </h1>
+
+        <div>
+            FAIRLANE AGRISERVICES AND SUPPLIERS
+        </div>
+
+    </div>
+
+
+    <div class="fas-card">
+
+        <h2>Sales Order</h2>
+
+        <div class="fas-grid">
+
+            <div>
+                <strong>Customer:</strong>
+                {{ order.customer.name }}
+            </div>
+
+            <div>
+                <strong>Status:</strong>
+
+                <span class="status">
+                    {{ order.status }}
+                </span>
+            </div>
+
+            <div>
+                <strong>LPO / Ref No.:</strong>
+                {{ order.customer_reference|default:"-" }}
+            </div>
+
+            <div>
+                <strong>Order Date:</strong>
+                {{ order.order_date|date:"d M Y" }}
+            </div>
+
+            <div>
+                <strong>Expected Delivery:</strong>
+
+                {% if order.expected_delivery_date %}
+                    {{ order.expected_delivery_date|date:"d M Y" }}
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+
+            <div>
+                <strong>Terms:</strong>
+                {{ order.terms|default:"-" }}
+            </div>
+
+            <div>
+                <strong>Delivery Address:</strong>
+                {{ order.delivery_address|default:"-" }}
+            </div>
+
+            <div>
+                <strong>Currency:</strong>
+                {{ order.currency.code }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="fas-card">
+
+        <h2>Items</h2>
+
+        <div class="fas-table-wrap">
+
+            <table class="fas-table">
+
+                <thead>
+
+                    <tr>
+                        <th>#</th>
+                        <th>Item</th>
+                        <th>U/M</th>
+                        <th class="right">Qty</th>
+                        <th class="right">Rate</th>
+                        <th class="right">Tax %</th>
+                        <th class="right">Amount</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for line in order_lines %}
+
+                    <tr>
+
+                        <td>
+                            {{ forloop.counter }}
+                        </td>
+
+                        <td>
+                            {{ line.description }}
+                        </td>
+
+                        <td>
+                            {{ line.product.unit.code }}
+                        </td>
+
+                        <td class="right">
+                            {{ line.quantity|qty }}
+                        </td>
+
+                        <td class="right">
+                            {{ line.unit_price|money }}
+                        </td>
+
+                        <td class="right">
+                            {{ line.tax_rate|money }}
+                        </td>
+
+                        <td class="right">
+                            {{ line.line_total|money }}
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="total-box">
+
+            <div class="total-row">
+
+                <span>
+                    Subtotal
+                </span>
+
+                <strong>
+                    KES {{ order.subtotal|money }}
+                </strong>
+
+            </div>
+
+            <div class="total-row">
+
+                <span>
+                    Tax
+                </span>
+
+                <strong>
+                    KES {{ order.tax_amount|money }}
+                </strong>
+
+            </div>
+
+            <div class="total-row grand-total">
+
+                <span>
+                    Grand Total
+                </span>
+
+                <span>
+                    KES {{ order.total_amount|money }}
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="fas-card">
+
+        <h2>Documents</h2>
+
+
+        {% if not invoice and not delivery %}
+
+            <p>
+                Invoice and Delivery have not yet been generated.
+            </p>
+
+            <form
+                method="post"
+                action="{% url 'create_sales_documents' order.pk %}"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn-fas btn-green"
+                >
+                    Generate Invoice + Delivery
+                </button>
+
+            </form>
+
+        {% endif %}
+
+
+        {% if invoice %}
+
+            <div class="doc-box">
+
+                <strong>
+                    Invoice:
+                </strong>
+
+                {{ invoice.invoice_number }}
+
+                &nbsp; | &nbsp;
+
+                <strong>Status:</strong>
+
+                {{ invoice.status }}
+
+
+                <div class="actions">
+
+                    <a
+                        href="{% url 'invoice_print' invoice.pk %}"
+                        target="_blank"
+                        class="btn-fas btn-blue"
+                    >
+                        View / Print Invoice
+                    </a>
+
+
+                    {% if invoice.status == "DRAFT" %}
+
+                        {% if delivery and delivery.status == "POSTED" %}
+
+                            <form
+                                method="post"
+                                action="{% url 'invoice_post' invoice.pk %}"
+                            >
+
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="btn-fas btn-orange"
+                                    onclick="
+                                        return confirm(
+                                            'Post this invoice to accounting?'
+                                        );
+                                    "
+                                >
+                                    Post Invoice to Accounting
+                                </button>
+
+                            </form>
+
+                        {% else %}
+
+                            <span
+                                class="btn-fas btn-light"
+                                style="
+                                    cursor:not-allowed;
+                                    opacity:0.7;
+                                "
+                            >
+                                Invoice Posting Locked
+                            </span>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </div>
+
+                {% if invoice.status == "DRAFT" %}
+
+                    {% if not delivery or delivery.status != "POSTED" %}
+
+                        <div class="stock-warning">
+
+                            <strong>
+                                Invoice accounting is locked.
+                            </strong>
+
+                            <br>
+
+                            The related Delivery must be
+                            successfully posted / dispatched
+                            before this Invoice can be posted
+                            to Accounts Receivable and Sales Revenue.
+
+                        </div>
+
+                    {% endif %}
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+
+        {% if delivery %}
+
+            <div class="doc-box">
+
+                <strong>
+                    Delivery:
+                </strong>
+
+                {{ delivery.delivery_number }}
+
+                &nbsp; | &nbsp;
+
+                <strong>Status:</strong>
+
+                {{ delivery.status }}
+
+
+                <div class="actions">
+
+                    <a
+                        href="{% url 'delivery_print' delivery.pk %}"
+                        target="_blank"
+                        class="btn-fas btn-blue"
+                    >
+                        View / Print Delivery
+                    </a>
+
+
+                    {% if delivery.status == "DRAFT" %}
+
+                        <form
+                            method="post"
+                            action="{% url 'delivery_post' delivery.pk %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="btn-fas btn-orange"
+                                onclick="
+                                    return confirm(
+                                        'Dispatch this delivery and reduce stock?'
+                                    );
+                                "
+                            >
+                                Post / Dispatch Delivery
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if delivery.status == "DRAFT" %}
+
+                    <div class="stock-warning">
+
+                        Printing this Delivery does not reduce stock.
+
+                        Stock changes only after
+                        <strong>
+                            Post / Dispatch Delivery
+                        </strong>
+                        succeeds.
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <div class="actions">
+
+        <a
+            href="{% url 'new_sale' %}"
+            class="btn-fas btn-green"
+        >
+            + New Sale
+        </a>
+
+        <a
+            href="{% url 'sales_dashboard' %}"
+            class="btn-fas btn-light"
+        >
+            Sales Dashboard
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+

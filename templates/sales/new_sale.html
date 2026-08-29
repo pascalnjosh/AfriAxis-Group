@@ -1,0 +1,807 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}
+New FAS Sale | AfriAxis ERP
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+
+<style>
+    .fas-page {
+        max-width: 1450px;
+        margin: 0 auto;
+    }
+
+    .fas-header {
+        background:
+            linear-gradient(
+                135deg,
+                #123c28,
+                #1f6a43
+            );
+        color: white;
+        padding: 24px 28px;
+        border-radius: 10px;
+        margin-bottom: 22px;
+    }
+
+    .fas-header h1 {
+        color: white;
+        margin: 0 0 6px 0;
+        font-size: 28px;
+    }
+
+    .fas-header p {
+        margin: 3px 0;
+    }
+
+    .fas-card {
+        background: var(--body-bg);
+        border: 1px solid var(--hairline-color);
+        border-radius: 10px;
+        padding: 22px;
+        margin-bottom: 20px;
+    }
+
+    .fas-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+        gap: 18px;
+    }
+
+    .fas-field label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .fas-field input,
+    .fas-field select,
+    .fas-field textarea {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 10px;
+        border: 1px solid #aaa;
+        border-radius: 5px;
+    }
+
+    .fas-field textarea {
+        min-height: 80px;
+    }
+
+    .fas-table-wrap {
+        overflow-x: auto;
+    }
+
+    .fas-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1050px;
+    }
+
+    .fas-table th {
+        background: #163f2b;
+        color: white;
+        padding: 10px;
+        text-align: left;
+    }
+
+    .fas-table td {
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+        vertical-align: middle;
+    }
+
+    .fas-table input,
+    .fas-table select {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 8px;
+    }
+
+    .money {
+        text-align: right;
+    }
+
+    .fas-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+    }
+
+    .fas-button {
+        border: 0;
+        border-radius: 5px;
+        padding: 11px 18px;
+        cursor: pointer;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .fas-primary {
+        background: #1f6a43;
+        color: white !important;
+    }
+
+    .fas-secondary {
+        background: #e7e7e7;
+        color: #222 !important;
+    }
+
+    .fas-danger {
+        background: #9f2d2d;
+        color: white !important;
+    }
+
+    .fas-total-box {
+        margin-left: auto;
+        width: min(430px, 100%);
+        margin-top: 18px;
+    }
+
+    .fas-total-row {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #ddd;
+        padding: 9px 4px;
+    }
+
+    .fas-grand {
+        font-size: 18px;
+        font-weight: 800;
+        border-top: 2px solid #163f2b;
+    }
+
+    .fas-note {
+        background: #fff7d6;
+        border-left: 4px solid #c99b19;
+        padding: 12px;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 850px) {
+        .fas-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="fas-page">
+
+    <div class="fas-header">
+        <h1>FAIRLANE AGRISERVICES AND SUPPLIERS (FAS)</h1>
+        <p>
+            Dealers in Agricultural Inputs, Farm Equipment,
+            Advisory Services and General Supplies
+        </p>
+        <p>
+            Nyahururu, Laikipia County, Kenya
+        </p>
+        <p>
+            0711 653 353 / 0715 213 545
+            &nbsp; | &nbsp;
+            agriserves@gmail.com
+            &nbsp; | &nbsp;
+            PIN: P051408118Y
+        </p>
+    </div>
+
+    <div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+">
+    <h1>New Sale</h1>
+
+    <a
+        href="{% url 'fas_customer_create' %}"
+        class="fas-button fas-primary"
+    >
+        + Add Customer
+    </a>
+</div>
+
+    <div class="fas-note">
+        Enter the customer's LPO / Reference once here.
+        It will later flow to both the FAS Invoice and Delivery.
+        Product rates must currently be entered manually because
+        the FAS product master selling prices are still KES 0.00.
+    </div>
+
+    <form method="post" id="sale-form">
+        {% csrf_token %}
+
+        <div class="fas-card">
+
+            <h2>Customer & Order Details</h2>
+
+            <div class="fas-grid">
+
+                <div class="fas-field">
+                    <label>Customer *</label>
+
+                    <select
+                        name="customer"
+                        required
+                    >
+                        <option value="">
+                            Select Customer
+                        </option>
+
+                        {% for customer in customers %}
+                        <option
+                            value="{{ customer.id }}"
+                        >
+                            {{ customer.customer_code }}
+                            -
+                            {{ customer.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="fas-field">
+                    <label>LPO / Ref No.</label>
+
+                    <input
+                        type="text"
+                        name="customer_reference"
+                        placeholder="Customer LPO / Reference"
+                    >
+                </div>
+
+                <div class="fas-field">
+                    <label>Order Date *</label>
+
+                    <input
+                        type="date"
+                        name="order_date"
+                        value="{{ today|date:'Y-m-d' }}"
+                        required
+                    >
+                </div>
+
+                <div class="fas-field">
+                    <label>
+                        Expected Delivery Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="expected_delivery_date"
+                    >
+                </div>
+
+                <div class="fas-field">
+                    <label>Payment Terms</label>
+
+                    <input
+                        type="text"
+                        name="terms"
+                        value="30 DAYS"
+                    >
+                </div>
+
+                <div class="fas-field">
+                    <label>Branch</label>
+
+                    <input
+                        type="text"
+                        value="{{ branch.code }} - {{ branch.name }}"
+                        readonly
+                    >
+                </div>
+
+                <div class="fas-field">
+                    <label>Delivery Address</label>
+
+                    <textarea
+                        name="delivery_address"
+                        placeholder="Site / delivery location"
+                    ></textarea>
+                </div>
+
+                <div class="fas-field">
+                    <label>Notes</label>
+
+                    <textarea
+                        name="notes"
+                        placeholder="Order notes"
+                    ></textarea>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="fas-card">
+
+            <h2>Items</h2>
+
+            <div class="fas-table-wrap">
+
+                <table
+                    class="fas-table"
+                    id="items-table"
+                >
+                    <thead>
+                        <tr>
+                            <th style="width:50px;">
+                                #
+                            </th>
+
+                            <th>
+                                Product
+                            </th>
+
+                            <th style="width:100px;">
+                                U/M
+                            </th>
+
+                            <th style="width:120px;">
+                                Qty
+                            </th>
+
+                            <th style="width:150px;">
+                                Rate (KES)
+                            </th>
+
+                            <th style="width:110px;">
+                                Tax %
+                            </th>
+
+                            <th style="width:160px;">
+                                Amount
+                            </th>
+
+                            <th style="width:90px;">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="item-body">
+
+                        <tr class="item-row">
+
+                            <td class="line-number">
+                                1
+                            </td>
+
+                            <td>
+                                <select
+                                    name="product"
+                                    class="product-select"
+                                    required
+                                >
+                                    <option value="">
+                                        Select Product
+                                    </option>
+
+                                    {% for product in products %}
+
+                                    <option
+                                        value="{{ product.id }}"
+                                        data-unit="{{ product.unit.code }}"
+                                        data-price="{{ product.selling_price }}"
+                                        data-tax="{{ product.tax_rate }}"
+                                    >
+                                        {{ product.product_code }}
+                                        -
+                                        {{ product.name }}
+                                    </option>
+
+                                    {% endfor %}
+                                </select>
+                            </td>
+
+                            <td>
+                                <input
+                                    type="text"
+                                    class="unit-display"
+                                    readonly
+                                >
+                            </td>
+
+                            <td>
+                                <input
+                                    type="number"
+                                    name="quantity"
+                                    class="qty-input"
+                                    min="0.001"
+                                    step="0.001"
+                                    required
+                                >
+                            </td>
+
+                            <td>
+                                <input
+                                    type="number"
+                                    name="unit_price"
+                                    class="rate-input"
+                                    min="0.01"
+                                    step="0.01"
+                                    required
+                                >
+                            </td>
+
+                            <td>
+                                <input
+                                    type="number"
+                                    name="tax_rate"
+                                    class="tax-input"
+                                    min="0"
+                                    step="0.01"
+                                    value="0.00"
+                                    required
+                                >
+                            </td>
+
+                            <td>
+                                <input
+                                    type="text"
+                                    class="amount-display money"
+                                    value="0.00"
+                                    readonly
+                                >
+                            </td>
+
+                            <td>
+                                <button
+                                    type="button"
+                                    class="fas-button fas-danger remove-line"
+                                >
+                                    X
+                                </button>
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+                </table>
+
+            </div>
+
+            <div class="fas-actions">
+
+                <button
+                    type="button"
+                    id="add-line"
+                    class="fas-button fas-secondary"
+                >
+                    + Add Item
+                </button>
+
+            </div>
+
+
+            <div class="fas-total-box">
+
+                <div class="fas-total-row">
+                    <span>Subtotal</span>
+                    <strong>
+                        KES
+                        <span id="subtotal">
+                            0.00
+                        </span>
+                    </strong>
+                </div>
+
+                <div class="fas-total-row">
+                    <span>Tax</span>
+                    <strong>
+                        KES
+                        <span id="tax-total">
+                            0.00
+                        </span>
+                    </strong>
+                </div>
+
+                <div class="fas-total-row fas-grand">
+                    <span>Grand Total</span>
+                    <strong>
+                        KES
+                        <span id="grand-total">
+                            0.00
+                        </span>
+                    </strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="fas-actions">
+
+            <button
+                type="submit"
+                class="fas-button fas-primary"
+            >
+                Save Sales Order
+            </button>
+
+            <a
+                href="{% url 'sales_dashboard' %}"
+                class="fas-button fas-secondary"
+            >
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<script>
+(function () {
+
+    const body = document.getElementById(
+        "item-body"
+    );
+
+    const addButton = document.getElementById(
+        "add-line"
+    );
+
+
+    function numberRows() {
+
+        const rows = body.querySelectorAll(
+            ".item-row"
+        );
+
+        rows.forEach(
+            function (row, index) {
+
+                row.querySelector(
+                    ".line-number"
+                ).textContent = index + 1;
+
+            }
+        );
+    }
+
+
+    function calculate() {
+
+        let subtotal = 0;
+        let taxTotal = 0;
+
+        body.querySelectorAll(
+            ".item-row"
+        ).forEach(
+            function (row) {
+
+                const qty = parseFloat(
+                    row.querySelector(
+                        ".qty-input"
+                    ).value
+                ) || 0;
+
+                const rate = parseFloat(
+                    row.querySelector(
+                        ".rate-input"
+                    ).value
+                ) || 0;
+
+                const taxRate = parseFloat(
+                    row.querySelector(
+                        ".tax-input"
+                    ).value
+                ) || 0;
+
+                const lineSubtotal =
+                    qty * rate;
+
+                const lineTax =
+                    lineSubtotal
+                    * taxRate
+                    / 100;
+
+                const lineTotal =
+                    lineSubtotal
+                    + lineTax;
+
+                row.querySelector(
+                    ".amount-display"
+                ).value =
+                    lineTotal.toFixed(2);
+
+                subtotal += lineSubtotal;
+                taxTotal += lineTax;
+            }
+        );
+
+        document.getElementById(
+            "subtotal"
+        ).textContent =
+            subtotal.toFixed(2);
+
+        document.getElementById(
+            "tax-total"
+        ).textContent =
+            taxTotal.toFixed(2);
+
+        document.getElementById(
+            "grand-total"
+        ).textContent =
+            (
+                subtotal
+                + taxTotal
+            ).toFixed(2);
+    }
+
+
+    function configureRow(row) {
+
+        const product = row.querySelector(
+            ".product-select"
+        );
+
+        const unit = row.querySelector(
+            ".unit-display"
+        );
+
+        const rate = row.querySelector(
+            ".rate-input"
+        );
+
+        const tax = row.querySelector(
+            ".tax-input"
+        );
+
+
+        product.addEventListener(
+            "change",
+            function () {
+
+                const option =
+                    product.options[
+                        product.selectedIndex
+                    ];
+
+                unit.value =
+                    option.dataset.unit || "";
+
+                const productPrice =
+                    parseFloat(
+                        option.dataset.price
+                    ) || 0;
+
+                if (productPrice > 0) {
+                    rate.value =
+                        productPrice.toFixed(2);
+                } else {
+                    rate.value = "";
+                }
+
+                tax.value =
+                    option.dataset.tax || "0.00";
+
+                calculate();
+            }
+        );
+
+
+        row.querySelectorAll(
+            ".qty-input, .rate-input, .tax-input"
+        ).forEach(
+            function (input) {
+
+                input.addEventListener(
+                    "input",
+                    calculate
+                );
+
+            }
+        );
+
+
+        row.querySelector(
+            ".remove-line"
+        ).addEventListener(
+            "click",
+            function () {
+
+                const rows =
+                    body.querySelectorAll(
+                        ".item-row"
+                    );
+
+                if (rows.length === 1) {
+
+                    product.value = "";
+                    unit.value = "";
+
+                    row.querySelector(
+                        ".qty-input"
+                    ).value = "";
+
+                    rate.value = "";
+                    tax.value = "0.00";
+
+                    calculate();
+
+                    return;
+                }
+
+                row.remove();
+
+                numberRows();
+                calculate();
+            }
+        );
+    }
+
+
+    configureRow(
+        body.querySelector(
+            ".item-row"
+        )
+    );
+
+
+    addButton.addEventListener(
+        "click",
+        function () {
+
+            const source =
+                body.querySelector(
+                    ".item-row"
+                );
+
+            const row =
+                source.cloneNode(true);
+
+            row.querySelector(
+                ".product-select"
+            ).value = "";
+
+            row.querySelector(
+                ".unit-display"
+            ).value = "";
+
+            row.querySelector(
+                ".qty-input"
+            ).value = "";
+
+            row.querySelector(
+                ".rate-input"
+            ).value = "";
+
+            row.querySelector(
+                ".tax-input"
+            ).value = "0.00";
+
+            row.querySelector(
+                ".amount-display"
+            ).value = "0.00";
+
+            body.appendChild(row);
+
+            configureRow(row);
+            numberRows();
+            calculate();
+        }
+    );
+
+})();
+</script>
+
+{% endblock %}
+

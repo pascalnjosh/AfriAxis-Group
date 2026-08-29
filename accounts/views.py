@@ -1,34 +1,48 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
+from accounts.decorators import get_user_roles
+
 
 def erp_home(request):
-    return render(
-        request,
-        "accounts/home.html",
-    )
+    if request.user.is_authenticated:
+        return redirect("role_home")
+
+    return redirect("/auth/login/")
 
 
 @login_required
 def role_home(request):
+    user = request.user
 
-    if request.user.is_superuser:
+    if user.is_superuser:
         return redirect("/dashboard/")
 
-    profile = getattr(
-        request.user,
-        "userprofile",
-        None,
-    )
+    roles = set(get_user_roles(user))
 
-    if not profile:
-        return redirect("/auth/login/")
-
-    if profile.role in ("MD", "GM"):
+    # Management
+    if roles.intersection(
+        {
+            "MD",
+            "CEO",
+            "GM",
+        }
+    ):
         return redirect("/dashboard/")
 
-    if profile.role == "ACCOUNTS":
+    # Finance / Accounts
+    if roles.intersection(
+        {
+            "FINANCE",
+            "ACCOUNTS",
+            "AUDITOR",
+        }
+    ):
         return redirect("/dashboard/finance/")
+
+    # Wi-Fi technician has a deliberately restricted landing page.
+    if "WIFI_TECHNICIAN" in roles:
+        return redirect("/services/")
 
     return redirect("/auth/login/")
 
@@ -43,15 +57,19 @@ def profile(request):
         None,
     )
 
-    role_name = (
-        profile_obj.get_role_display()
-        if profile_obj
-        else (
-            "System Administrator"
-            if user.is_superuser
-            else "Staff"
+    roles = list(get_user_roles(user))
+
+    if roles:
+        role_name = " / ".join(
+            role.replace("_", " ").title()
+            for role in roles
         )
-    )
+    elif user.is_superuser:
+        role_name = "System Administrator"
+    elif profile_obj:
+        role_name = profile_obj.get_role_display()
+    else:
+        role_name = "Staff"
 
     full_name = user.get_full_name().strip()
 

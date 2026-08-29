@@ -28,46 +28,358 @@ def user_role(request):
 
 @management_required
 def md_dashboard(request):
-    if not request.user.is_authenticated:
-        return redirect("/admin/login/")
+    from decimal import Decimal
 
-    role = user_role(request)
+    from django.db.models import Sum
 
-    if role not in ["MD", "GM"]:
-        return redirect("/accounts/home/")
+    from enterprise.models import Company
+
+    from sales.models import (
+        Customer,
+        SalesOrder,
+        SalesInvoice,
+        DeliveryNote,
+    )
+
+    from inventory.models import (
+        Warehouse,
+        StockBalance,
+        StockMovement,
+    )
+
+    from manufacturing.models import (
+        BillOfMaterial,
+        ProductionOrder,
+    )
+
+    from purchasing.models import (
+        Supplier,
+        PurchaseOrder,
+        GoodsReceipt,
+        SupplierInvoice,
+        SupplierPayment,
+    )
+
+    from accounting.models import (
+        JournalEntry,
+        JournalEntryLine,
+        Account,
+    )
+
+    from banking.models import (
+        BankAccount,
+        BankTransaction,
+    )
+
+    from services.models import (
+        WifiCustomer,
+        WifiPackage,
+        WifiPayment,
+    )
 
     today = timezone.now().date()
 
-    unpaid_rents = Rent.objects.filter(
-        paid=False
-    ).select_related(
-        "tenant",
-        "house",
-        "house__apartment"
-    ).order_by("due_date")
+    # ====================================================
+    # COMPANIES
+    # ====================================================
 
-    total_unpaid = Decimal("0")
+    companies = Company.objects.filter(
+        active=True
+    ).order_by("id")
+
+    fas = Company.objects.filter(
+        name__icontains="FAIRLANE",
+        active=True,
+    ).first()
+
+    africore = Company.objects.filter(
+        name__icontains="AFRICORE",
+        active=True,
+    ).first()
+
+
+    # ====================================================
+    # FAS SALES
+    # ====================================================
+
+    fas_customers = Customer.objects.none()
+    fas_orders = SalesOrder.objects.none()
+    fas_invoices = SalesInvoice.objects.none()
+    fas_deliveries = DeliveryNote.objects.none()
+
+    if fas:
+        fas_customers = Customer.objects.filter(
+            company=fas
+        )
+
+        fas_orders = SalesOrder.objects.filter(
+            company=fas
+        ).select_related(
+            "customer"
+        )
+
+        fas_invoices = SalesInvoice.objects.filter(
+            company=fas
+        ).select_related(
+            "customer",
+            "sales_order",
+        )
+
+        fas_deliveries = DeliveryNote.objects.filter(
+            sales_order__company=fas
+        ).select_related(
+            "customer",
+            "sales_order",
+            "warehouse",
+        )
+
+    fas_sales_total = fas_invoices.aggregate(
+        total=Sum("total_amount")
+    )["total"] or Decimal("0.00")
+
+    fas_sales_paid = fas_invoices.aggregate(
+        total=Sum("amount_paid")
+    )["total"] or Decimal("0.00")
+
+    fas_receivables = (
+        fas_sales_total - fas_sales_paid
+    )
+
+
+    # ====================================================
+    # FAS INVENTORY
+    # ====================================================
+
+    fas_warehouses = Warehouse.objects.none()
+    fas_stock = StockBalance.objects.none()
+    fas_movements = StockMovement.objects.none()
+
+    if fas:
+        fas_warehouses = Warehouse.objects.filter(
+            company=fas
+        )
+
+        fas_stock = StockBalance.objects.filter(
+            warehouse__company=fas
+        ).select_related(
+            "product",
+            "warehouse",
+            "location",
+            "batch",
+        )
+
+        fas_movements = StockMovement.objects.filter(
+            warehouse__company=fas
+        ).select_related(
+            "product",
+            "warehouse",
+            "location",
+            "batch",
+        ).order_by(
+            "-created_at"
+        )
+
+    inventory_value = Decimal("0.00")
+
+    for row in fas_stock:
+        inventory_value += (
+            (row.quantity or Decimal("0.00"))
+            *
+            (row.average_cost or Decimal("0.00"))
+        )
+
+
+    # ====================================================
+    # FAS MANUFACTURING
+    # ====================================================
+
+    fas_boms = BillOfMaterial.objects.none()
+    fas_production = ProductionOrder.objects.none()
+
+    if fas:
+        fas_boms = BillOfMaterial.objects.filter(
+            company=fas
+        ).select_related(
+            "finished_product",
+            "warehouse",
+        )
+
+        fas_production = ProductionOrder.objects.filter(
+            company=fas
+        ).select_related(
+            "bom",
+            "warehouse",
+        ).order_by(
+            "-created_at"
+        )
+
+    active_boms = fas_boms.filter(
+        status="ACTIVE"
+    ).count()
+
+    production_in_progress = fas_production.filter(
+        status__in=[
+            "RELEASED",
+            "IN_PROGRESS",
+        ]
+    ).count()
+
+
+    # ====================================================
+    # FAS PURCHASING
+    # ====================================================
+
+    fas_suppliers = Supplier.objects.none()
+    fas_purchase_orders = PurchaseOrder.objects.none()
+    fas_grns = GoodsReceipt.objects.none()
+    fas_supplier_invoices = SupplierInvoice.objects.none()
+    fas_supplier_payments = SupplierPayment.objects.none()
+
+    if fas:
+        fas_suppliers = Supplier.objects.filter(
+            company=fas
+        )
+
+        fas_purchase_orders = PurchaseOrder.objects.filter(
+            company=fas
+        ).select_related(
+            "supplier"
+        ).order_by(
+            "-created_at"
+        )
+
+        fas_grns = GoodsReceipt.objects.filter(
+            purchase_order__company=fas
+        ).select_related(
+            "purchase_order",
+            "supplier",
+        )
+
+        fas_supplier_invoices = SupplierInvoice.objects.filter(
+            purchase_order__company=fas
+        ).select_related(
+            "supplier",
+            "purchase_order",
+        )
+
+        fas_supplier_payments = SupplierPayment.objects.filter(
+            supplier_invoice__purchase_order__company=fas
+        ).select_related(
+            "supplier",
+            "supplier_invoice",
+        )
+
+    supplier_invoice_total = fas_supplier_invoices.aggregate(
+        total=Sum("total_amount")
+    )["total"] or Decimal("0.00")
+
+    supplier_invoice_paid = fas_supplier_invoices.aggregate(
+        total=Sum("amount_paid")
+    )["total"] or Decimal("0.00")
+
+    fas_payables = (
+        supplier_invoice_total
+        -
+        supplier_invoice_paid
+    )
+
+
+    # ====================================================
+    # AFRICORE PROPERTY / RENT
+    # ====================================================
+
+    apartments = Apartment.objects.none()
+    houses = House.objects.none()
+    tenants = Tenant.objects.none()
+    rents = Rent.objects.none()
+
+    if africore:
+        apartments = Apartment.objects.filter(
+            company=africore
+        )
+
+        houses = House.objects.filter(
+            apartment__company=africore
+        )
+
+        tenants = Tenant.objects.filter(
+            apartment__company=africore
+        )
+
+        rents = Rent.objects.filter(
+            house__apartment__company=africore
+        ).select_related(
+            "tenant",
+            "house",
+            "house__apartment",
+        )
+
+    unpaid_rents = rents.filter(
+        paid=False
+    ).order_by(
+        "due_date"
+    )
+
+    total_unpaid = Decimal("0.00")
 
     for rent in unpaid_rents:
-        total_unpaid += rent.balance or Decimal("0.00")
+        total_unpaid += (
+            rent.balance
+            or Decimal("0.00")
+        )
 
         if rent.due_date:
-            rent.days_overdue = (today - rent.due_date).days
+            rent.days_overdue = (
+                today - rent.due_date
+            ).days
         else:
             rent.days_overdue = 0
 
-    total_houses = House.objects.count()
-    occupied_houses = House.objects.filter(occupied=True).count()
-    vacant_houses = House.objects.filter(occupied=False).count()
+    total_houses = houses.count()
 
-    if total_houses > 0:
-        occupancy_rate = round((occupied_houses / total_houses) * 100, 2)
+    occupied_houses = houses.filter(
+        occupied=True
+    ).count()
+
+    vacant_houses = houses.filter(
+        occupied=False
+    ).count()
+
+    if total_houses:
+        occupancy_rate = round(
+            (
+                occupied_houses
+                /
+                total_houses
+            ) * 100,
+            1,
+        )
     else:
         occupancy_rate = 0
 
-    revenue_potential = House.objects.aggregate(
-        total=Sum("rent_amount")
-    )["total"] or 0
+    rent_billed = rents.aggregate(
+        total=Sum("amount")
+    )["total"] or Decimal("0.00")
+
+    rent_collected = rents.aggregate(
+        total=Sum("amount_paid")
+    )["total"] or Decimal("0.00")
+
+
+    # ====================================================
+    # ACCOUNTING
+    # ====================================================
+
+    posted_journals = JournalEntry.objects.filter(
+        status="POSTED"
+    )
+
+    recent_journals = posted_journals.select_related(
+        "company"
+    ).order_by(
+        "-entry_date",
+        "-id",
+    )[:8]
 
     cash_account = Account.objects.filter(
         code="1000"
@@ -95,7 +407,56 @@ def md_dashboard(request):
             or Decimal("0.00")
         )
 
-    cash_balance = total_money_in - total_money_out
+    cash_balance = (
+        total_money_in
+        -
+        total_money_out
+    )
+
+
+    # ====================================================
+    # BANKING
+    # ====================================================
+
+    bank_accounts = BankAccount.objects.filter(
+        active=True
+    ).select_related(
+        "company"
+    )
+
+    pending_bank_transactions = BankTransaction.objects.filter(
+        match_status="pending"
+    ).count()
+
+    approved_bank_transactions = BankTransaction.objects.filter(
+        match_status="approved"
+    ).count()
+
+
+    # ====================================================
+    # WIFI
+    # ====================================================
+
+    wifi_customers = WifiCustomer.objects.all()
+    wifi_packages = WifiPackage.objects.all()
+    wifi_payments = WifiPayment.objects.all()
+
+    wifi_active = wifi_customers.filter(
+        active=True
+    ).count()
+
+    wifi_success = wifi_payments.filter(
+        status="SUCCESS"
+    ).count()
+
+    wifi_pending = wifi_payments.filter(
+        status="PENDING"
+    ).count()
+
+
+    # ====================================================
+    # LEGACY PROPERTY SUPPORT
+    # ====================================================
 
     water_total = WaterBill.objects.aggregate(
         total=Sum("amount")
@@ -105,55 +466,124 @@ def md_dashboard(request):
         total=Sum("amount_paid")
     )["total"] or 0
 
-    water_balance = WaterBill.objects.aggregate(
-        total=Sum("balance")
-    )["total"] or 0
-
     deposits_held = Deposit.objects.filter(
         status="held"
     ).aggregate(
         total=Sum("amount")
     )["total"] or 0
 
-    sms_drafts = SMSReminder.objects.filter(status="draft").count()
-    sms_sent = SMSReminder.objects.filter(status="sent").count()
-    sms_failed = SMSReminder.objects.filter(status="failed").count()
+
+    # ====================================================
+    # CONTEXT
+    # ====================================================
 
     context = {
-        "total_payments": Payment.objects.count(),
-        "successful": Payment.objects.filter(status="SUCCESS").count(),
-        "pending": Payment.objects.filter(status="PENDING").count(),
-        "failed": Payment.objects.filter(status="FAILED").count(),
 
-        "rent_arrears": unpaid_rents.count(),
-        "unpaid_rents": unpaid_rents,
-        "total_unpaid": total_unpaid,
+        # group
+        "companies": companies,
+        "company_count": companies.count(),
 
-        "today": today,
+        # FAS
+        "fas": fas,
+        "fas_customers": fas_customers.count(),
+        "fas_orders": fas_orders.count(),
+        "fas_invoices": fas_invoices.count(),
+        "fas_deliveries": fas_deliveries.count(),
+        "fas_sales_total": fas_sales_total,
+        "fas_sales_paid": fas_sales_paid,
+        "fas_receivables": fas_receivables,
+
+        # inventory
+        "fas_warehouses": fas_warehouses.count(),
+        "fas_stock_count": fas_stock.count(),
+        "fas_movement_count": fas_movements.count(),
+        "inventory_value": inventory_value,
+        "stock_rows": fas_stock.order_by(
+            "product__name"
+        )[:8],
+        "recent_movements": fas_movements[:8],
+
+        # manufacturing
+        "fas_bom_count": fas_boms.count(),
+        "active_boms": active_boms,
+        "production_count": fas_production.count(),
+        "production_in_progress": production_in_progress,
+        "bom_rows": fas_boms.order_by(
+            "code"
+        )[:6],
+
+        # purchasing
+        "supplier_count": fas_suppliers.count(),
+        "purchase_order_count": fas_purchase_orders.count(),
+        "grn_count": fas_grns.count(),
+        "supplier_invoice_count": fas_supplier_invoices.count(),
+        "supplier_payment_count": fas_supplier_payments.count(),
+        "fas_payables": fas_payables,
+
+        # property
+        "apartment_count": apartments.count(),
+        "tenant_count": tenants.count(),
         "total_houses": total_houses,
         "occupied_houses": occupied_houses,
         "vacant_houses": vacant_houses,
         "occupancy_rate": occupancy_rate,
-        "revenue_potential": revenue_potential,
+        "rent_billed": rent_billed,
+        "rent_collected": rent_collected,
+        "rent_arrears": unpaid_rents.count(),
+        "total_unpaid": total_unpaid,
+        "unpaid_rents": unpaid_rents[:10],
 
+        # accounting
+        "journal_count": JournalEntry.objects.count(),
+        "posted_journal_count": posted_journals.count(),
+        "recent_journals": recent_journals,
         "total_money_in": total_money_in,
         "total_money_out": total_money_out,
         "cash_balance": cash_balance,
 
+        # banking
+        "bank_account_count": bank_accounts.count(),
+        "bank_transaction_count": BankTransaction.objects.count(),
+        "pending_bank_transactions": pending_bank_transactions,
+        "approved_bank_transactions": approved_bank_transactions,
+
+        # wifi
+        "wifi_customer_count": wifi_customers.count(),
+        "wifi_active": wifi_active,
+        "wifi_package_count": wifi_packages.count(),
+        "wifi_payment_count": wifi_payments.count(),
+        "wifi_success": wifi_success,
+        "wifi_pending": wifi_pending,
+
+        # legacy operational values
         "water_total": water_total,
         "water_paid": water_paid,
-        "water_balance": water_balance,
-
         "deposits_held": deposits_held,
 
-        "sms_drafts": sms_drafts,
-        "sms_sent": sms_sent,
-        "sms_failed": sms_failed,
+        # real recent business documents
+        "recent_sales_orders": fas_orders.order_by(
+            "-order_date",
+            "-id",
+        )[:5],
 
-        "apartment_performance": apartment_performance(),
+        "recent_sales_invoices": fas_invoices.order_by(
+            "-invoice_date",
+            "-id",
+        )[:5],
+
+        "recent_deliveries": fas_deliveries.order_by(
+            "-delivery_date",
+            "-id",
+        )[:5],
+
+        "today": today,
     }
 
-    return render(request, "dashboard/md.html", context)
+    return render(
+        request,
+        "dashboard/md.html",
+        context,
+    )
 
 
 @finance_required

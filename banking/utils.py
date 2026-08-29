@@ -54,19 +54,23 @@ def create_transaction(statement_upload, data):
         "COMMISSION",
     ]
 
-    if (
-        money_out > Decimal("0")
-        and any(
+    if money_out > Decimal("0"):
+        if any(
             marker in upper_description
             for marker in bank_charge_markers
-        )
-    ):
-        suggested_category = "expense"
-    else:
+        ):
+            suggested_category = "bank_charge"
+        else:
+            suggested_category = "unknown"
+
+    elif money_in > Decimal("0"):
         suggested_category = category_map.get(
             account.purpose,
             "unknown",
         )
+
+    else:
+        suggested_category = "unknown"
 
     transaction, created = BankTransaction.objects.get_or_create(
         bank_account=account,
@@ -168,8 +172,8 @@ def match_erp_bank_transaction(bank_transaction):
     transaction.matched_sales_receipt = None
     transaction.matched_supplier_payment = None
 
-    # AFRICORE service accounts must stay in their
-    # Rent / Water / Wi-Fi workflows.
+    # AFRICORE service accounts use Rent / Water / Wi-Fi workflows
+    # only for incoming funds. Outgoing funds require separate review.
     if transaction.bank_account.purpose in {
         "RENT",
         "WATER",
@@ -181,19 +185,57 @@ def match_erp_bank_transaction(bank_transaction):
             "WIFI": "wifi",
         }
 
-        transaction.suggested_category = (
-            category_map[
-                transaction.bank_account.purpose
-            ]
-        )
+        if transaction.money_in > Decimal("0.00"):
+            transaction.suggested_category = (
+                category_map[
+                    transaction.bank_account.purpose
+                ]
+            )
+
+            transaction.match_notes = (
+                f"{transaction.bank_account.get_purpose_display()} "
+                f"incoming transaction awaiting tenant/service matching."
+            )
+
+        elif transaction.money_out > Decimal("0.00"):
+            description = str(
+                transaction.description or ""
+            ).upper()
+
+            bank_charge_markers = (
+                "EXCISE DUTY",
+                "ACCOUNT STATEMENT CHARGE",
+                "TRANSACTION + SMS CHARGE",
+                "SMS CHARGE",
+                "BANK CHARGE",
+                "TRANSFER CHARGE",
+                "LEDGER FEE",
+                "SERVICE CHARGE",
+                "COMMISSION",
+            )
+
+            if any(
+                marker in description
+                for marker in bank_charge_markers
+            ):
+                transaction.suggested_category = "bank_charge"
+                transaction.match_notes = (
+                    "Recognized bank charge awaiting Finance approval."
+                )
+            else:
+                transaction.suggested_category = "unknown"
+                transaction.match_notes = (
+                    "Outgoing transaction requires Finance review."
+                )
+
+        else:
+            transaction.suggested_category = "unknown"
+            transaction.match_notes = (
+                "Zero-value transaction requires Finance review."
+            )
 
         transaction.auto_matched = False
         transaction.confidence = 0
-
-        transaction.match_notes = (
-            f"{transaction.bank_account.get_purpose_display()} "
-            f"transaction awaiting tenant/service matching."
-        )
 
         transaction.save(
             update_fields=[
@@ -916,6 +958,8 @@ def validate_statement_account(statement_upload, text):
         )
 
     return detected
+
+
 
 
 

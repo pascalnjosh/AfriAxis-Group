@@ -1,1011 +1,1642 @@
 {% extends "base/erp.html" %}
 
-{% block title %}Executive Dashboard | AfriAxis ERP{% endblock %}
+{% block title %}AfriAxis ERP | Executive Control{% endblock %}
 
 {% block content %}
 
 <style>
-.dashboard-shell{
+
+:root{
+    --ax-bg:#f4f7fb;
+    --ax-card:#ffffff;
+    --ax-border:#e2e8f0;
+    --ax-text:#102033;
+    --ax-muted:#64748b;
+
+    --ax-navy:#081b2d;
+    --ax-navy2:#102a43;
+
+    --ax-green:#13a36b;
+    --ax-green-soft:#e9f8f1;
+
+    --ax-blue:#2563eb;
+    --ax-blue-soft:#eff6ff;
+
+    --ax-orange:#d97706;
+    --ax-orange-soft:#fff7ed;
+
+    --ax-red:#dc2626;
+    --ax-red-soft:#fef2f2;
+
+    --ax-purple:#7c3aed;
+    --ax-purple-soft:#f5f3ff;
+
+    --ax-shadow:0 7px 22px rgba(15,23,42,.06);
+}
+
+body{
+    background:var(--ax-bg) !important;
+}
+
+.ax-dashboard{
     max-width:1600px;
-    margin:0 auto;
+    margin:auto;
+    color:var(--ax-text);
 }
 
-.hero{
-    background:linear-gradient(135deg,#07172f,#0d2850);
+
+/* HERO */
+
+.ax-hero{
+    background:
+        radial-gradient(
+            circle at 88% 15%,
+            rgba(16,185,129,.22),
+            transparent 30%
+        ),
+        linear-gradient(
+            125deg,
+            #071a2c,
+            #0b3150 58%,
+            #07504a
+        );
+
+    border-radius:22px;
+    padding:27px 29px;
     color:white;
-    padding:28px;
-    border-radius:18px;
-    margin-bottom:22px;
-    box-shadow:0 10px 30px rgba(2,12,27,.18);
+    box-shadow:0 15px 35px rgba(8,31,51,.18);
 }
 
-.hero-top{
+.ax-hero-row{
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
     gap:20px;
-    flex-wrap:wrap;
 }
 
-.hero h1{
-    margin:0;
-    font-size:30px;
-}
-
-.hero p{
-    margin:8px 0 0;
-    color:#cbd5e1;
-}
-
-.live-badge{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    background:#123c2d;
-    color:#4ade80;
-    border:1px solid #22c55e;
-    padding:9px 14px;
-    border-radius:999px;
-    font-weight:700;
-}
-
-.live-dot{
-    width:9px;
-    height:9px;
-    background:#22c55e;
-    border-radius:50%;
-    box-shadow:0 0 0 5px rgba(34,197,94,.15);
-}
-
-.section-title{
-    margin:28px 0 14px;
-    font-size:18px;
-    font-weight:800;
-    color:#0f172a;
-}
-
-.kpi-grid{
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:16px;
-}
-
-.kpi{
-    background:white;
-    border-radius:16px;
-    padding:20px;
-    border:1px solid #e5e7eb;
-    box-shadow:0 6px 18px rgba(15,23,42,.06);
-    min-height:120px;
-}
-
-.kpi-top{
+.ax-brand{
     display:flex;
-    justify-content:space-between;
-    gap:15px;
-    align-items:flex-start;
+    gap:14px;
+    align-items:center;
 }
 
-.kpi-icon{
-    width:44px;
-    height:44px;
-    border-radius:12px;
+.ax-logo{
+    width:55px;
+    height:55px;
+    border-radius:16px;
+
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:22px;
-    background:#eff6ff;
+
+    background:linear-gradient(
+        135deg,
+        #34d399,
+        #0d965e
+    );
+
+    font-size:28px;
+    font-weight:900;
 }
 
-.kpi-value{
-    margin-top:16px;
-    font-size:25px;
-    font-weight:800;
-    color:#0f172a;
-    word-break:break-word;
+.ax-overline{
+    color:#6ee7b7;
+    font-size:9px;
+    letter-spacing:2px;
+    font-weight:900;
 }
 
-.kpi-label{
-    color:#64748b;
-    font-size:13px;
-    margin-top:5px;
+.ax-hero h1{
+    margin:2px 0 3px;
+    font-size:28px;
 }
 
-.kpi-good{
-    border-top:4px solid #22c55e;
-}
-
-.kpi-blue{
-    border-top:4px solid #2563eb;
-}
-
-.kpi-orange{
-    border-top:4px solid #f59e0b;
-}
-
-.kpi-red{
-    border-top:4px solid #ef4444;
-}
-
-.module-grid{
-    display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:16px;
-}
-
-.module-card{
-    background:#0b1f3a;
-    color:white;
-    border-radius:16px;
-    padding:20px;
-    min-height:130px;
-    border:1px solid #18395f;
-}
-
-.module-card h3{
-    margin:0 0 8px;
-}
-
-.module-card p{
+.ax-hero p{
     margin:0;
-    color:#b7c8dc;
-    line-height:1.5;
-    font-size:14px;
+    color:#cbd5e1;
+    font-size:11px;
 }
 
-.module-link{
-    display:inline-block;
-    margin-top:14px;
-    color:#4ade80;
+.ax-live{
+    padding:7px 11px;
+    border-radius:999px;
+    background:rgba(16,185,129,.13);
+    border:1px solid rgba(110,231,183,.3);
+    color:#a7f3d0;
+    font-size:9px;
+    font-weight:900;
+}
+
+.ax-nav{
+    margin-top:19px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+}
+
+.ax-nav a{
     text-decoration:none;
-    font-weight:700;
+    color:#e2e8f0;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:9px;
+    padding:7px 10px;
+    font-size:10px;
+    font-weight:750;
 }
 
-.panel-grid{
-    display:grid;
-    grid-template-columns:2fr 1fr;
-    gap:18px;
-    margin-top:18px;
-}
-
-.panel{
+.ax-nav a:hover{
     background:white;
-    border-radius:16px;
-    border:1px solid #e5e7eb;
-    box-shadow:0 6px 18px rgba(15,23,42,.06);
+    color:#0f172a;
+}
+
+
+/* SECTION */
+
+.ax-section{
+    margin-top:24px;
+}
+
+.ax-section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin:0 2px 10px;
+}
+
+.ax-section-title{
+    font-size:15px;
+    font-weight:850;
+}
+
+.ax-section-note{
+    font-size:9px;
+    color:var(--ax-muted);
+}
+
+
+/* KPI */
+
+.ax-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:11px;
+}
+
+.ax-card{
+    background:var(--ax-card);
+    border:1px solid var(--ax-border);
+    border-radius:15px;
+    padding:15px 16px;
+    box-shadow:var(--ax-shadow);
+}
+
+.ax-kpi{
+    position:relative;
     overflow:hidden;
 }
 
-.panel-header{
-    padding:18px 20px;
-    font-weight:800;
-    color:white;
-    background:#0d2850;
-}
-
-.panel-body{
-    padding:18px;
-}
-
-.health-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    padding:10px 0;
-    border-bottom:1px solid #eef2f7;
-}
-
-.health-row:last-child{
-    border-bottom:none;
-}
-
-.status-ok{
-    background:#dcfce7;
-    color:#166534;
-    padding:4px 9px;
-    border-radius:999px;
-    font-size:12px;
-    font-weight:700;
-}
-
-.arrears-table-wrap{
-    overflow:auto;
-    max-height:520px;
-}
-
-.arrears-table{
-    min-width:760px;
-}
-
-.arrears-table th{
-    position:sticky;
+.ax-kpi::before{
+    content:"";
+    position:absolute;
     top:0;
-    z-index:1;
+    left:0;
+    bottom:0;
+    width:4px;
+    background:var(--tone);
 }
 
-.badge-unpaid{
-    display:inline-block;
-    background:#fee2e2;
-    color:#991b1b;
-    border-radius:999px;
-    padding:5px 9px;
-    font-size:12px;
-    font-weight:700;
+.ax-green{
+    --tone:var(--ax-green);
 }
 
-@media(max-width:1200px){
-    .kpi-grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
-    }
-
-    .module-grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
-    }
+.ax-blue{
+    --tone:var(--ax-blue);
 }
 
-@media(max-width:900px){
-    .panel-grid{
-        grid-template-columns:1fr;
-    }
+.ax-orange{
+    --tone:var(--ax-orange);
 }
 
-@media(max-width:650px){
-    .kpi-grid,
-    .module-grid{
-        grid-template-columns:1fr;
-    }
-
-    .hero{
-        padding:20px;
-    }
-
-    .hero h1{
-        font-size:24px;
-    }
+.ax-red{
+    --tone:var(--ax-red);
 }
 
-/* ===== AFRIAXIS MOBILE APP V4 ===== */
-
-@media(max-width:700px){
-
-    .dashboard-shell{
-        width:100%;
-        margin:0;
-        padding:0 2px 16px;
-        box-sizing:border-box;
-    }
-
-    .hero{
-        padding:17px;
-        border-radius:16px;
-        margin-bottom:14px;
-        box-shadow:0 8px 22px rgba(2,12,27,.18);
-    }
-
-    .hero-top{
-        gap:10px;
-        align-items:center;
-        flex-wrap:nowrap;
-    }
-
-    .hero h1{
-        font-size:21px;
-        line-height:1.15;
-    }
-
-    .hero p{
-        font-size:10px;
-        line-height:1.4;
-        margin-top:5px;
-    }
-
-    .live-badge{
-        flex:0 0 auto;
-        padding:6px 8px;
-        font-size:8px;
-        gap:5px;
-    }
-
-    .live-dot{
-        width:7px;
-        height:7px;
-    }
-
-    .section-title{
-        margin:17px 2px 9px;
-        font-size:13px;
-        letter-spacing:.2px;
-    }
-
-    .kpi-grid{
-        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-        gap:8px;
-    }
-
-    .kpi{
-        padding:11px;
-        min-height:96px;
-        border-radius:14px;
-        box-shadow:0 4px 12px rgba(15,23,42,.05);
-    }
-
-    .kpi-icon{
-        width:29px;
-        height:29px;
-        border-radius:9px;
-        font-size:15px;
-    }
-
-    .kpi-value{
-        margin-top:8px;
-        font-size:15px;
-        line-height:1.15;
-    }
-
-    .kpi-label{
-        margin-top:4px;
-        font-size:9px;
-        line-height:1.25;
-    }
-
-    .module-grid{
-        display:grid !important;
-        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-        gap:8px;
-        overflow:visible;
-    }
-
-    .module-card{
-        min-width:0;
-        min-height:118px;
-        padding:12px;
-        border-radius:14px;
-    }
-
-    .module-card h3{
-        font-size:13px;
-        margin-bottom:6px;
-    }
-
-    .module-card p{
-        font-size:9px;
-        line-height:1.35;
-    }
-
-    .module-link{
-        font-size:10px;
-        margin-top:9px;
-    }
-
-    .panel-grid{
-        grid-template-columns:1fr !important;
-        gap:10px;
-        margin-top:12px;
-    }
-
-    .panel{
-        border-radius:14px;
-    }
-
-    .panel-header{
-        padding:12px 13px;
-        font-size:12px;
-    }
-
-    .panel-body{
-        padding:11px;
-    }
-
-    .health-row{
-        font-size:10px;
-        padding:8px 0;
-    }
-
-    .status-ok{
-        font-size:9px;
-        padding:3px 7px;
-    }
-
-    .arrears-table-wrap{
-        overflow-x:auto;
-    }
-
-    .arrears-table{
-        min-width:560px;
-        font-size:10px;
-    }
-
-    .arrears-table th,
-    .arrears-table td{
-        padding:8px 9px;
-        white-space:nowrap;
-    }
-
-    .badge-unpaid{
-        font-size:9px;
-        padding:4px 7px;
-    }
+.ax-purple{
+    --tone:var(--ax-purple);
 }
-/* ===== AFRIAXIS V6 VISUAL IDENTITY ===== */
 
-.v4-brand-row{
+.ax-kpi-label{
+    color:var(--ax-muted);
+    font-size:9px;
+    font-weight:750;
+    text-transform:uppercase;
+    letter-spacing:.45px;
+}
+
+.ax-kpi-value{
+    margin-top:8px;
+    font-size:20px;
+    font-weight:900;
+    line-height:1.1;
+}
+
+.ax-kpi-sub{
+    margin-top:5px;
+    font-size:9px;
+    color:#94a3b8;
+}
+
+
+/* BUSINESS UNITS */
+
+.ax-company-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.ax-company{
+    background:white;
+    border:1px solid var(--ax-border);
+    border-radius:17px;
+    padding:17px;
+    box-shadow:var(--ax-shadow);
+}
+
+.ax-company-top{
     display:flex;
     justify-content:space-between;
-    align-items:center;
-    gap:14px;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:14px;
 }
 
-.v4-brand{
-    display:flex;
-    align-items:center;
-    gap:13px;
+.ax-company-name{
+    font-size:15px;
+    font-weight:900;
 }
 
-.v4-logo{
-    width:48px;
-    height:48px;
-    border-radius:15px;
+.ax-company-type{
+    margin-top:3px;
+    font-size:9px;
+    color:var(--ax-muted);
+}
+
+.ax-company-badge{
+    padding:5px 8px;
+    border-radius:999px;
+    background:var(--ax-green-soft);
+    color:#08734a;
+    font-size:8px;
+    font-weight:900;
+}
+
+.ax-mini-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:7px;
+}
+
+.ax-mini{
+    background:#f8fafc;
+    border:1px solid #edf1f5;
+    border-radius:11px;
+    padding:10px;
+}
+
+.ax-mini strong{
+    display:block;
+    font-size:14px;
+}
+
+.ax-mini span{
+    display:block;
+    margin-top:3px;
+    color:var(--ax-muted);
+    font-size:8px;
+}
+
+
+/* MODULES */
+
+.ax-modules{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px;
+}
+
+.ax-module{
+    text-decoration:none;
+    color:inherit;
+    background:white;
+    border:1px solid var(--ax-border);
+    border-radius:14px;
+    padding:14px;
+    box-shadow:var(--ax-shadow);
+    transition:.16s ease;
+}
+
+.ax-module:hover{
+    transform:translateY(-2px);
+    border-color:#9dd7be;
+}
+
+.ax-module-icon{
+    width:33px;
+    height:33px;
     display:flex;
     align-items:center;
     justify-content:center;
-    background:linear-gradient(135deg,#22c55e,#16a34a);
-    color:#fff;
-    font-size:25px;
+    border-radius:9px;
+    background:var(--ax-green-soft);
+    color:#08734a;
+    font-size:13px;
     font-weight:900;
-    box-shadow:0 7px 18px rgba(34,197,94,.25);
 }
 
-.v4-version{
-    display:inline-block;
-    color:#4ade80;
-    font-size:10px;
-    font-weight:900;
-    letter-spacing:1.4px;
-    margin-bottom:4px;
+.ax-module h3{
+    margin:9px 0 4px;
+    font-size:12px;
 }
 
-.v4-quick-nav{
+.ax-module p{
+    margin:0;
+    min-height:29px;
+    color:var(--ax-muted);
+    font-size:8px;
+    line-height:1.5;
+}
+
+
+/* TABLES */
+
+.ax-two{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.ax-panel{
+    background:white;
+    border:1px solid var(--ax-border);
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:var(--ax-shadow);
+}
+
+.ax-panel-head{
+    padding:13px 15px;
+    border-bottom:1px solid var(--ax-border);
     display:flex;
-    gap:8px;
-    margin-top:17px;
-    overflow-x:auto;
-    scrollbar-width:none;
+    justify-content:space-between;
 }
 
-.v4-quick-nav::-webkit-scrollbar{
-    display:none;
-}
-
-.v4-quick-nav a{
-    flex:0 0 auto;
-    color:#fff;
-    background:rgba(255,255,255,.10);
-    border:1px solid rgba(255,255,255,.15);
-    padding:8px 12px;
-    border-radius:10px;
-    text-decoration:none;
+.ax-panel-head strong{
     font-size:11px;
-    font-weight:700;
 }
 
-@media(max-width:700px){
+.ax-panel-head span{
+    color:var(--ax-muted);
+    font-size:8px;
+}
 
-    .v4-hero{
-        background:
-            radial-gradient(circle at top right,rgba(34,197,94,.18),transparent 42%),
-            linear-gradient(145deg,#061426,#0b2446);
-        padding:16px !important;
+.ax-table-wrap{
+    overflow:auto;
+    max-height:330px;
+}
+
+.ax-table{
+    width:100%;
+    min-width:520px;
+    border-collapse:collapse;
+}
+
+.ax-table th{
+    background:#f8fafc;
+    padding:8px 10px;
+    text-align:left;
+    font-size:7px;
+    text-transform:uppercase;
+    color:#64748b;
+    letter-spacing:.5px;
+}
+
+.ax-table td{
+    padding:9px 10px;
+    border-top:1px solid #edf1f5;
+    font-size:8px;
+    color:#334155;
+}
+
+.ax-status{
+    display:inline-block;
+    border-radius:999px;
+    padding:4px 7px;
+    font-size:7px;
+    font-weight:900;
+    background:var(--ax-green-soft);
+    color:#08734a;
+}
+
+.ax-status-red{
+    background:var(--ax-red-soft);
+    color:#b91c1c;
+}
+
+
+/* FOOTER */
+
+.ax-footer{
+    margin:20px 0 5px;
+    text-align:center;
+    color:#94a3b8;
+    font-size:8px;
+}
+
+
+/* RESPONSIVE */
+
+@media(max-width:1200px){
+
+    .ax-grid{
+        grid-template-columns:repeat(2,1fr);
     }
 
-    .v4-brand-row{
-        align-items:flex-start;
+    .ax-modules{
+        grid-template-columns:repeat(2,1fr);
     }
 
-    .v4-logo{
-        width:40px;
-        height:40px;
-        border-radius:12px;
-        font-size:21px;
+    .ax-mini-grid{
+        grid-template-columns:repeat(2,1fr);
     }
 
-    .v4-version{
-        font-size:8px;
-        letter-spacing:1px;
+}
+
+@media(max-width:850px){
+
+    .ax-company-grid,
+    .ax-two{
+        grid-template-columns:1fr;
     }
 
-    .v4-brand h1{
-        font-size:18px !important;
-        margin:0 !important;
+}
+
+@media(max-width:650px){
+
+    .ax-hero{
+        padding:18px;
+        border-radius:16px;
     }
 
-    .v4-brand p{
-        font-size:9px !important;
-        margin-top:4px !important;
+    .ax-logo{
+        width:42px;
+        height:42px;
+        font-size:20px;
     }
 
-    .v4-quick-nav{
-        margin-top:13px;
-        gap:6px;
+    .ax-hero h1{
+        font-size:19px;
     }
 
-    .v4-quick-nav a{
-        padding:7px 10px;
-        border-radius:8px;
-        font-size:9px;
-    }
-}
-
-
-
-/* ===== AFRIAXIS V6 EXECUTIVE DASHBOARD ===== */
-
-body{
-    background:#07111f !important;
-}
-
-/* HERO */
-
-.hero,
-.v4-hero{
-    background:
-        radial-gradient(
-            circle at top right,
-            rgba(59,130,246,.18),
-            transparent 40%
-        ),
-        linear-gradient(
-            145deg,
-            #0b1728,
-            #101f33
-        ) !important;
-
-    border:1px solid rgba(148,163,184,.14) !important;
-    box-shadow:0 12px 32px rgba(0,0,0,.20) !important;
-}
-
-.v4-version{
-    color:#60a5fa !important;
-}
-
-.v4-logo{
-    background:
-        linear-gradient(
-            135deg,
-            #2563eb,
-            #1d4ed8
-        ) !important;
-
-    box-shadow:
-        0 7px 20px rgba(37,99,235,.28) !important;
-}
-
-/* QUICK NAVIGATION */
-
-.v4-quick-nav a{
-    background:#14243a !important;
-    color:#dbeafe !important;
-    border:1px solid rgba(96,165,250,.16) !important;
-}
-
-.v4-quick-nav a:hover{
-    background:#1b3150 !important;
-}
-
-/* SECTION TITLES */
-
-.section-title{
-    color:#f8fafc !important;
-}
-
-/* KPI CARDS */
-
-.kpi-grid .kpi{
-    background:
-        linear-gradient(
-            145deg,
-            #111e2e,
-            #0d1928
-        ) !important;
-
-    border:1px solid rgba(148,163,184,.14) !important;
-
-    box-shadow:
-        0 8px 22px rgba(0,0,0,.16) !important;
-}
-
-.kpi-value{
-    color:#f8fafc !important;
-}
-
-.kpi-label{
-    color:#94a3b8 !important;
-}
-
-.kpi-icon{
-    background:#16283e !important;
-    color:#60a5fa !important;
-}
-
-/* MODULE CARDS */
-
-.module-card{
-    background:
-        linear-gradient(
-            145deg,
-            #101d2d,
-            #0c1827
-        ) !important;
-
-    border:1px solid rgba(148,163,184,.13) !important;
-
-    box-shadow:
-        0 8px 22px rgba(0,0,0,.15) !important;
-}
-
-.module-card h3{
-    color:#f8fafc !important;
-}
-
-.module-card p{
-    color:#94a3b8 !important;
-}
-
-.module-link{
-    color:#60a5fa !important;
-}
-
-/* PANELS */
-
-.panel{
-    background:
-        linear-gradient(
-            145deg,
-            #101d2d,
-            #0c1827
-        ) !important;
-
-    border:1px solid rgba(148,163,184,.13) !important;
-
-    box-shadow:
-        0 8px 22px rgba(0,0,0,.15) !important;
-}
-
-.panel-header{
-    background:#142235 !important;
-    color:#f8fafc !important;
-    border-bottom:1px solid rgba(148,163,184,.12) !important;
-}
-
-.panel-body{
-    background:transparent !important;
-    color:#cbd5e1 !important;
-}
-
-/* HEALTH ROWS */
-
-.health-row{
-    color:#cbd5e1 !important;
-    border-color:rgba(148,163,184,.12) !important;
-}
-
-/* ARREARS TABLE */
-
-.arrears-table{
-    background:#0d1928 !important;
-    color:#e2e8f0 !important;
-}
-
-.arrears-table th{
-    background:#142235 !important;
-    color:#cbd5e1 !important;
-}
-
-.arrears-table td{
-    border-color:rgba(148,163,184,.10) !important;
-}
-
-.arrears-table tr{
-    background:#0d1928 !important;
-}
-
-.arrears-table tbody tr:nth-child(even){
-    background:#101e2f !important;
-}
-
-/* MOBILE V6 */
-
-@media(max-width:700px){
-
-    .dashboard-shell{
-        background:transparent !important;
+    .ax-live{
+        font-size:7px;
     }
 
-    .hero,
-    .v4-hero{
-        background:
-            radial-gradient(
-                circle at top right,
-                rgba(59,130,246,.16),
-                transparent 42%
-            ),
-            linear-gradient(
-                145deg,
-                #0a1728,
-                #102238
-            ) !important;
+    .ax-nav{
+        overflow-x:auto;
+        flex-wrap:nowrap;
     }
 
-    .kpi-grid .kpi,
-    .module-card,
-    .panel{
-        background:
-            linear-gradient(
-                145deg,
-                #111f31,
-                #0c1928
-            ) !important;
+    .ax-nav a{
+        flex:0 0 auto;
     }
+
+    .ax-grid{
+        grid-template-columns:repeat(2,1fr);
+        gap:7px;
+    }
+
+    .ax-kpi-value{
+        font-size:14px;
+    }
+
+    .ax-modules{
+        grid-template-columns:repeat(2,1fr);
+        gap:7px;
+    }
+
 }
 
 </style>
 
-<div class="dashboard-shell">
 
-<div class="hero v4-hero">
+<div class="ax-dashboard">
 
-    <div class="v4-brand-row">
-        <div class="v4-brand">
-            <div class="v4-logo">A</div>
+
+<!-- =====================================================
+     HERO
+     ===================================================== -->
+
+<section class="ax-hero">
+
+    <div class="ax-hero-row">
+
+        <div class="ax-brand">
+
+            <div class="ax-logo">
+                A
+            </div>
 
             <div>
-                <div class="v4-version">AFRIAXIS V6</div>
-                <h1>Executive Command</h1>
-                <p>Business intelligence & operational control center.</p>
+
+                <div class="ax-overline">
+                    AFRIAXIS GROUP
+                </div>
+
+                <h1>
+                    ERP Executive Command Center
+                </h1>
+
+                <p>
+                    Sales • Manufacturing • Inventory • Purchasing • Property • Finance • Banking • Wi-Fi
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="ax-live">
+            ● LIVE ERP
+        </div>
+
+    </div>
+
+
+    <nav class="ax-nav">
+
+        <a href="/sales/">Sales</a>
+
+        <a href="/purchasing/">
+            Purchasing
+        </a>
+
+        <a href="/inventory/">
+            Inventory
+        </a>
+
+        <a href="/manufacturing/">
+            Manufacturing
+        </a>
+
+        <a href="/dashboard/rent-report/">
+            Rentals
+        </a>
+
+        <a href="/payments/">
+            Payments
+        </a>
+
+        <a href="/banking/reconciliation/">
+            Banking
+        </a>
+
+        <a href="/accounting/general-ledger/">
+            Accounting
+        </a>
+
+        <a href="/services/">
+            Wi-Fi
+        </a>
+
+    </nav>
+
+</section>
+
+
+
+<!-- =====================================================
+     GROUP CONTROL
+     ===================================================== -->
+
+<section class="ax-section">
+
+    <div class="ax-section-head">
+        <div class="ax-section-title">
+            Group Control
+        </div>
+
+        <div class="ax-section-note">
+            {{ company_count }} active companies
+        </div>
+    </div>
+
+
+    <div class="ax-grid">
+
+        <div class="ax-card ax-kpi ax-green">
+            <div class="ax-kpi-label">
+                FAS Sales
+            </div>
+
+            <div class="ax-kpi-value">
+                KES {{ fas_sales_total }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                {{ fas_invoices }} invoice{{ fas_invoices|pluralize }}
             </div>
         </div>
 
-        <div class="live-badge">
-            <span class="live-dot"></span>
-            LIVE
+
+        <div class="ax-card ax-kpi ax-orange">
+            <div class="ax-kpi-label">
+                Customer Receivables
+            </div>
+
+            <div class="ax-kpi-value">
+                KES {{ fas_receivables }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                FAS outstanding customer balance
+            </div>
+        </div>
+
+
+        <div class="ax-card ax-kpi ax-blue">
+            <div class="ax-kpi-label">
+                FAS Inventory Value
+            </div>
+
+            <div class="ax-kpi-value">
+                KES {{ inventory_value }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                {{ fas_stock_count }} active stock balance rows
+            </div>
+        </div>
+
+
+        <div class="ax-card ax-kpi ax-purple">
+            <div class="ax-kpi-label">
+                Accounting Journals
+            </div>
+
+            <div class="ax-kpi-value">
+                {{ journal_count }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                {{ posted_journal_count }} posted
+            </div>
+        </div>
+
+
+        <div class="ax-card ax-kpi ax-green">
+            <div class="ax-kpi-label">
+                AFRICORE Rent Collected
+            </div>
+
+            <div class="ax-kpi-value">
+                KES {{ rent_collected }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                Against KES {{ rent_billed }} billed
+            </div>
+        </div>
+
+
+        <div class="ax-card ax-kpi ax-red">
+            <div class="ax-kpi-label">
+                Rent Outstanding
+            </div>
+
+            <div class="ax-kpi-value">
+                KES {{ total_unpaid }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                {{ rent_arrears }} open rent records
+            </div>
+        </div>
+
+
+        <div class="ax-card ax-kpi ax-blue">
+            <div class="ax-kpi-label">
+                Bank Accounts
+            </div>
+
+            <div class="ax-kpi-value">
+                {{ bank_account_count }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                {{ bank_transaction_count }} imported transactions
+            </div>
+        </div>
+
+
+        <div class="ax-card ax-kpi ax-green">
+            <div class="ax-kpi-label">
+                Cash / Bank Ledger
+            </div>
+
+            <div class="ax-kpi-value">
+                KES {{ cash_balance }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                Accounting control balance
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     BUSINESS UNITS
+     ===================================================== -->
+
+<section class="ax-section">
+
+    <div class="ax-section-head">
+
+        <div class="ax-section-title">
+            Business Units
+        </div>
+
+        <div class="ax-section-note">
+            Live operational position
+        </div>
+
+    </div>
+
+
+    <div class="ax-company-grid">
+
+
+        <div class="ax-company">
+
+            <div class="ax-company-top">
+
+                <div>
+                    <div class="ax-company-name">
+                        FAIRLANE AGRISERVICE AND SUPPLIERS
+                    </div>
+
+                    <div class="ax-company-type">
+                        FAS • Agriculture • Sales • Manufacturing
+                    </div>
+                </div>
+
+                <div class="ax-company-badge">
+                    ACTIVE
+                </div>
+
+            </div>
+
+
+            <div class="ax-mini-grid">
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ fas_customers }}
+                    </strong>
+                    <span>Customers</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ fas_orders }}
+                    </strong>
+                    <span>Sales Orders</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ fas_invoices }}
+                    </strong>
+                    <span>Invoices</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ fas_deliveries }}
+                    </strong>
+                    <span>Deliveries</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ fas_stock_count }}
+                    </strong>
+                    <span>Stock Balances</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ active_boms }}
+                    </strong>
+                    <span>Active BOMs</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ production_count }}
+                    </strong>
+                    <span>Production Orders</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ supplier_count }}
+                    </strong>
+                    <span>Suppliers</span>
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="ax-company">
+
+            <div class="ax-company-top">
+
+                <div>
+                    <div class="ax-company-name">
+                        AFRICORE HEIGHTS
+                    </div>
+
+                    <div class="ax-company-type">
+                        Property • Tenants • Rent • Collections
+                    </div>
+                </div>
+
+                <div class="ax-company-badge">
+                    ACTIVE
+                </div>
+
+            </div>
+
+
+            <div class="ax-mini-grid">
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ apartment_count }}
+                    </strong>
+                    <span>Properties</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ total_houses }}
+                    </strong>
+                    <span>Houses</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ occupied_houses }}
+                    </strong>
+                    <span>Occupied</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ vacant_houses }}
+                    </strong>
+                    <span>Vacant</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ tenant_count }}
+                    </strong>
+                    <span>Tenants</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ occupancy_rate }}%
+                    </strong>
+                    <span>Occupancy</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        {{ rent_arrears }}
+                    </strong>
+                    <span>Rent Cases</span>
+                </div>
+
+                <div class="ax-mini">
+                    <strong>
+                        KES {{ deposits_held }}
+                    </strong>
+                    <span>Deposits Held</span>
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     ERP MODULES
+     ===================================================== -->
+
+<section class="ax-section">
+
+    <div class="ax-section-head">
+        <div class="ax-section-title">
+            Full ERP Workspace
+        </div>
+
+        <div class="ax-section-note">
+            Open each operational module
         </div>
     </div>
 
-    <div class="v4-quick-nav">
-        <a href="/dashboard/finance/">Finance</a>
-        <a href="/sales/">Sales</a>
-        <a href="/inventory/">Inventory</a>
-        <a href="/manufacturing/">Production</a>
+
+    <div class="ax-modules">
+
+
+        <a class="ax-module" href="/sales/">
+            <div class="ax-module-icon">S</div>
+            <h3>Sales</h3>
+            <p>
+                Customers, orders, invoices, deliveries and receipts.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/purchasing/">
+            <div class="ax-module-icon">P</div>
+            <h3>Purchasing</h3>
+            <p>
+                Suppliers, purchase orders, GRNs, invoices and payments.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/inventory/">
+            <div class="ax-module-icon">I</div>
+            <h3>Inventory</h3>
+            <p>
+                Warehouses, stock balances, batches and movements.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/manufacturing/">
+            <div class="ax-module-icon">M</div>
+            <h3>Manufacturing</h3>
+            <p>
+                BOMs, production orders, material consumption and costing.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/dashboard/rent-report/">
+            <div class="ax-module-icon">R</div>
+            <h3>Rentals</h3>
+            <p>
+                Properties, houses, tenants, rent billing and arrears.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/payments/">
+            <div class="ax-module-icon">₭</div>
+            <h3>Payments</h3>
+            <p>
+                Rent collections, payment history and receipts.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/banking/reconciliation/">
+            <div class="ax-module-icon">B</div>
+            <h3>Banking</h3>
+            <p>
+                Bank accounts, statements, matching and reconciliation.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/accounting/general-ledger/">
+            <div class="ax-module-icon">A</div>
+            <h3>Accounting</h3>
+            <p>
+                General ledger, journals, trial balance and controls.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/services/">
+            <div class="ax-module-icon">W</div>
+            <h3>Wi-Fi</h3>
+            <p>
+                Customers, packages, activation and Wi-Fi payments.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/dashboard/finance/">
+            <div class="ax-module-icon">F</div>
+            <h3>Finance</h3>
+            <p>
+                Financial reporting and management controls.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/inventory/stock-ledger/">
+            <div class="ax-module-icon">L</div>
+            <h3>Stock Ledger</h3>
+            <p>
+                Product movement history and inventory audit trail.
+            </p>
+        </a>
+
+
+        <a class="ax-module" href="/accounting/trial-balance/">
+            <div class="ax-module-icon">T</div>
+            <h3>Trial Balance</h3>
+            <p>
+                Accounting balances and financial integrity review.
+            </p>
+        </a>
+
+
     </div>
 
-</div>
+</section>
 
 
-<div class="section-title">Property Performance</div>
 
-<div class="kpi-grid">
+<!-- =====================================================
+     FAS STOCK + DOCUMENTS
+     ===================================================== -->
 
-    <div class="kpi kpi-blue">
-        <div class="kpi-top">
-            <div class="kpi-icon">🏠</div>
-        </div>
-        <div class="kpi-value">{{ total_houses }}</div>
-        <div class="kpi-label">Total Houses</div>
-    </div>
+<section class="ax-section">
 
-    <div class="kpi kpi-good">
-        <div class="kpi-top">
-            <div class="kpi-icon">🔑</div>
-        </div>
-        <div class="kpi-value">{{ occupied_houses }}</div>
-        <div class="kpi-label">Occupied Houses</div>
-    </div>
-
-    <div class="kpi kpi-orange">
-        <div class="kpi-top">
-            <div class="kpi-icon">🏘️</div>
-        </div>
-        <div class="kpi-value">{{ vacant_houses }}</div>
-        <div class="kpi-label">Vacant Houses</div>
-    </div>
-
-    <div class="kpi kpi-good">
-        <div class="kpi-top">
-            <div class="kpi-icon">📊</div>
-        </div>
-        <div class="kpi-value">{{ occupancy_rate }}%</div>
-        <div class="kpi-label">Occupancy Rate</div>
-    </div>
-
-</div>
-
-
-<div class="section-title">Financial Position</div>
-
-<div class="kpi-grid">
-
-    <div class="kpi kpi-blue">
-        <div class="kpi-icon">💰</div>
-        <div class="kpi-value">KES {{ revenue_potential }}</div>
-        <div class="kpi-label">Revenue Potential</div>
-    </div>
-
-    <div class="kpi kpi-red">
-        <div class="kpi-icon">⚠️</div>
-        <div class="kpi-value">KES {{ total_unpaid }}</div>
-        <div class="kpi-label">Total Unpaid Rent</div>
-    </div>
-
-    <div class="kpi kpi-orange">
-        <div class="kpi-icon">📋</div>
-        <div class="kpi-value">{{ rent_arrears }}</div>
-        <div class="kpi-label">Unpaid Rent Cases</div>
-    </div>
-
-    <div class="kpi kpi-good">
-        <div class="kpi-icon">⬇️</div>
-        <div class="kpi-value">KES {{ total_money_in }}</div>
-        <div class="kpi-label">Money In</div>
-    </div>
-
-    <div class="kpi kpi-red">
-        <div class="kpi-icon">⬆️</div>
-        <div class="kpi-value">KES {{ total_money_out }}</div>
-        <div class="kpi-label">Money Out</div>
-    </div>
-
-    <div class="kpi kpi-good">
-        <div class="kpi-icon">🏦</div>
-        <div class="kpi-value">KES {{ cash_balance }}</div>
-        <div class="kpi-label">Cash Balance</div>
-    </div>
-
-    <div class="kpi kpi-blue">
-        <div class="kpi-icon">💧</div>
-        <div class="kpi-value">KES {{ water_total }}</div>
-        <div class="kpi-label">Water Billed</div>
-    </div>
-
-    <div class="kpi kpi-good">
-        <div class="kpi-icon">✅</div>
-        <div class="kpi-value">KES {{ water_paid }}</div>
-        <div class="kpi-label">Water Paid</div>
-    </div>
-
-</div>
-
-
-<div class="section-title">Core ERP Modules</div>
-
-<div class="module-grid">
-
-    <div class="module-card">
-        <h3>Sales</h3>
-        <p>Create and manage sales orders, deliveries, invoices and customer receipts.</p>
-        <a class="module-link" href="/sales/">Open Sales →</a>
-    </div>
-
-    <div class="module-card">
-        <h3>Purchasing</h3>
-        <p>Manage suppliers, purchase orders, goods received and supplier payments.</p>
-        <a class="module-link" href="/purchasing/">Open Purchasing →</a>
-    </div>
-
-    <div class="module-card">
-        <h3>Inventory</h3>
-        <p>Stock balances, stock ledger, batches, movements and warehouse control.</p>
-        <a class="module-link" href="/inventory/">Open Inventory →</a>
-    </div>
-
-    <div class="module-card">
-        <h3>Manufacturing</h3>
-        <p>Bills of Materials, production orders, raw-material consumption and finished goods.</p>
-        <a class="module-link" href="/manufacturing/">Open Manufacturing →</a>
-    </div>
-
-    <div class="module-card">
-        <h3>Banking</h3>
-        <p>Bank transaction reconciliation, matching and financial controls.</p>
-        <a class="module-link" href="/banking/reconciliation/">Open Banking →</a>
-    </div>
-
-    <div class="module-card">
-        <h3>Accounting</h3>
-        <p>General Ledger, Trial Balance, financial statements and reporting.</p>
-        <a class="module-link" href="/accounting/general-ledger/">Open Ledger →</a>
-    </div>
-
-</div>
-
-
-<div class="panel-grid">
-
-    <div class="panel">
-        <div class="panel-header">
-            Unpaid Rent Cases
+    <div class="ax-section-head">
+        <div class="ax-section-title">
+            FAS Live Operations
         </div>
 
-        <div class="panel-body arrears-table-wrap">
-            <table class="arrears-table">
-                <tr>
-                    <th>Tenant</th>
-                    <th>Amount</th>
-                    <th>Due Date</th>
-                    <th>Days Overdue</th>
-                    <th>Status</th>
-                </tr>
+        <div class="ax-section-note">
+            Real stock and sales documents
+        </div>
+    </div>
+
+
+    <div class="ax-two">
+
+
+        <div class="ax-panel">
+
+            <div class="ax-panel-head">
+                <strong>Current Stock</strong>
+                <span>
+                    KES {{ inventory_value }}
+                </span>
+            </div>
+
+
+            <div class="ax-table-wrap">
+
+                <table class="ax-table">
+
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Location</th>
+                            <th>Qty</th>
+                            <th>Avg Cost</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for row in stock_rows %}
+
+                        <tr>
+                            <td>
+                                {{ row.product.product_code }}
+                                -
+                                {{ row.product.name }}
+                            </td>
+
+                            <td>
+                                {{ row.location.code }}
+                            </td>
+
+                            <td>
+                                {{ row.quantity }}
+                            </td>
+
+                            <td>
+                                {{ row.average_cost }}
+                            </td>
+
+                            <td>
+                                {% widthratio row.quantity 1 row.average_cost %}
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="5">
+                                No FAS stock balances.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="ax-panel">
+
+            <div class="ax-panel-head">
+                <strong>Sales Invoices</strong>
+                <span>
+                    {{ fas_invoices }} total
+                </span>
+            </div>
+
+
+            <div class="ax-table-wrap">
+
+                <table class="ax-table">
+
+                    <thead>
+                        <tr>
+                            <th>Invoice</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for invoice in recent_sales_invoices %}
+
+                        <tr>
+                            <td>
+                                {{ invoice.invoice_number }}
+                            </td>
+
+                            <td>
+                                {{ invoice.customer.name }}
+                            </td>
+
+                            <td>
+                                {{ invoice.invoice_date }}
+                            </td>
+
+                            <td>
+                                KES {{ invoice.total_amount }}
+                            </td>
+
+                            <td>
+                                <span class="ax-status">
+                                    {{ invoice.status }}
+                                </span>
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="5">
+                                No sales invoices.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     MANUFACTURING + PURCHASING
+     ===================================================== -->
+
+<section class="ax-section">
+
+    <div class="ax-section-head">
+        <div class="ax-section-title">
+            Manufacturing & Supply Chain
+        </div>
+
+        <div class="ax-section-note">
+            FAS production readiness
+        </div>
+    </div>
+
+
+    <div class="ax-grid">
+
+
+        <div class="ax-card ax-kpi ax-green">
+            <div class="ax-kpi-label">
+                BOMs
+            </div>
+
+            <div class="ax-kpi-value">
+                {{ fas_bom_count }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                {{ active_boms }} active
+            </div>
+        </div>
+
+
+        <div class="ax-card ax-kpi ax-blue">
+            <div class="ax-kpi-label">
+                Production Orders
+            </div>
+
+            <div class="ax-kpi-value">
+                {{ production_count }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                {{ production_in_progress }} active production
+            </div>
+        </div>
+
+
+        <div class="ax-card ax-kpi ax-orange">
+            <div class="ax-kpi-label">
+                Purchase Orders
+            </div>
+
+            <div class="ax-kpi-value">
+                {{ purchase_order_count }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                {{ grn_count }} goods receipts
+            </div>
+        </div>
+
+
+        <div class="ax-card ax-kpi ax-red">
+            <div class="ax-kpi-label">
+                Supplier Payables
+            </div>
+
+            <div class="ax-kpi-value">
+                KES {{ fas_payables }}
+            </div>
+
+            <div class="ax-kpi-sub">
+                {{ supplier_invoice_count }} supplier invoices
+            </div>
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     ACCOUNTING + BANKING
+     ===================================================== -->
+
+<section class="ax-section">
+
+    <div class="ax-section-head">
+        <div class="ax-section-title">
+            Finance & Control
+        </div>
+
+        <div class="ax-section-note">
+            Accounting and banking audit trail
+        </div>
+    </div>
+
+
+    <div class="ax-two">
+
+
+        <div class="ax-panel">
+
+            <div class="ax-panel-head">
+                <strong>Recent Journals</strong>
+                <span>
+                    {{ journal_count }} journals
+                </span>
+            </div>
+
+
+            <div class="ax-table-wrap">
+
+                <table class="ax-table">
+
+                    <thead>
+                        <tr>
+                            <th>Journal</th>
+                            <th>Company</th>
+                            <th>Date</th>
+                            <th>Reference</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for journal in recent_journals %}
+
+                        <tr>
+                            <td>
+                                {{ journal.journal_number }}
+                            </td>
+
+                            <td>
+                                {{ journal.company.name }}
+                            </td>
+
+                            <td>
+                                {{ journal.entry_date }}
+                            </td>
+
+                            <td>
+                                {{ journal.reference }}
+                            </td>
+
+                            <td>
+                                <span class="ax-status">
+                                    {{ journal.status }}
+                                </span>
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="5">
+                                No journals.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="ax-panel">
+
+            <div class="ax-panel-head">
+                <strong>Control Status</strong>
+                <span>Current ERP position</span>
+            </div>
+
+
+            <div class="ax-table-wrap">
+
+                <table class="ax-table">
+
+                    <tbody>
+
+                        <tr>
+                            <td>Bank Accounts</td>
+                            <td>
+                                <strong>
+                                    {{ bank_account_count }}
+                                </strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Bank Transactions</td>
+                            <td>
+                                <strong>
+                                    {{ bank_transaction_count }}
+                                </strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Pending Reconciliation</td>
+                            <td>
+                                <strong>
+                                    {{ pending_bank_transactions }}
+                                </strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Posted Journals</td>
+                            <td>
+                                <strong>
+                                    {{ posted_journal_count }}
+                                </strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>FAS Receivables</td>
+                            <td>
+                                <strong>
+                                    KES {{ fas_receivables }}
+                                </strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>FAS Payables</td>
+                            <td>
+                                <strong>
+                                    KES {{ fas_payables }}
+                                </strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Wi-Fi Customers</td>
+                            <td>
+                                <strong>
+                                    {{ wifi_customer_count }}
+                                </strong>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Wi-Fi Payments</td>
+                            <td>
+                                <strong>
+                                    {{ wifi_payment_count }}
+                                </strong>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     RENT EXCEPTIONS
+     ===================================================== -->
+
+<section class="ax-section">
+
+    <div class="ax-section-head">
+        <div class="ax-section-title">
+            AFRICORE Exceptions
+        </div>
+
+        <div class="ax-section-note">
+            Top outstanding rent cases only
+        </div>
+    </div>
+
+
+    <div class="ax-panel">
+
+        <div class="ax-table-wrap">
+
+            <table class="ax-table">
+
+                <thead>
+                    <tr>
+                        <th>Tenant</th>
+                        <th>Property</th>
+                        <th>House</th>
+                        <th>Balance</th>
+                        <th>Due Date</th>
+                        <th>Days</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
 
                 {% for rent in unpaid_rents %}
-                <tr>
-                    <td>{{ rent.tenant.name }}</td>
-                    <td>KES {{ rent.balance }}</td>
-                    <td>{{ rent.due_date }}</td>
-                    <td>{{ rent.days_overdue }}</td>
-                    <td><span class="badge-unpaid">UNPAID</span></td>
-                </tr>
+
+                    <tr>
+
+                        <td>
+                            {{ rent.tenant.name }}
+                        </td>
+
+                        <td>
+                            {{ rent.house.apartment.name }}
+                        </td>
+
+                        <td>
+                            {{ rent.house.house_number }}
+                        </td>
+
+                        <td>
+                            KES {{ rent.balance }}
+                        </td>
+
+                        <td>
+                            {{ rent.due_date }}
+                        </td>
+
+                        <td>
+                            {{ rent.days_overdue }}
+                        </td>
+
+                        <td>
+                            <span class="ax-status ax-status-red">
+                                UNPAID
+                            </span>
+                        </td>
+
+                    </tr>
+
                 {% empty %}
-                <tr>
-                    <td colspan="5">No unpaid rents.</td>
-                </tr>
+
+                    <tr>
+                        <td colspan="7">
+                            No outstanding rent.
+                        </td>
+                    </tr>
+
                 {% endfor %}
+
+                </tbody>
+
             </table>
+
         </div>
+
     </div>
 
+</section>
 
-    <div class="panel">
-        <div class="panel-header">
-            System Health
-        </div>
 
-        <div class="panel-body">
-
-            <div class="health-row">
-                <span>Web Application</span>
-                <span class="status-ok">ONLINE</span>
-            </div>
-
-            <div class="health-row">
-                <span>PostgreSQL Database</span>
-                <span class="status-ok">ONLINE</span>
-            </div>
-
-            <div class="health-row">
-                <span>Payments</span>
-                <span class="status-ok">{{ successful }} SUCCESS</span>
-            </div>
-
-            <div class="health-row">
-                <span>Pending Payments</span>
-                <span>{{ pending }}</span>
-            </div>
-
-            <div class="health-row">
-                <span>Failed Payments</span>
-                <span>{{ failed }}</span>
-            </div>
-
-            <div class="health-row">
-                <span>SMS Sent</span>
-                <span>{{ sms_sent }}</span>
-            </div>
-
-            <div class="health-row">
-                <span>Deposits Held</span>
-                <span>KES {{ deposits_held }}</span>
-            </div>
-
-        </div>
-    </div>
-
+<div class="ax-footer">
+    AFRIAXIS GROUP • ENTERPRISE RESOURCE PLANNING • EXECUTIVE CONTROL
 </div>
+
 
 </div>
 
 {% endblock %}
-
-
-
-
-
-

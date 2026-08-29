@@ -1,0 +1,199 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}
+New FAS Customer | AfriAxis ERP
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+
+<style>
+.customer-page {
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.fas-head {
+    background: linear-gradient(135deg,#153d29,#26764d);
+    color: white;
+    padding: 22px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.fas-head h1 {
+    color: white;
+    margin: 0;
+}
+
+.card {
+    border: 1px solid var(--hairline-color);
+    padding: 22px;
+    border-radius: 10px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.field label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.field input,
+.field select,
+.field textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #999;
+    border-radius: 5px;
+}
+
+.field textarea {
+    min-height: 80px;
+}
+
+.full {
+    grid-column: 1 / -1;
+}
+
+.actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    border: 0;
+    padding: 11px 18px;
+    border-radius: 5px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.primary {
+    background: #1f6a43;
+    color: white !important;
+}
+
+.secondary {
+    background: #ddd;
+    color: #222 !important;
+}
+
+@media(max-width:700px) {
+    .grid {
+        grid-template-columns:1fr;
+    }
+
+    .full {
+        grid-column:auto;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="customer-page">
+
+    <div class="fas-head">
+        <h1>New FAS Customer</h1>
+        <div>
+            FAIRLANE AGRISERVICES AND SUPPLIERS
+        </div>
+    </div>
+
+    <div class="card">
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="grid">
+
+                <div class="field">
+                    <label>Customer Name *</label>
+                    <input
+                        name="name"
+                        required
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Customer Code</label>
+                    <input
+                        name="customer_code"
+                        placeholder="Auto if blank"
+                    >
+                </div>
+
+                <div class="field">
+                    <label>Customer Type</label>
+                    <select name="customer_type">
+                        <option value="BUSINESS">
+                            Business
+                        </option>
+                        <option value="INDIVIDUAL">
+                            Individual
+                        </option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>KRA PIN</label>
+                    <input name="kra_pin">
+                </div>
+
+                <div class="field">
+                    <label>Telephone</label>
+                    <input name="phone">
+                </div>
+
+                <div class="field">
+                    <label>Email</label>
+                    <input
+                        type="email"
+                        name="email"
+                    >
+                </div>
+
+                <div class="field full">
+                    <label>Address</label>
+                    <textarea
+                        name="address"
+                    ></textarea>
+                </div>
+
+            </div>
+
+            <div class="actions">
+
+                <button
+                    class="btn primary"
+                    type="submit"
+                >
+                    Save Customer
+                </button>
+
+                <a
+                    href="{% url 'new_sale' %}"
+                    class="btn secondary"
+                >
+                    Back to New Sale
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

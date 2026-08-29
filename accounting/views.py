@@ -1,4 +1,8 @@
-from accounts.decorators import finance_required
+from accounts.decorators import (
+    audit_required,
+    finance_required,
+    get_user_company_ids,
+)
 from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
@@ -29,20 +33,68 @@ def parse_date(value):
         return None
 
 
-def get_company():
-    company = Company.objects.first()
+def get_company(request):
+    """
+    Resolve the accounting company available to the user.
 
-    if company is None:
-        raise Http404(
-            "No company has been configured."
+    Normal users are restricted to active CompanyAssignment
+    companies.
+
+    Superusers may access any active company.
+
+    When more than one company is available, an explicit
+    ?company=<id> selection is required.
+    """
+
+    companies = Company.objects.filter(
+        active=True,
+    ).order_by(
+        "id",
+    )
+
+    if not request.user.is_superuser:
+        company_ids = get_user_company_ids(
+            request.user
         )
 
-    return company
+        if not company_ids:
+            raise Http404(
+                "No company is assigned to this user."
+            )
+
+        companies = companies.filter(
+            id__in=company_ids,
+        )
+
+    selected_id = request.GET.get(
+        "company",
+        "",
+    ).strip()
+
+    if selected_id:
+        return get_object_or_404(
+            companies,
+            pk=selected_id,
+        )
+
+    company_count = companies.count()
+
+    if company_count == 0:
+        raise Http404(
+            "No accessible company has been configured."
+        )
+
+    if company_count == 1:
+        return companies.first()
+
+    raise Http404(
+        "Select a company using ?company=<id>."
+    )
 
 
-@finance_required
+@audit_required
 def trial_balance(request):
-    company = get_company()
+    company = get_company(request)
 
     date_from = parse_date(
         request.GET.get("date_from")
@@ -69,9 +121,9 @@ def trial_balance(request):
     )
 
 
-@finance_required
+@audit_required
 def general_ledger(request):
-    company = get_company()
+    company = get_company(request)
 
     account = None
     rows = []
@@ -116,9 +168,9 @@ def general_ledger(request):
     )
 
 
-@finance_required
+@audit_required
 def profit_and_loss(request):
-    company = get_company()
+    company = get_company(request)
 
     date_from = parse_date(
         request.GET.get("date_from")
@@ -145,9 +197,9 @@ def profit_and_loss(request):
     )
 
 
-@finance_required
+@audit_required
 def balance_sheet(request):
-    company = get_company()
+    company = get_company(request)
 
     as_of = parse_date(
         request.GET.get("as_of")
@@ -169,11 +221,11 @@ def balance_sheet(request):
     )
 
 
-@finance_required
+@audit_required
 def cash_flow(request):
     from .reports import get_cash_flow
 
-    company = get_company()
+    company = get_company(request)
 
     as_of = parse_date(
         request.GET.get("as_of")
@@ -229,14 +281,19 @@ def _empty_aging_totals():
     }
 
 
-@finance_required
+@audit_required
 def aged_receivables(request):
+    company = get_company(request)
+
     as_of = parse_date(
         request.GET.get("as_of")
     ) or timezone.localdate()
 
     invoices = (
         SalesInvoice.objects
+        .filter(
+            company=company,
+        )
         .exclude(status__in=["DRAFT", "CANCELLED", "PAID"])
         .order_by(
             "due_date",
@@ -289,14 +346,20 @@ def aged_receivables(request):
     )
 
 
-@finance_required
+@audit_required
 def aged_payables(request):
+    company = get_company(request)
+
     as_of = parse_date(
         request.GET.get("as_of")
     ) or timezone.localdate()
 
     invoices = (
         SupplierInvoice.objects
+        .filter(
+            purchase_order__company=company,
+            supplier__company=company,
+        )
         .exclude(status__in=["DRAFT", "CANCELLED", "PAID"])
         .select_related(
             "supplier",
@@ -353,8 +416,10 @@ def aged_payables(request):
     )
 
 
-@finance_required
+@audit_required
 def customer_statement(request):
+    company = get_company(request)
+
     customer_id = request.GET.get("customer", "").strip()
 
     date_from = parse_date(
@@ -366,7 +431,10 @@ def customer_statement(request):
 
     customers = (
         Customer.objects
-        .filter(active=True)
+        .filter(
+            company=company,
+            active=True,
+        )
         .order_by(
             "customer_code",
             "name",
@@ -385,6 +453,7 @@ def customer_statement(request):
         )
 
         customer_invoices = SalesInvoice.objects.filter(
+            company=company,
             customer=customer,
         ).exclude(
             status__in=["DRAFT", "CANCELLED"],
@@ -408,6 +477,7 @@ def customer_statement(request):
                     payment.amount
                     for payment in SalesReceipt.objects.filter(
                         customer=customer,
+                        customer__company=company,
                         receipt_date__lt=date_from,
                         status="POSTED",
                     )
@@ -453,6 +523,7 @@ def customer_statement(request):
 
         payment_queryset = SalesReceipt.objects.filter(
             customer=customer,
+            customer__company=company,
             status="POSTED",
         ).select_related("sales_invoice")
 
@@ -532,8 +603,10 @@ def customer_statement(request):
     )
 
 
-@finance_required
+@audit_required
 def supplier_statement(request):
+    company = get_company(request)
+
     supplier_id = request.GET.get("supplier")
 
     date_from = parse_date(
@@ -544,6 +617,7 @@ def supplier_statement(request):
     )
 
     suppliers = Supplier.objects.filter(
+        company=company,
         active=True,
     ).order_by(
         "supplier_code",
@@ -563,6 +637,8 @@ def supplier_statement(request):
 
         supplier_invoices = SupplierInvoice.objects.filter(
             supplier=supplier,
+            supplier__company=company,
+            purchase_order__company=company,
         ).exclude(
             status__in=["DRAFT", "CANCELLED"],
         )
@@ -585,6 +661,8 @@ def supplier_statement(request):
                     payment.amount
                     for payment in SupplierPayment.objects.filter(
                         supplier=supplier,
+                        supplier__company=company,
+                        supplier_invoice__purchase_order__company=company,
                         payment_date__lt=date_from,
                     )
                 ),
@@ -622,6 +700,8 @@ def supplier_statement(request):
 
         payment_queryset = SupplierPayment.objects.filter(
             supplier=supplier,
+            supplier__company=company,
+            supplier_invoice__purchase_order__company=company,
         ).select_related(
             "supplier_invoice",
         )
@@ -712,6 +792,7 @@ def supplier_statement(request):
             "date_to": date_to,
         },
     )
+
 
 
 
