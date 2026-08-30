@@ -1,0 +1,36 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Access Restricted | AfriAxis V7
+{% endblock %}
+
+{% block content %}
+
+<div class="control-page">
+
+    <div class="control-denied">
+
+        <div class="control-denied-icon">
+            !
+        </div>
+
+        <h1>
+            Access Restricted
+        </h1>
+
+        <p>
+            Your current AfriAxis role does not
+            have permission to open
+            <strong>{{ area }}</strong>.
+        </p>
+
+        <a href="/dashboard/"
+           class="control-primary-btn">
+            Return to Dashboard
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

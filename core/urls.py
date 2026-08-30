@@ -14,6 +14,8 @@ from dashboard.views import (
 )
 
 urlpatterns = [
+    path("", include("core.control_urls")),
+
     path("service-worker.js", service_worker, name="service_worker"),
     path("dashboard/", include("dashboard.ceo_urls")),
     # Django Admin

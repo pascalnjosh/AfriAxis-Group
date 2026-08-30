@@ -1,0 +1,271 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Audit & Controls | AfriAxis V7
+{% endblock %}
+
+{% block content %}
+
+<div class="control-page">
+
+    <section class="control-hero audit-hero">
+
+        <div>
+            <div class="control-kicker">
+                AFRIAXIS V7 · GOVERNANCE
+            </div>
+
+            <h1>
+                Audit & Controls
+            </h1>
+
+            <p>
+                Governance, compliance,
+                transaction review and operational
+                accountability.
+            </p>
+        </div>
+
+        <div class="control-status">
+            <span class="control-dot"></span>
+            Read-Only Review
+        </div>
+
+    </section>
+
+
+    <section class="control-kpis">
+
+        <div class="control-kpi">
+            <span>System Users</span>
+            <strong>{{ user_count }}</strong>
+            <small>User accounts</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Company Access</span>
+            <strong>{{ assignment_count }}</strong>
+            <small>Workspace assignments</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Journal Entries</span>
+            <strong>{{ journal_count }}</strong>
+            <small>Financial audit records</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Bank Transactions</span>
+            <strong>{{ bank_transaction_count }}</strong>
+            <small>Bank control records</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Stock Movements</span>
+            <strong>{{ stock_movement_count }}</strong>
+            <small>Inventory movements</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Production Orders</span>
+            <strong>{{ production_order_count }}</strong>
+            <small>Manufacturing records</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Sales Invoices</span>
+            <strong>{{ sales_invoice_count }}</strong>
+            <small>Sales transaction records</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>SMS Records</span>
+            <strong>{{ sms_count }}</strong>
+            <small>Communication history</small>
+        </div>
+
+    </section>
+
+
+    <section class="control-section">
+
+        <div class="control-section-head">
+            <div>
+                <span>AUDIT REVIEW</span>
+                <h2>Control Areas</h2>
+            </div>
+        </div>
+
+        <div class="control-actions">
+
+            <a href="/admin/accounting/journalentry/"
+               class="control-action">
+                <strong>Accounting Audit</strong>
+                <span>
+                    Review journal creation,
+                    posting and reversals.
+                </span>
+            </a>
+
+            <a href="/banking/reconciliation/"
+               class="control-action">
+                <strong>Banking Controls</strong>
+                <span>
+                    Review reconciliation and
+                    transaction decisions.
+                </span>
+            </a>
+
+            <a href="/inventory/stock-ledger/"
+               class="control-action">
+                <strong>Inventory Audit</strong>
+                <span>
+                    Review stock movement
+                    and inventory history.
+                </span>
+            </a>
+
+            <a href="/manufacturing/"
+               class="control-action">
+                <strong>Manufacturing Audit</strong>
+                <span>
+                    Review production orders
+                    and manufacturing activity.
+                </span>
+            </a>
+
+            <a href="/admin/auth/user/"
+               class="control-action">
+                <strong>User Accounts</strong>
+                <span>
+                    Review active system users
+                    and account status.
+                </span>
+            </a>
+
+            <a href="/admin/accounts/companyassignment/"
+               class="control-action">
+                <strong>Company Access</strong>
+                <span>
+                    Review company and role
+                    assignments.
+                </span>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <section class="control-section">
+
+        <div class="control-section-head">
+            <div>
+                <span>FINANCIAL AUDIT TRAIL</span>
+                <h2>Recent Journal Activity</h2>
+            </div>
+        </div>
+
+        <div class="control-table-wrap">
+
+            <table class="control-table">
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Activity</th>
+                        <th>Control Area</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for item in recent_journals %}
+
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item }}</td>
+                        <td>
+                            <span class="control-badge">
+                                Finance
+                            </span>
+                        </td>
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td colspan="3"
+                            class="control-empty">
+                            No journal activity.
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <section class="control-section">
+
+        <div class="control-section-head">
+            <div>
+                <span>OPERATIONAL AUDIT TRAIL</span>
+                <h2>Recent Stock Movements</h2>
+            </div>
+        </div>
+
+        <div class="control-table-wrap">
+
+            <table class="control-table">
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Movement</th>
+                        <th>Control Area</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for item in recent_stock_movements %}
+
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item }}</td>
+                        <td>
+                            <span class="control-badge">
+                                Inventory
+                            </span>
+                        </td>
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td colspan="3"
+                            class="control-empty">
+                            No stock movement activity.
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}

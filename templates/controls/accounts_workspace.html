@@ -1,0 +1,207 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Accounts & Finance | AfriAxis V7
+{% endblock %}
+
+{% block content %}
+
+<div class="control-page">
+
+    <section class="control-hero">
+
+        <div>
+            <div class="control-kicker">
+                AFRIAXIS V7 · FINANCIAL CONTROL
+            </div>
+
+            <h1>
+                Accounts & Finance
+            </h1>
+
+            <p>
+                Financial control, accounting
+                operations and management reporting.
+            </p>
+        </div>
+
+        <div class="control-status">
+            <span class="control-dot"></span>
+            Financial Workspace
+        </div>
+
+    </section>
+
+
+    <section class="control-kpis">
+
+        <div class="control-kpi">
+            <span>Chart of Accounts</span>
+            <strong>{{ account_count }}</strong>
+            <small>Configured ledger accounts</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Journal Entries</span>
+            <strong>{{ journal_count }}</strong>
+            <small>Accounting journal records</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Bank Accounts</span>
+            <strong>{{ bank_account_count }}</strong>
+            <small>Configured bank accounts</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Bank Transactions</span>
+            <strong>{{ bank_transaction_count }}</strong>
+            <small>Reconciliation records</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Customer Invoices</span>
+            <strong>{{ invoice_count }}</strong>
+            <small>Billing and sales invoices</small>
+        </div>
+
+        <div class="control-kpi">
+            <span>Supplier Invoices</span>
+            <strong>{{ supplier_invoice_count }}</strong>
+            <small>Purchasing liabilities</small>
+        </div>
+
+    </section>
+
+
+    <section class="control-section">
+
+        <div class="control-section-head">
+            <div>
+                <span>FINANCIAL OPERATIONS</span>
+                <h2>Accounts Control Centre</h2>
+            </div>
+        </div>
+
+        <div class="control-actions">
+
+            <a href="/accounting/general-ledger/"
+               class="control-action">
+                <strong>General Ledger</strong>
+                <span>
+                    Review account-level postings
+                    and balances.
+                </span>
+            </a>
+
+            <a href="/accounting/trial-balance/"
+               class="control-action">
+                <strong>Trial Balance</strong>
+                <span>
+                    Review debit and credit
+                    control totals.
+                </span>
+            </a>
+
+            <a href="/banking/reconciliation/"
+               class="control-action">
+                <strong>Bank Reconciliation</strong>
+                <span>
+                    Match and review banking
+                    transactions.
+                </span>
+            </a>
+
+            <a href="/billing/invoices/"
+               class="control-action">
+                <strong>Customer Invoices</strong>
+                <span>
+                    Review invoices, balances
+                    and payment status.
+                </span>
+            </a>
+
+            <a href="/admin/accounting/account/"
+               class="control-action">
+                <strong>Chart of Accounts</strong>
+                <span>
+                    Maintain controlled ledger
+                    account definitions.
+                </span>
+            </a>
+
+            <a href="/admin/accounting/journalentry/"
+               class="control-action">
+                <strong>Journal Register</strong>
+                <span>
+                    Review accounting journals
+                    and posting history.
+                </span>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <section class="control-section">
+
+        <div class="control-section-head">
+            <div>
+                <span>RECENT ACTIVITY</span>
+                <h2>Latest Journal Entries</h2>
+            </div>
+
+            <a href="/admin/accounting/journalentry/">
+                View Register →
+            </a>
+        </div>
+
+        <div class="control-table-wrap">
+
+            <table class="control-table">
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Journal</th>
+                        <th>Record</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for item in recent_journals %}
+
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item }}</td>
+                        <td>
+                            <span class="control-badge">
+                                Accounting
+                            </span>
+                        </td>
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td colspan="3"
+                            class="control-empty">
+                            No journal records available.
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
+
+{% endblock %}

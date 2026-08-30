@@ -1172,3 +1172,336 @@ table tbody tr:nth-child(even) td{
     }
 }
 
+
+/* ==========================================================
+   AFRIAXIS V7 — ACCOUNTS & AUDIT CONTROL CENTRE
+   ========================================================== */
+
+.control-page {
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 28px;
+}
+
+.control-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+    padding: 30px;
+    border: 1px solid rgba(59,130,246,.22);
+    border-radius: 22px;
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(37,99,235,.18),
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            #0b172b,
+            #101f38
+        );
+    box-shadow: 0 18px 50px rgba(0,0,0,.16);
+}
+
+.audit-hero {
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(14,165,233,.14),
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            #091625,
+            #132238
+        );
+}
+
+.control-kicker {
+    margin-bottom: 8px;
+    color: #60a5fa;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .20em;
+}
+
+.control-hero h1 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(25px, 3vw, 38px);
+    letter-spacing: -.04em;
+}
+
+.control-hero p {
+    max-width: 720px;
+    margin: 9px 0 0;
+    color: #aebed2;
+    font-size: 14px;
+}
+
+.control-status {
+    white-space: nowrap;
+    padding: 9px 13px;
+    border: 1px solid rgba(34,197,94,.22);
+    border-radius: 999px;
+    color: #bbf7d0;
+    background: rgba(34,197,94,.08);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.control-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+}
+
+.control-kpis {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.control-kpi {
+    padding: 19px;
+    border: 1px solid rgba(148,163,184,.14);
+    border-radius: 17px;
+    background: #101b2d;
+}
+
+.control-kpi span {
+    display: block;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.control-kpi strong {
+    display: block;
+    margin-top: 9px;
+    color: #fff;
+    font-size: 27px;
+    line-height: 1;
+}
+
+.control-kpi small {
+    display: block;
+    margin-top: 7px;
+    color: #64748b;
+    font-size: 10px;
+}
+
+.control-section {
+    margin-top: 20px;
+    padding: 23px;
+    border: 1px solid rgba(148,163,184,.13);
+    border-radius: 20px;
+    background: #0d1829;
+}
+
+.control-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 20px;
+    margin-bottom: 17px;
+}
+
+.control-section-head span {
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .16em;
+}
+
+.control-section-head h2 {
+    margin: 5px 0 0;
+    color: #f8fafc;
+    font-size: 18px;
+}
+
+.control-section-head a {
+    color: #60a5fa;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.control-actions {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.control-action {
+    min-height: 112px;
+    padding: 17px;
+    border: 1px solid rgba(148,163,184,.13);
+    border-radius: 15px;
+    background: #111f33;
+    text-decoration: none;
+    transition:
+        transform .15s ease,
+        border-color .15s ease,
+        background .15s ease;
+}
+
+.control-action:hover {
+    transform: translateY(-2px);
+    border-color: rgba(96,165,250,.45);
+    background: #14263e;
+}
+
+.control-action strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 13px;
+}
+
+.control-action span {
+    display: block;
+    margin-top: 7px;
+    color: #8494a9;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.control-table-wrap {
+    overflow-x: auto;
+}
+
+.control-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.control-table th {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(148,163,184,.15);
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .09em;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.control-table td {
+    padding: 13px 12px;
+    border-bottom: 1px solid rgba(148,163,184,.08);
+    color: #cbd5e1;
+    font-size: 11px;
+}
+
+.control-badge {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(37,99,235,.12);
+    color: #93c5fd;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.control-empty {
+    padding: 30px !important;
+    color: #64748b !important;
+    text-align: center;
+}
+
+.control-denied {
+    max-width: 650px;
+    margin: 60px auto;
+    padding: 45px;
+    border: 1px solid rgba(239,68,68,.20);
+    border-radius: 22px;
+    background: #101b2d;
+    text-align: center;
+}
+
+.control-denied-icon {
+    width: 55px;
+    height: 55px;
+    margin: 0 auto 17px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(239,68,68,.12);
+    color: #fca5a5;
+    font-size: 25px;
+    font-weight: 900;
+}
+
+.control-denied h1 {
+    color: #fff;
+}
+
+.control-denied p {
+    color: #94a3b8;
+}
+
+.control-primary-btn {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 10px 17px;
+    border-radius: 10px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+@media (max-width: 700px) {
+
+    .control-page {
+        padding: 14px;
+    }
+
+    .control-hero {
+        padding: 21px;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .control-section {
+        padding: 16px;
+    }
+}
+
+
+/* V7 accounts/audit navigation */
+
+.v7-control-nav {
+    display: flex;
+    gap: 7px;
+    padding: 8px 12px;
+}
+
+.v7-control-nav a {
+    padding: 8px 11px;
+    border: 1px solid rgba(148,163,184,.14);
+    border-radius: 9px;
+    background: rgba(15,23,42,.65);
+    color: #cbd5e1;
+    font-size: 10px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.v7-control-nav a:hover {
+    border-color: rgba(96,165,250,.40);
+    color: #fff;
+}
+
