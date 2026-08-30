@@ -17,6 +17,7 @@ ALLOWED_HOSTS = [
 ]
 
 INSTALLED_APPS = [
+    "communications",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -188,3 +189,9 @@ else:
 
 LOGOUT_REDIRECT_URL = '/auth/login/'
 
+
+
+# AfriAxis V7 SMS
+# TEST = records messages without claiming real delivery.
+# LIVE requires a configured provider implementation.
+SMS_MODE = os.environ.get("SMS_MODE", "TEST")

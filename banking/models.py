@@ -71,17 +71,19 @@ class BankAccount(models.Model):
         ]
 
     def __str__(self):
+        purpose = self.get_purpose_display()
+
         if self.apartment:
             return (
-                f"{self.company.name} - "
-                f"{self.apartment.name} - "
-                f"{self.bank_name} - "
-                f"{self.account_number}"
+                f"{self.bank_name} — "
+                f"{purpose.upper()} — "
+                f"{self.account_number} — "
+                f"{self.apartment.name}"
             )
 
         return (
-            f"{self.company.name} - "
-            f"{self.bank_name} - "
+            f"{self.bank_name} — "
+            f"{purpose.upper()} — "
             f"{self.account_number}"
         )
 
@@ -273,6 +275,7 @@ class BankTransaction(models.Model):
 
     def __str__(self):
         return f"{self.transaction_date} - {self.description[:40]}"
+
 
 
 

@@ -72,7 +72,13 @@ urlpatterns = [
     # Accounts
     path("accounts/", include("accounts.urls")),
     path("tenant/", include("accounts.tenant_urls")),
+
+    path(
+        "communications/",
+        include("communications.urls"),
+    ),
 ]
+
 
 
 

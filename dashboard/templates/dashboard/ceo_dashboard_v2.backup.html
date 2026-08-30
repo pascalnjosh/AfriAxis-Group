@@ -1,0 +1,798 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}
+CEO Dashboard | AfriAxis ERP
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+
+<style>
+    :root {
+        --axis-navy: #071426;
+        --axis-blue: #0f4c81;
+        --axis-light-blue: #eaf4ff;
+        --axis-green: #138a53;
+        --axis-orange: #d97706;
+        --axis-red: #c62828;
+        --axis-purple: #6d42c7;
+        --axis-text: #172033;
+        --axis-muted: #64748b;
+        --axis-border: #dce3ec;
+        --axis-background: #f3f6fa;
+        --axis-white: #ffffff;
+    }
+
+    #content {
+        padding: 0 !important;
+    }
+
+    .axis-dashboard {
+        min-height: calc(100vh - 80px);
+        padding: 24px;
+        background:
+            linear-gradient(
+                145deg,
+                #eef4fa 0%,
+                #f8fafc 45%,
+                #edf3f8 100%
+            );
+    }
+
+    .axis-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        padding: 22px 26px;
+        margin-bottom: 20px;
+        border-radius: 18px;
+        background:
+            linear-gradient(
+                120deg,
+                var(--axis-navy),
+                var(--axis-blue)
+            );
+        color: var(--axis-white);
+        box-shadow: 0 15px 35px rgba(7, 20, 38, 0.17);
+    }
+
+    .axis-topbar h1 {
+        color: var(--axis-white);
+        margin: 0;
+        font-size: 27px;
+        font-weight: 800;
+    }
+
+    .axis-topbar p {
+        margin: 6px 0 0;
+        color: #dcecff;
+        font-size: 13px;
+    }
+
+    .axis-company {
+        min-width: 160px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 14px;
+        padding: 12px 18px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+    }
+
+    .axis-company small {
+        display: block;
+        color: #cbdcf0;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .axis-company strong {
+        font-size: 15px;
+        color: var(--axis-white);
+    }
+
+    .axis-navigation {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .axis-nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 15px;
+        border: 1px solid var(--axis-border);
+        border-radius: 10px;
+        background: var(--axis-white);
+        color: var(--axis-text) !important;
+        text-decoration: none !important;
+        font-weight: 700;
+        font-size: 13px;
+        box-shadow: 0 5px 15px rgba(15, 23, 42, 0.04);
+        transition: transform 0.15s ease;
+    }
+
+    .axis-nav-link:hover {
+        transform: translateY(-2px);
+        border-color: var(--axis-blue);
+    }
+
+    .axis-kpi-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .axis-kpi {
+        position: relative;
+        overflow: hidden;
+        min-height: 118px;
+        padding: 20px;
+        border: 1px solid var(--axis-border);
+        border-radius: 16px;
+        background: var(--axis-white);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .axis-kpi::before {
+        position: absolute;
+        content: "";
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        background: var(--card-color);
+    }
+
+    .axis-kpi::after {
+        position: absolute;
+        content: "";
+        width: 90px;
+        height: 90px;
+        right: -35px;
+        top: -35px;
+        border-radius: 50%;
+        background: var(--card-soft);
+    }
+
+    .axis-kpi-label {
+        color: var(--axis-muted);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .axis-kpi-value {
+        position: relative;
+        z-index: 2;
+        margin-top: 10px;
+        color: var(--axis-text);
+        font-size: 25px;
+        font-weight: 900;
+    }
+
+    .axis-kpi-note {
+        margin-top: 7px;
+        color: var(--axis-muted);
+        font-size: 12px;
+    }
+
+    .kpi-bank {
+        --card-color: var(--axis-blue);
+        --card-soft: #e3f2ff;
+    }
+
+    .kpi-stock {
+        --card-color: var(--axis-green);
+        --card-soft: #dcf8e9;
+    }
+
+    .kpi-receivable {
+        --card-color: var(--axis-purple);
+        --card-soft: #eee7ff;
+    }
+
+    .kpi-payable {
+        --card-color: var(--axis-orange);
+        --card-soft: #fff0d8;
+    }
+
+    .axis-count-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(auto-fit, minmax(165px, 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .axis-count-card {
+        padding: 17px 18px;
+        border: 1px solid var(--axis-border);
+        border-radius: 14px;
+        background: var(--axis-white);
+        box-shadow: 0 7px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .axis-count-card span {
+        display: block;
+        color: var(--axis-muted);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .axis-count-card strong {
+        display: block;
+        margin-top: 7px;
+        color: var(--axis-navy);
+        font-size: 25px;
+    }
+
+    .axis-main-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.8fr);
+        gap: 18px;
+    }
+
+    .axis-panel {
+        padding: 20px;
+        margin-bottom: 18px;
+        border: 1px solid var(--axis-border);
+        border-radius: 16px;
+        background: var(--axis-white);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .axis-panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+
+    .axis-panel-heading h2 {
+        margin: 0;
+        color: var(--axis-text);
+        font-size: 17px;
+        font-weight: 800;
+    }
+
+    .axis-panel-heading small {
+        color: var(--axis-muted);
+    }
+
+    .axis-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .axis-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .axis-table th {
+        padding: 11px 10px;
+        background: var(--axis-navy);
+        color: var(--axis-white);
+        text-align: left;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .axis-table th:first-child {
+        border-radius: 9px 0 0 0;
+    }
+
+    .axis-table th:last-child {
+        border-radius: 0 9px 0 0;
+    }
+
+    .axis-table td {
+        background: #111d30;
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--axis-border);
+        color: #ffffff;
+        font-size: 12px;
+    }
+
+    .axis-status {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #ddf7e8;
+        color: var(--axis-green);
+        font-size: 10px;
+        font-weight: 900;
+    }
+
+    .axis-stat-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--axis-border);
+    }
+
+    .axis-stat-row:last-child {
+        border-bottom: 0;
+    }
+
+    .axis-stat-label {
+        color: var(--axis-muted);
+        font-size: 13px;
+    }
+
+    .axis-stat-value {
+        color: var(--axis-text);
+        font-size: 15px;
+        font-weight: 900;
+    }
+
+    .axis-progress {
+        height: 7px;
+        margin-top: 7px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #edf1f5;
+    }
+
+    .axis-progress-bar {
+        height: 100%;
+        border-radius: inherit;
+        background:
+            linear-gradient(
+                90deg,
+                var(--axis-blue),
+                #23a3da
+            );
+    }
+
+    .axis-stock-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--axis-border);
+    }
+
+    .axis-stock-row:last-child {
+        border-bottom: 0;
+    }
+
+    .axis-stock-product {
+        color: var(--axis-text);
+        font-weight: 750;
+    }
+
+    .axis-stock-warehouse {
+        margin-top: 4px;
+        color: var(--axis-muted);
+        font-size: 11px;
+    }
+
+    .axis-stock-quantity {
+        align-self: center;
+        min-width: 60px;
+        padding: 6px 9px;
+        border-radius: 8px;
+        background: #fee8e7;
+        color: var(--axis-red);
+        text-align: center;
+        font-weight: 900;
+    }
+
+    .axis-empty {
+        padding: 25px 0;
+        color: var(--axis-muted);
+        text-align: center;
+    }
+
+    .axis-health {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 13px 15px;
+        margin-bottom: 14px;
+        border-radius: 12px;
+        background: #e9f8f0;
+        color: var(--axis-green);
+        font-weight: 800;
+        font-size: 13px;
+    }
+
+    .axis-health-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--axis-green);
+        box-shadow: 0 0 0 5px rgba(19, 138, 83, 0.12);
+    }
+
+    @media (max-width: 1000px) {
+        .axis-main-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .axis-dashboard {
+            padding: 12px;
+        }
+
+        .axis-topbar {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .axis-company {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .axis-kpi-value {
+            font-size: 21px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="axis-dashboard">
+
+    <header class="axis-topbar">
+
+        <div>
+            <h1>CEO Executive Dashboard</h1>
+
+            <p>
+                Consolidated business overview for
+                {{ today|date:"l, d F Y" }}
+            </p>
+        </div>
+
+        <div class="axis-company">
+            <small>Active company</small>
+
+            <strong>
+                {% if company %}
+                    {{ company }}
+                {% else %}
+                    Company not assigned
+                {% endif %}
+            </strong>
+        </div>
+
+    </header>
+
+    <nav class="axis-navigation">
+
+        <a class="axis-nav-link" href="/dashboard/">
+            Overview
+        </a>
+
+        <a class="axis-nav-link" href="/dashboard/finance/">
+            Finance
+        </a>
+
+        <a class="axis-nav-link" href="/accounting/">
+            Accounting
+        </a>
+
+        <a class="axis-nav-link" href="/inventory/">
+            Inventory
+        </a>
+
+        <a class="axis-nav-link" href="/billing/">
+            Billing
+        </a>
+
+        <a class="axis-nav-link" href="/banking/">
+            Banking
+        </a>
+
+        <a class="axis-nav-link" href="/admin/">
+            Administration
+        </a>
+
+    </nav>
+
+    <section class="axis-kpi-grid">
+
+        <article class="axis-kpi kpi-bank">
+            <div class="axis-kpi-label">
+                Bank Balance
+            </div>
+
+            <div class="axis-kpi-value">
+                KES {{ bank_balance|floatformat:2 }}
+            </div>
+
+            <div class="axis-kpi-note">
+                Consolidated company bank position
+            </div>
+        </article>
+
+        <article class="axis-kpi kpi-stock">
+            <div class="axis-kpi-label">
+                Inventory Value
+            </div>
+
+            <div class="axis-kpi-value">
+                KES {{ inventory_value|floatformat:2 }}
+            </div>
+
+            <div class="axis-kpi-note">
+                Current warehouse stock valuation
+            </div>
+        </article>
+
+        <article class="axis-kpi kpi-receivable">
+            <div class="axis-kpi-label">
+                Customer Receivables
+            </div>
+
+            <div class="axis-kpi-value">
+                KES {{ receivables|floatformat:2 }}
+            </div>
+
+            <div class="axis-kpi-note">
+                Outstanding customer obligations
+            </div>
+        </article>
+
+        <article class="axis-kpi kpi-payable">
+            <div class="axis-kpi-label">
+                Supplier Payables
+            </div>
+
+            <div class="axis-kpi-value">
+                KES {{ payables|floatformat:2 }}
+            </div>
+
+            <div class="axis-kpi-note">
+                Outstanding supplier obligations
+            </div>
+        </article>
+
+    </section>
+
+    <section class="axis-count-grid">
+
+        <article class="axis-count-card">
+            <span>Customer invoices</span>
+            <strong>{{ invoice_count }}</strong>
+        </article>
+
+        <article class="axis-count-card">
+            <span>Supplier invoices</span>
+            <strong>{{ supplier_invoice_count }}</strong>
+        </article>
+
+        <article class="axis-count-card">
+            <span>Goods receipts</span>
+            <strong>{{ goods_receipt_count }}</strong>
+        </article>
+
+        <article class="axis-count-card">
+            <span>Stock movements</span>
+            <strong>{{ stock_movement_count }}</strong>
+        </article>
+
+        <article class="axis-count-card">
+            <span>Purchase orders</span>
+            <strong>{{ purchase_order_count }}</strong>
+        </article>
+
+        <article class="axis-count-card">
+            <span>Supplier payments</span>
+            <strong>{{ supplier_payment_count }}</strong>
+        </article>
+
+    </section>
+
+    <section class="axis-main-grid">
+
+        <div>
+
+            <article class="axis-panel">
+
+                <div class="axis-panel-heading">
+                    <h2>Recent Journal Activity</h2>
+                    <small>Latest accounting postings</small>
+                </div>
+
+                {% if recent_journals %}
+
+                <div class="axis-table-wrapper">
+
+                    <table class="axis-table">
+
+                        <thead>
+                            <tr>
+                                <th>Journal</th>
+                                <th>Reference</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                        {% for journal in recent_journals %}
+
+                            <tr>
+                                <td>
+                                    {{ journal.journal_number }}
+                                </td>
+
+                                <td>
+                                    {{ journal.reference|default:"—" }}
+                                </td>
+
+                                <td>
+                                    {{ journal.entry_date|date:"d M Y" }}
+                                </td>
+
+                                <td>
+                                    <span class="axis-status">
+                                        {{ journal.status }}
+                                    </span>
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                {% else %}
+
+                    <div class="axis-empty">
+                        No journal entries are available.
+                    </div>
+
+                {% endif %}
+
+            </article>
+
+        </div>
+
+        <aside>
+
+            <article class="axis-panel">
+
+                <div class="axis-panel-heading">
+                    <h2>System Status</h2>
+                </div>
+
+                <div class="axis-health">
+                    <span class="axis-health-dot"></span>
+                    ERP posting engine operational
+                </div>
+
+                <div class="axis-stat-row">
+                    <span class="axis-stat-label">
+                        Posted journals
+                    </span>
+
+                    <span class="axis-stat-value">
+                        {{ journal_count }}
+                    </span>
+                </div>
+
+                <div class="axis-stat-row">
+                    <span class="axis-stat-label">
+                        This month's journals
+                    </span>
+
+                    <span class="axis-stat-value">
+                        {{ monthly_journal_count }}
+                    </span>
+                </div>
+
+                <div class="axis-stat-row">
+                    <span class="axis-stat-label">
+                        Purchase orders
+                    </span>
+
+                    <span class="axis-stat-value">
+                        {{ purchase_order_count }}
+                    </span>
+                </div>
+
+                <div class="axis-stat-row">
+                    <span class="axis-stat-label">
+                        Supplier payments
+                    </span>
+
+                    <span class="axis-stat-value">
+                        {{ supplier_payment_count }}
+                    </span>
+                </div>
+
+            </article>
+
+            <article class="axis-panel">
+
+                <div class="axis-panel-heading">
+                    <h2>Low Stock Alerts</h2>
+
+                    <small>
+                        Quantity at or below 5
+                    </small>
+                </div>
+
+                {% if low_stock_items %}
+
+                    {% for balance in low_stock_items %}
+
+                        <div class="axis-stock-row">
+
+                            <div>
+                                <div class="axis-stock-product">
+                                    {{ balance.product }}
+                                </div>
+
+                                <div class="axis-stock-warehouse">
+                                    {{ balance.warehouse }}
+                                </div>
+                            </div>
+
+                            <div class="axis-stock-quantity">
+                                {{ balance.quantity|floatformat:3 }}
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="axis-empty">
+                        No low-stock items detected.
+                    </div>
+
+                {% endif %}
+
+            </article>
+
+        </aside>
+
+    </section>
+
+</div>
+
+{% endblock %}
+
+
+<style>
+    .axis-table tbody tr:nth-child(even) td {
+        background: #17263d;
+    }
+
+    .axis-table tbody tr:hover td {
+        background: #203655;
+    }
+
+    .axis-table td {
+        color: #ffffff !important;
+    }
+
+    .axis-table td:nth-child(2) {
+        font-weight: 700;
+    }
+</style>

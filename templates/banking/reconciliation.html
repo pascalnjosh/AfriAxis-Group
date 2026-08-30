@@ -1,10 +1,10 @@
 {% extends "base/erp.html" %}
 
-{% block title %}Bank Reconciliation{% endblock %}
+{% block title %}Bank Reconciliation • V7 • V7{% endblock %}
 
 {% block content %}
 
-<h1>Bank Reconciliation</h1>
+<h1>Bank Reconciliation • V7 • V7</h1>
 
 {% if bank_account %}
 <div class="grid">
@@ -88,7 +88,7 @@
 
 <p>
     <a href="{% url 'upload_statement' %}">
-        Upload Bank Statement
+        Upload Bank Statement • V7 • V7
     </a>
     |
     <a href="{% url 'approve_all_high_confidence' %}">
@@ -208,4 +208,8 @@
 </table>
 
 {% endblock %}
+
+
+
+
 

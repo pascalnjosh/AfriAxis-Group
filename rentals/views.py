@@ -1,3 +1,4 @@
+from django.views.decorators.http import require_POST
 from datetime import date
 
 from accounts.decorators import (
@@ -77,6 +78,7 @@ def _rents_for_user(request):
 
 
 @finance_required
+@require_POST
 def move_out_tenant(request, tenant_id):
     tenant = get_object_or_404(
         _tenants_for_user(request),
@@ -249,3 +251,4 @@ def rent_balance_report(request):
             "total_balance": total_balance,
         },
     )
+

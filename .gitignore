@@ -55,3 +55,46 @@ android_app/
 .idea/
 .DS_Store
 Thumbs.db
+
+# AfriAxis local/runtime
+__pycache__/
+*.py[cod]
+*.sqlite3
+db.sqlite3
+.env
+.env.*
+venv/
+.venv/
+
+# Backups / audits
+backups/
+final_build_backups/
+V7_AUDIT_PARTS/
+*.backup
+*.bak
+*.tmp
+*.phase2c_backup
+AFRIAXIS_*AUDIT*.txt
+AFRIAXIS_*SCAN*.txt
+AFRIAXIS_*REPORT*.txt
+AFRIAXIS_V7_FINAL_CLOSEOUT_*.txt
+
+# Local operational imports/exports
+AFRIAXIS_RENT_MASTER_PREVIEW.csv
+AFRIAXIS_V7_RENT_MASTER.csv
+BLUEVALLEY.xlsx
+EASTWARD.xlsx
+GULF.xlsx
+MUTHAIGA.xlsx
+
+# Android/build artifacts
+android/.gradle/
+android/app/build/
+node_modules/
+dist/
+
+# IDE / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

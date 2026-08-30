@@ -7,7 +7,6 @@ from django.http import HttpResponse
 from billing.forms import CommercialInvoiceForm, CommercialInvoiceLineFormSet
 from billing.models import Invoice, InvoicePayment
 from billing.services import create_commercial_invoice
-from billing.utils import apply_mpesa_to_invoice
 from rentals.models import Tenant
 
 
@@ -182,36 +181,40 @@ def tenant_status(request, tenant_id):
 
 @finance_required
 def pay_invoice(request, invoice_id):
+    """
+    AfriAxis V7:
+    General billing does NOT initiate or record M-Pesa payments.
+
+    M-Pesa is reserved for the Wi-Fi service flow only.
+
+    Rent, water and general invoice payments must originate from
+    bank reconciliation or another explicitly authorized
+    non-M-Pesa finance workflow.
+    """
 
     invoice = get_object_or_404(
         Invoice,
-        id=invoice_id
+        id=invoice_id,
     )
 
-    if request.method == "POST":
+    messages.warning(
+        request,
+        (
+            "Direct M-Pesa invoice payment is disabled. "
+            "Use bank reconciliation. "
+            "M-Pesa is reserved for Wi-Fi only."
+        ),
+    )
 
-        amount = request.POST.get("amount")
-        phone = request.POST.get("phone")
+    tenant = getattr(invoice, "tenant", None)
 
-        apply_mpesa_to_invoice(
-            phone_number=phone,
-            amount=amount,
-            receipt=f"MANUAL-{invoice.invoice_number}",
-            invoice=invoice,
-        )
-
+    if tenant:
         return redirect(
             "tenant_status",
-            tenant_id=invoice.tenant.id
+            tenant_id=tenant.id,
         )
 
-    return render(
-        request,
-        "pay_invoice.html",
-        {
-            "invoice": invoice,
-        }
-    )
+    return redirect("invoice_list")
 
 
 @finance_required
@@ -798,4 +801,7 @@ def receipt_detail(request, payment_id):
             "invoice": payment.invoice,
         },
     )
+
+
+
 

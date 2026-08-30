@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -505,7 +506,7 @@ td{
 }
 
 
-/* ===== AFRIAXIS V6 - GLOBAL DARK EXECUTIVE THEME ===== */
+/* ===== AFRIAXIS V7 - GLOBAL DARK EXECUTIVE THEME ===== */
 
 :root{
     --v6-bg:#07111f;
@@ -677,7 +678,7 @@ body{
     }
 
     .page-label::after{
-        content:"AFRIAXIS V6";
+        content:"AFRIAXIS V7";
         font-size:12px;
         font-weight:900;
         letter-spacing:.8px;
@@ -698,7 +699,7 @@ body{
 
 
 /* ============================================================
-   AFRIAXIS V6 - UNIVERSAL MODULE DARK SYSTEM
+   AFRIAXIS V7 - UNIVERSAL MODULE DARK SYSTEM
    Finance / Sales / Inventory / Manufacturing / Purchasing
    Payments / Rentals / Reports
    ============================================================ */
@@ -967,6 +968,7 @@ body{
 }
 
 </style>
+<link rel="stylesheet" href="{% static 'afriaxis/v7.css' %}">
 </head>
 
 <body>
@@ -1251,6 +1253,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 </body>
 </html>
+
+
 
 
 

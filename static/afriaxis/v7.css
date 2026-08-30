@@ -1,0 +1,952 @@
+/* ============================================================
+   AFRIAXIS ERP V7
+   Executive Intelligence Design System
+   ============================================================ */
+
+:root{
+    --ax-bg:#07111f;
+    --ax-bg2:#0a1626;
+    --ax-sidebar:#06101d;
+
+    --ax-card:#101e2f;
+    --ax-card2:#142438;
+    --ax-card3:#182b42;
+
+    --ax-line:#263a51;
+    --ax-line-soft:rgba(148,163,184,.14);
+
+    --ax-text:#f8fafc;
+    --ax-muted:#94a3b8;
+    --ax-soft:#cbd5e1;
+
+    --ax-green:#10b981;
+    --ax-green2:#34d399;
+
+    --ax-blue:#3b82f6;
+    --ax-cyan:#22d3ee;
+
+    --ax-gold:#f59e0b;
+    --ax-red:#ef4444;
+    --ax-purple:#8b5cf6;
+
+    --ax-radius:16px;
+    --ax-radius-sm:10px;
+
+    --ax-shadow:0 14px 42px rgba(0,0,0,.24);
+}
+
+
+/* ------------------------------------------------------------
+   RESET
+   ------------------------------------------------------------ */
+
+*{
+    box-sizing:border-box;
+}
+
+html{
+    background:var(--ax-bg);
+}
+
+body{
+    margin:0;
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(59,130,246,.10),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at bottom left,
+            rgba(16,185,129,.06),
+            transparent 30%
+        ),
+        linear-gradient(
+            180deg,
+            var(--ax-bg),
+            var(--ax-bg2)
+        ) !important;
+
+    color:var(--ax-text) !important;
+
+    font-family:
+        Inter,
+        "Segoe UI",
+        Arial,
+        Helvetica,
+        sans-serif !important;
+
+    -webkit-font-smoothing:antialiased;
+}
+
+
+h1,h2,h3,h4,h5,h6{
+    color:var(--ax-text) !important;
+    letter-spacing:-.02em;
+}
+
+p,label,small{
+    color:var(--ax-muted);
+}
+
+a{
+    color:#7dd3fc;
+}
+
+
+/* ------------------------------------------------------------
+   PAGE
+   ------------------------------------------------------------ */
+
+.ax-v7-page{
+    width:100%;
+    max-width:1700px;
+    margin:0 auto;
+}
+
+.ax-v7-page-head{
+    margin-bottom:22px;
+}
+
+.ax-v7-eyebrow{
+    color:var(--ax-green2);
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+}
+
+.ax-v7-title{
+    margin:6px 0 4px;
+    font-size:30px;
+    font-weight:900;
+}
+
+.ax-v7-subtitle{
+    margin:0;
+    color:var(--ax-muted);
+}
+
+
+/* ------------------------------------------------------------
+   HERO
+   ------------------------------------------------------------ */
+
+.ax-v7-hero{
+    position:relative;
+    overflow:hidden;
+
+    padding:30px;
+
+    border:
+        1px solid rgba(148,163,184,.18);
+
+    border-radius:22px;
+
+    background:
+        radial-gradient(
+            circle at 82% 8%,
+            rgba(59,130,246,.22),
+            transparent 33%
+        ),
+        radial-gradient(
+            circle at 8% 100%,
+            rgba(16,185,129,.18),
+            transparent 34%
+        ),
+        linear-gradient(
+            135deg,
+            #0b1b2f,
+            #081421
+        );
+
+    box-shadow:var(--ax-shadow);
+}
+
+.ax-v7-hero:after{
+    content:"V7";
+    position:absolute;
+    right:28px;
+    bottom:-32px;
+    font-size:150px;
+    font-weight:1000;
+    color:rgba(255,255,255,.025);
+    pointer-events:none;
+}
+
+
+/* ------------------------------------------------------------
+   CARDS
+   ------------------------------------------------------------ */
+
+.card,
+.panel,
+.box,
+.metric,
+.summary,
+.receipt,
+.ax-card,
+.ax-panel,
+.ax-kpi,
+.dashboard-card{
+
+    background:
+        linear-gradient(
+            145deg,
+            var(--ax-card2),
+            var(--ax-card)
+        ) !important;
+
+    color:var(--ax-text) !important;
+
+    border:
+        1px solid var(--ax-line) !important;
+
+    border-radius:
+        var(--ax-radius) !important;
+
+    box-shadow:
+        0 12px 32px rgba(0,0,0,.16) !important;
+}
+
+
+.ax-v7-kpis{
+    display:grid;
+    grid-template-columns:
+        repeat(5,minmax(0,1fr));
+    gap:14px;
+    margin:20px 0;
+}
+
+.ax-v7-kpi{
+    position:relative;
+    overflow:hidden;
+
+    padding:18px;
+
+    min-height:118px;
+
+    border:1px solid var(--ax-line);
+    border-radius:16px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #14263a,
+            #0d1a2a
+        );
+
+    box-shadow:
+        0 10px 28px rgba(0,0,0,.15);
+}
+
+.ax-v7-kpi-label{
+    display:block;
+
+    color:var(--ax-muted);
+
+    font-size:11px;
+    font-weight:800;
+
+    letter-spacing:.07em;
+    text-transform:uppercase;
+}
+
+.ax-v7-kpi-value{
+    display:block;
+
+    margin-top:12px;
+
+    color:white;
+
+    font-size:25px;
+    font-weight:900;
+
+    line-height:1.1;
+}
+
+.ax-v7-kpi-note{
+    display:block;
+    margin-top:8px;
+    color:var(--ax-muted);
+    font-size:11px;
+}
+
+
+/* ------------------------------------------------------------
+   KPI STATES
+   ------------------------------------------------------------ */
+
+.ax-positive,
+.green,
+.positive{
+    color:var(--ax-green2) !important;
+}
+
+.ax-warning,
+.warning{
+    color:var(--ax-gold) !important;
+}
+
+.ax-danger,
+.red,
+.danger{
+    color:#f87171 !important;
+}
+
+.ax-info{
+    color:#60a5fa !important;
+}
+
+
+/* ------------------------------------------------------------
+   TABLES
+   ------------------------------------------------------------ */
+
+.ax-table-wrap,
+.table-responsive{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+table{
+    width:100%;
+
+    border-collapse:separate !important;
+    border-spacing:0 !important;
+
+    background:var(--ax-card) !important;
+
+    color:var(--ax-text) !important;
+
+    border:
+        1px solid var(--ax-line) !important;
+
+    border-radius:14px;
+
+    overflow:hidden;
+}
+
+thead th,
+th{
+    background:#0c1928 !important;
+
+    color:#cbd5e1 !important;
+
+    border-color:var(--ax-line) !important;
+
+    font-size:11px;
+
+    letter-spacing:.055em;
+    text-transform:uppercase;
+
+    padding:12px !important;
+
+    white-space:nowrap;
+}
+
+tbody td,
+td{
+    background:var(--ax-card) !important;
+
+    color:#e5edf7 !important;
+
+    border-color:var(--ax-line-soft) !important;
+
+    padding:12px !important;
+
+    vertical-align:middle;
+}
+
+tbody tr:nth-child(even) td{
+    background:#0f1c2c !important;
+}
+
+tbody tr:hover td{
+    background:#17283d !important;
+}
+
+
+/* ------------------------------------------------------------
+   FORMS
+   ------------------------------------------------------------ */
+
+input,
+select,
+textarea{
+
+    width:100%;
+
+    min-height:44px;
+
+    padding:10px 12px;
+
+    background:#091624 !important;
+
+    color:white !important;
+
+    border:
+        1px solid #31465f !important;
+
+    border-radius:10px !important;
+
+    outline:none;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+    border-color:var(--ax-blue) !important;
+
+    box-shadow:
+        0 0 0 3px rgba(59,130,246,.13);
+}
+
+input::placeholder,
+textarea::placeholder{
+    color:#64748b !important;
+}
+
+select option{
+    background:#101e2f;
+    color:white;
+}
+
+
+/* ------------------------------------------------------------
+   BUTTONS
+   ------------------------------------------------------------ */
+
+button,
+.btn,
+.button,
+input[type="submit"]{
+
+    display:inline-flex;
+
+    align-items:center;
+    justify-content:center;
+
+    gap:7px;
+
+    min-height:42px;
+
+    padding:9px 15px !important;
+
+    border:0 !important;
+
+    border-radius:10px !important;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #3b82f6
+        ) !important;
+
+    color:white !important;
+
+    font-weight:800 !important;
+
+    text-decoration:none !important;
+
+    cursor:pointer;
+}
+
+button:hover,
+.btn:hover,
+.button:hover{
+    filter:brightness(1.08);
+}
+
+.btn-success{
+    background:
+        linear-gradient(
+            135deg,
+            #059669,
+            #10b981
+        ) !important;
+}
+
+.btn-danger{
+    background:
+        linear-gradient(
+            135deg,
+            #b91c1c,
+            #ef4444
+        ) !important;
+
+    color:white !important;
+}
+
+.btn-warning{
+    background:
+        linear-gradient(
+            135deg,
+            #d97706,
+            #f59e0b
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   STATUS
+   ------------------------------------------------------------ */
+
+.ax-status,
+.status,
+.badge{
+    display:inline-flex;
+
+    align-items:center;
+
+    min-height:26px;
+
+    padding:4px 9px;
+
+    border-radius:999px;
+
+    background:#17283d;
+
+    color:#dbeafe;
+
+    border:1px solid #2d435c;
+
+    font-size:10px;
+
+    font-weight:900;
+
+    letter-spacing:.05em;
+
+    text-transform:uppercase;
+}
+
+.ax-status-green{
+    color:#6ee7b7 !important;
+    border-color:rgba(16,185,129,.35);
+    background:rgba(16,185,129,.10);
+}
+
+.ax-status-red{
+    color:#fca5a5 !important;
+    border-color:rgba(239,68,68,.35);
+    background:rgba(239,68,68,.10);
+}
+
+.ax-status-yellow{
+    color:#fcd34d !important;
+    border-color:rgba(245,158,11,.35);
+    background:rgba(245,158,11,.10);
+}
+
+
+/* ------------------------------------------------------------
+   MODULE ACCENTS
+   ------------------------------------------------------------ */
+
+body.ax-sales{
+    --ax-module:#2563eb;
+}
+
+body.ax-purchasing{
+    --ax-module:#f59e0b;
+}
+
+body.ax-inventory{
+    --ax-module:#14b8a6;
+}
+
+body.ax-manufacturing{
+    --ax-module:#6366f1;
+}
+
+body.ax-banking{
+    --ax-module:#06b6d4;
+}
+
+body.ax-accounting{
+    --ax-module:#16a34a;
+}
+
+body.ax-rentals{
+    --ax-module:#be123c;
+}
+
+body.ax-payments{
+    --ax-module:#10b981;
+}
+
+body.ax-wifi{
+    --ax-module:#8b5cf6;
+}
+
+
+/* ------------------------------------------------------------
+   MOBILE
+   ------------------------------------------------------------ */
+
+@media(max-width:1100px){
+
+    .ax-v7-kpis{
+        grid-template-columns:
+            repeat(3,minmax(0,1fr));
+    }
+
+}
+
+
+@media(max-width:760px){
+
+    body{
+        font-size:13px;
+    }
+
+    .ax-v7-hero{
+        padding:19px;
+        border-radius:16px;
+    }
+
+    .ax-v7-title{
+        font-size:23px;
+    }
+
+    .ax-v7-kpis{
+        grid-template-columns:1fr;
+        gap:10px;
+    }
+
+    .ax-v7-kpi{
+        min-height:auto;
+        padding:15px;
+    }
+
+    .ax-v7-kpi-value{
+        font-size:22px;
+    }
+
+    .card,
+    .panel,
+    .box,
+    .metric,
+    .summary,
+    .receipt,
+    .ax-card,
+    .ax-panel{
+        padding:13px !important;
+        border-radius:13px !important;
+    }
+
+    .ax-table-wrap,
+    .table-responsive{
+        margin-left:-2px;
+        margin-right:-2px;
+    }
+
+    table{
+        min-width:650px;
+        font-size:11px !important;
+    }
+
+    th,
+    td{
+        padding:9px !important;
+    }
+
+    input,
+    select,
+    textarea{
+        min-height:46px;
+        font-size:16px !important;
+    }
+
+    button,
+    .btn,
+    .button{
+        min-height:44px;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   SMALL PHONE
+   ------------------------------------------------------------ */
+
+@media(max-width:430px){
+
+    .ax-v7-title{
+        font-size:21px;
+    }
+
+    .ax-v7-hero:after{
+        font-size:96px;
+    }
+
+}
+
+
+/* ------------------------------------------------------------
+   PRINT
+   ------------------------------------------------------------ */
+
+@media print{
+
+    body{
+        background:white !important;
+        color:black !important;
+    }
+
+    .no-print{
+        display:none !important;
+    }
+}
+
+/* ============================================================
+   AFRIAXIS V7 - EXECUTIVE READABILITY FINAL
+   ============================================================ */
+
+body,
+.ax-shell,
+.ax-main,
+.ax-content{
+    color:#f8fafc !important;
+}
+
+
+/* EVERYTHING INSIDE DARK EXECUTIVE AREAS */
+
+.ax-shell h1,
+.ax-shell h2,
+.ax-shell h3,
+.ax-shell h4,
+.ax-shell h5,
+.ax-shell h6,
+
+.ax-main h1,
+.ax-main h2,
+.ax-main h3,
+.ax-main h4,
+.ax-main h5,
+.ax-main h6,
+
+.ax-content h1,
+.ax-content h2,
+.ax-content h3,
+.ax-content h4,
+.ax-content h5,
+.ax-content h6,
+
+.ax-section-title{
+    color:#ffffff !important;
+    opacity:1 !important;
+}
+
+
+/* SECONDARY TEXT */
+
+.ax-section-note,
+.ax-subtitle,
+.ax-muted,
+.ax-meta,
+.ax-card p,
+.ax-panel p{
+    color:#cbd5e1 !important;
+    opacity:1 !important;
+}
+
+
+/* EXECUTIVE CARDS */
+
+.ax-card,
+.ax-panel,
+.ax-company-card,
+.ax-module-card,
+.ax-business-card,
+.ax-metric,
+.ax-kpi,
+.dashboard-card{
+
+    background:
+        linear-gradient(
+            145deg,
+            #14263a,
+            #0d1a2a
+        ) !important;
+
+    color:#f8fafc !important;
+
+    border:
+        1px solid #29415c !important;
+
+    box-shadow:
+        0 12px 28px rgba(0,0,0,.20) !important;
+}
+
+
+/* FORCE TEXT INSIDE CARDS TO BE READABLE */
+
+.ax-card *,
+.ax-panel *,
+.ax-company-card *,
+.ax-module-card *,
+.ax-business-card *,
+.ax-metric *,
+.ax-kpi *,
+.dashboard-card *{
+    opacity:1;
+}
+
+
+/* PRIMARY NUMBERS */
+
+.ax-card strong,
+.ax-panel strong,
+.ax-company-card strong,
+.ax-business-card strong,
+.ax-metric strong,
+.ax-kpi-value,
+.metric-value,
+.kpi-value,
+.value{
+    color:#ffffff !important;
+}
+
+
+/* LABELS */
+
+.ax-card small,
+.ax-panel small,
+.ax-company-card small,
+.ax-module-card small,
+.ax-business-card small,
+.ax-metric small,
+.ax-kpi-label,
+.metric-label,
+.kpi-label,
+.label{
+    color:#cbd5e1 !important;
+}
+
+
+/* LINKS */
+
+.ax-card a,
+.ax-panel a,
+.ax-company-card a,
+.ax-module-card a{
+    color:#7dd3fc !important;
+}
+
+
+/* TABLE READABILITY */
+
+.ax-table,
+.ax-table table,
+table{
+    background:#0d1a2a !important;
+    color:#f8fafc !important;
+}
+
+.ax-table th,
+table th{
+    background:#091522 !important;
+    color:#e2e8f0 !important;
+    font-weight:800 !important;
+}
+
+.ax-table td,
+table td{
+    background:#102033 !important;
+    color:#f1f5f9 !important;
+}
+
+.ax-table tbody tr:nth-child(even) td,
+table tbody tr:nth-child(even) td{
+    background:#0c1a2a !important;
+}
+
+
+/* STATUS */
+
+.ax-status-green{
+    color:#6ee7b7 !important;
+    background:rgba(16,185,129,.15) !important;
+}
+
+.ax-status-red{
+    color:#fca5a5 !important;
+    background:rgba(239,68,68,.15) !important;
+}
+
+.ax-status-yellow{
+    color:#fde68a !important;
+    background:rgba(245,158,11,.15) !important;
+}
+
+
+/* COMPANY HEADINGS */
+
+.ax-company-card h2,
+.ax-company-card h3,
+.ax-business-card h2,
+.ax-business-card h3{
+    color:#ffffff !important;
+}
+
+
+/* MODULE CARDS */
+
+.ax-module-card{
+    min-height:130px;
+}
+
+.ax-module-card:hover{
+    transform:translateY(-2px);
+    border-color:#3b82f6 !important;
+}
+
+
+/* REMOVE GIANT WHITE SCROLLBAR APPEARANCE */
+
+.ax-table-wrap{
+    scrollbar-width:thin;
+    scrollbar-color:#334155 #0b1726;
+}
+
+.ax-table-wrap::-webkit-scrollbar{
+    height:8px;
+}
+
+.ax-table-wrap::-webkit-scrollbar-track{
+    background:#0b1726;
+}
+
+.ax-table-wrap::-webkit-scrollbar-thumb{
+    background:#334155;
+    border-radius:999px;
+}
+
+
+/* MOBILE */
+
+@media(max-width:760px){
+
+    .ax-card,
+    .ax-panel,
+    .ax-company-card,
+    .ax-module-card,
+    .ax-business-card{
+        background:#102033 !important;
+    }
+
+    .ax-module-card{
+        min-height:auto;
+    }
+
+    .ax-company-card strong,
+    .ax-business-card strong,
+    .ax-kpi-value{
+        font-size:20px !important;
+    }
+}
+

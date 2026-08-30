@@ -1,0 +1,130 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Billing SMS | AfriAxis V7
+{% endblock %}
+
+{% block content %}
+
+<div class="ax-page">
+
+    <div class="ax-hero">
+        <div>
+            <div class="ax-eyebrow">
+                AFRIAXIS V7 — AFRICORE HEIGHTS
+            </div>
+
+            <h1>Billing & SMS Control</h1>
+
+            <p>
+                Rent, water and Wi-Fi billing communication.
+            </p>
+        </div>
+    </div>
+
+    <div class="ax-grid ax-grid-5">
+
+        <div class="ax-card">
+            <small>Total Messages</small>
+            <strong>{{ total }}</strong>
+        </div>
+
+        <div class="ax-card">
+            <small>Queued</small>
+            <strong>{{ queued }}</strong>
+        </div>
+
+        <div class="ax-card">
+            <small>Test</small>
+            <strong>{{ test }}</strong>
+        </div>
+
+        <div class="ax-card">
+            <small>Sent</small>
+            <strong>{{ sent }}</strong>
+        </div>
+
+        <div class="ax-card">
+            <small>Failed</small>
+            <strong>{{ failed }}</strong>
+        </div>
+
+    </div>
+
+    <div class="ax-panel">
+
+        <h2>SMS History</h2>
+
+        <div class="ax-table-wrap">
+
+            <table class="ax-table">
+
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Recipient</th>
+                        <th>Phone</th>
+                        <th>Reference</th>
+                        <th>Status</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for row in rows %}
+
+                    <tr>
+
+                        <td>
+                            {{ row.created_at|date:"d M Y H:i" }}
+                        </td>
+
+                        <td>
+                            {{ row.get_bill_type_display }}
+                        </td>
+
+                        <td>
+                            {{ row.recipient_name|default:"-" }}
+                        </td>
+
+                        <td>
+                            {{ row.phone_number }}
+                        </td>
+
+                        <td>
+                            {{ row.reference|default:"-" }}
+                        </td>
+
+                        <td>
+                            {{ row.get_status_display }}
+                        </td>
+
+                        <td style="white-space:pre-line;">
+                            {{ row.message }}
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+                        <td colspan="7">
+                            No billing SMS messages yet.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
