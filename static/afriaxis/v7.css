@@ -950,3 +950,225 @@ table tbody tr:nth-child(even) td{
     }
 }
 
+
+/* ==========================================================
+   AFRIAXIS V7 — PROFESSIONAL WORKSPACE IDENTITY
+   ========================================================== */
+
+.v7-workspace-shell {
+    position: relative;
+    z-index: 80;
+    min-height: 104px;
+    padding: 18px 26px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(7, 18, 38, .98),
+            rgba(13, 31, 57, .96)
+        );
+    border-bottom: 1px solid rgba(148, 163, 184, .18);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, .20);
+}
+
+.v7-workspace-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.v7-workspace-emblem {
+    width: 58px;
+    height: 58px;
+    min-width: 58px;
+    border-radius: 17px;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,.18);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.14),
+        0 8px 24px rgba(0,0,0,.22);
+}
+
+.workspace-group .v7-workspace-emblem {
+    background: linear-gradient(145deg, #2563eb, #1d4ed8);
+}
+
+.workspace-africore .v7-workspace-emblem {
+    background: linear-gradient(145deg, #0891b2, #0369a1);
+}
+
+.workspace-fairlane .v7-workspace-emblem {
+    background: linear-gradient(145deg, #16a34a, #15803d);
+}
+
+.v7-workspace-copy {
+    min-width: 0;
+}
+
+.v7-workspace-eyebrow {
+    margin-bottom: 5px;
+    font-size: 10px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: .20em;
+    color: #94a3b8;
+}
+
+.v7-workspace-title {
+    font-size: clamp(18px, 2vw, 26px);
+    line-height: 1.1;
+    font-weight: 900;
+    letter-spacing: -.025em;
+    color: #ffffff;
+}
+
+.v7-workspace-subtitle {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.v7-workspace-meta {
+    max-width: 420px;
+    text-align: right;
+}
+
+.v7-workspace-department {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    color: #e2e8f0;
+}
+
+.v7-workspace-role,
+.v7-workspace-job,
+.v7-workspace-user {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.v7-workspace-user strong {
+    color: #f8fafc;
+}
+
+.v7-context-strip {
+    position: relative;
+    z-index: 79;
+    padding: 8px 26px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    overflow-x: auto;
+    white-space: nowrap;
+    background: #0b1424;
+    border-bottom: 1px solid rgba(148,163,184,.12);
+}
+
+.v7-context-strip span {
+    padding-right: 16px;
+    border-right: 1px solid rgba(148,163,184,.25);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .16em;
+    color: #64748b;
+}
+
+.v7-context-strip strong {
+    font-size: 11px;
+    font-weight: 700;
+    color: #cbd5e1;
+}
+
+.v7-context-strip.workspace-fairlane strong {
+    color: #bbf7d0;
+}
+
+.v7-context-strip.workspace-africore strong {
+    color: #bae6fd;
+}
+
+.v7-context-strip.workspace-group strong {
+    color: #bfdbfe;
+}
+
+
+/* Better business-content terminology */
+
+.workspace-fairlane .page-title::after {
+    content: " · Fairlane Operations";
+    font-size: .55em;
+    font-weight: 600;
+    color: #86efac;
+}
+
+.workspace-africore .page-title::after {
+    content: " · Africore Heights";
+    font-size: .55em;
+    font-weight: 600;
+    color: #7dd3fc;
+}
+
+
+/* Responsive */
+
+@media (max-width: 900px) {
+
+    .v7-workspace-shell {
+        padding: 15px 16px;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .v7-workspace-meta {
+        max-width: none;
+        width: 100%;
+        text-align: left;
+        padding-left: 74px;
+    }
+
+    .v7-context-strip {
+        padding-left: 16px;
+        padding-right: 16px;
+        gap: 14px;
+    }
+}
+
+@media (max-width: 560px) {
+
+    .v7-workspace-emblem {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        border-radius: 14px;
+        font-size: 13px;
+    }
+
+    .v7-workspace-title {
+        font-size: 17px;
+    }
+
+    .v7-workspace-subtitle {
+        font-size: 11px;
+    }
+
+    .v7-workspace-eyebrow {
+        font-size: 8px;
+    }
+
+    .v7-workspace-meta {
+        padding-left: 64px;
+    }
+}
+

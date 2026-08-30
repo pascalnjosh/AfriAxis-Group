@@ -973,6 +973,107 @@ body{
 
 <body>
 
+<!-- AFRIAXIS-V7-WORKSPACE-IDENTITY -->
+<div class="v7-workspace-shell workspace-{{ workspace_type }}">
+
+    <div class="v7-workspace-brand">
+
+        <div class="v7-workspace-emblem">
+            {% if workspace_type == "fairlane" %}
+                FAS
+            {% elif workspace_type == "africore" %}
+                AH
+            {% else %}
+                AX
+            {% endif %}
+        </div>
+
+        <div class="v7-workspace-copy">
+
+            <div class="v7-workspace-eyebrow">
+                AFRIAXIS V7 · BUSINESS WORKSPACE
+            </div>
+
+            <div class="v7-workspace-title">
+                {{ workspace_name }}
+            </div>
+
+            <div class="v7-workspace-subtitle">
+                {{ workspace_subtitle }}
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="v7-workspace-meta">
+
+        <div class="v7-workspace-department">
+            {{ workspace_department }}
+        </div>
+
+        {% if workspace_role %}
+        <div class="v7-workspace-role">
+            {{ workspace_role }}
+        </div>
+        {% endif %}
+
+        {% if workspace_job_title %}
+        <div class="v7-workspace-job">
+            {{ workspace_job_title }}
+        </div>
+        {% endif %}
+
+        {% if request.user.is_authenticated %}
+        <div class="v7-workspace-user">
+            Signed in as
+            <strong>
+                {{ request.user.get_full_name|default:request.user.username }}
+            </strong>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+<div class="v7-context-strip workspace-{{ workspace_type }}">
+
+    {% if workspace_type == "fairlane" %}
+
+        <span>FAIRLANE OPERATIONS</span>
+        <strong>Products</strong>
+        <strong>Raw Materials</strong>
+        <strong>Manufacturing</strong>
+        <strong>Inventory</strong>
+        <strong>Purchasing</strong>
+        <strong>Sales & Delivery</strong>
+
+    {% elif workspace_type == "africore" %}
+
+        <span>AFRICORE OPERATIONS</span>
+        <strong>Properties</strong>
+        <strong>Tenants</strong>
+        <strong>Rent</strong>
+        <strong>Water</strong>
+        <strong>Wi-Fi</strong>
+        <strong>Collections</strong>
+
+    {% else %}
+
+        <span>GROUP EXECUTIVE</span>
+        <strong>Executive Intelligence</strong>
+        <strong>Finance</strong>
+        <strong>Analytics</strong>
+        <strong>Controls</strong>
+        <strong>Companies</strong>
+
+    {% endif %}
+
+</div>
+<!-- /AFRIAXIS-V7-WORKSPACE-IDENTITY -->
+
+
 <div class="app-shell">
 
 <aside class="sidebar" id="sidebar">
@@ -1253,6 +1354,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 </body>
 </html>
+
 
 
 
