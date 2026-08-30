@@ -148,6 +148,431 @@ def process_pdf_statement(statement_upload):
     )
 
 
+
+def _statement_clean_column(value):
+    import re
+
+    value = str(value or "").strip().lower()
+
+    value = re.sub(
+        r"[\s\-_./]+",
+        " ",
+        value,
+    )
+
+    return value.strip()
+
+
+def _statement_decimal(value):
+    from decimal import Decimal, InvalidOperation
+
+    if value is None:
+        return Decimal("0.00")
+
+    try:
+        # pandas NaN
+        if value != value:
+            return Decimal("0.00")
+    except Exception:
+        pass
+
+    value = str(value).strip()
+
+    if not value:
+        return Decimal("0.00")
+
+    negative = False
+
+    if value.startswith("(") and value.endswith(")"):
+        negative = True
+        value = value[1:-1]
+
+    value = (
+        value
+        .replace(",", "")
+        .replace("KES", "")
+        .replace("KSH", "")
+        .replace("KSh", "")
+        .strip()
+    )
+
+    try:
+        amount = Decimal(value)
+    except (InvalidOperation, ValueError, TypeError):
+        return Decimal("0.00")
+
+    if negative:
+        amount = -amount
+
+    return amount
+
+
+def _find_statement_column(columns, candidates):
+    normalized = {
+        _statement_clean_column(column): column
+        for column in columns
+    }
+
+    # Exact normalized match first.
+    for candidate in candidates:
+        key = _statement_clean_column(candidate)
+
+        if key in normalized:
+            return normalized[key]
+
+    # Then safe contains match.
+    for candidate in candidates:
+        key = _statement_clean_column(candidate)
+
+        for normalized_name, original in normalized.items():
+            if (
+                key
+                and (
+                    key in normalized_name
+                    or normalized_name in key
+                )
+            ):
+                return original
+
+    return None
+
+
+def _read_tabular_statement(statement_upload):
+    import pandas as pd
+
+    filename = statement_upload.file.name.lower()
+
+    statement_upload.file.open("rb")
+
+    try:
+        if filename.endswith(".csv"):
+            try:
+                dataframe = pd.read_csv(
+                    statement_upload.file,
+                )
+            except UnicodeDecodeError:
+                statement_upload.file.seek(0)
+
+                dataframe = pd.read_csv(
+                    statement_upload.file,
+                    encoding="latin1",
+                )
+
+        elif filename.endswith((".xlsx", ".xls")):
+            dataframe = pd.read_excel(
+                statement_upload.file,
+            )
+
+        else:
+            raise ValueError(
+                "Unsupported tabular bank statement format."
+            )
+
+    finally:
+        try:
+            statement_upload.file.close()
+        except Exception:
+            pass
+
+    # Remove completely empty rows/columns.
+    dataframe = dataframe.dropna(
+        axis=0,
+        how="all",
+    )
+
+    dataframe = dataframe.dropna(
+        axis=1,
+        how="all",
+    )
+
+    if dataframe.empty:
+        raise ValueError(
+            "The uploaded bank statement contains no transaction rows."
+        )
+
+    return dataframe
+
+
+def process_tabular_statement(statement_upload):
+    """
+    Import CSV/XLS/XLSX bank statements into BankTransaction.
+
+    The importer intentionally does NOT approve transactions.
+    Every imported row remains in reconciliation workflow.
+    """
+
+    from django.db import transaction as db_transaction
+    from django.utils.dateparse import parse_date
+
+    import pandas as pd
+
+    from banking.models import BankTransaction
+
+    dataframe = _read_tabular_statement(
+        statement_upload
+    )
+
+    columns = list(dataframe.columns)
+
+    date_column = _find_statement_column(
+        columns,
+        (
+            "transaction date",
+            "date",
+            "value date",
+            "posting date",
+            "posted date",
+            "tran date",
+        ),
+    )
+
+    description_column = _find_statement_column(
+        columns,
+        (
+            "description",
+            "transaction details",
+            "details",
+            "narration",
+            "transaction description",
+            "remarks",
+            "particulars",
+        ),
+    )
+
+    reference_column = _find_statement_column(
+        columns,
+        (
+            "reference",
+            "transaction reference",
+            "ref",
+            "transaction id",
+            "transaction number",
+            "cheque number",
+        ),
+    )
+
+    money_in_column = _find_statement_column(
+        columns,
+        (
+            "money in",
+            "credit",
+            "credit amount",
+            "deposit",
+            "deposits",
+            "amount credit",
+            "paid in",
+        ),
+    )
+
+    money_out_column = _find_statement_column(
+        columns,
+        (
+            "money out",
+            "debit",
+            "debit amount",
+            "withdrawal",
+            "withdrawals",
+            "amount debit",
+            "paid out",
+        ),
+    )
+
+    amount_column = _find_statement_column(
+        columns,
+        (
+            "amount",
+            "transaction amount",
+        ),
+    )
+
+    balance_column = _find_statement_column(
+        columns,
+        (
+            "balance",
+            "running balance",
+            "closing balance",
+            "book balance",
+        ),
+    )
+
+    if not date_column:
+        raise ValueError(
+            "Could not identify the transaction-date column. "
+            "Expected a heading such as Date, Transaction Date "
+            "or Value Date."
+        )
+
+    if not description_column:
+        raise ValueError(
+            "Could not identify the transaction-description column. "
+            "Expected Description, Details or Narration."
+        )
+
+    if not (
+        money_in_column
+        or money_out_column
+        or amount_column
+    ):
+        raise ValueError(
+            "Could not identify transaction amounts. "
+            "Expected Credit/Debit, Money In/Money Out, "
+            "or Amount columns."
+        )
+
+    created = 0
+    skipped = 0
+
+    bank_account = statement_upload.bank_account
+
+    with db_transaction.atomic():
+
+        for index, row in dataframe.iterrows():
+
+            raw_date = row.get(date_column)
+
+            parsed = pd.to_datetime(
+                raw_date,
+                errors="coerce",
+                dayfirst=True,
+            )
+
+            if pd.isna(parsed):
+                skipped += 1
+                continue
+
+            transaction_date = parsed.date()
+
+            description = str(
+                row.get(description_column) or ""
+            ).strip()
+
+            if description.lower() == "nan":
+                description = ""
+
+            reference = ""
+
+            if reference_column:
+                reference = str(
+                    row.get(reference_column) or ""
+                ).strip()
+
+                if reference.lower() == "nan":
+                    reference = ""
+
+            money_in = (
+                _statement_decimal(
+                    row.get(money_in_column)
+                )
+                if money_in_column
+                else _statement_decimal(None)
+            )
+
+            money_out = (
+                _statement_decimal(
+                    row.get(money_out_column)
+                )
+                if money_out_column
+                else _statement_decimal(None)
+            )
+
+            # Statements with one signed Amount column:
+            # positive = incoming, negative = outgoing.
+            if (
+                amount_column
+                and not money_in_column
+                and not money_out_column
+            ):
+                amount = _statement_decimal(
+                    row.get(amount_column)
+                )
+
+                if amount >= 0:
+                    money_in = amount
+                    money_out = _statement_decimal(None)
+                else:
+                    money_in = _statement_decimal(None)
+                    money_out = abs(amount)
+
+            money_in = abs(money_in)
+            money_out = abs(money_out)
+
+            balance = (
+                _statement_decimal(
+                    row.get(balance_column)
+                )
+                if balance_column
+                else _statement_decimal(None)
+            )
+
+            if (
+                money_in == 0
+                and money_out == 0
+                and not description
+            ):
+                skipped += 1
+                continue
+
+            # Generate a stable fallback reference when the bank
+            # statement itself has no transaction reference.
+            if not reference:
+                reference = (
+                    f"IMPORT-"
+                    f"{transaction_date:%Y%m%d}-"
+                    f"{statement_upload.pk}-"
+                    f"{index + 1}"
+                )
+
+            defaults = {
+                "statement_upload": statement_upload,
+                "description": description,
+                "money_in": money_in,
+                "money_out": money_out,
+                "balance": balance,
+            }
+
+            lookup = {
+                "bank_account": bank_account,
+                "transaction_date": transaction_date,
+                "reference": reference,
+            }
+
+            bank_transaction, was_created = (
+                BankTransaction.objects.get_or_create(
+                    defaults=defaults,
+                    **lookup,
+                )
+            )
+
+            if not was_created:
+                skipped += 1
+                continue
+
+            # Existing AfriAxis matching logic.
+            try:
+                match_erp_bank_transaction(
+                    bank_transaction
+                )
+            except Exception as exc:
+                bank_transaction.match_notes = (
+                    "Imported successfully; automatic matching "
+                    f"could not complete: {exc}"
+                )
+
+                bank_transaction.save(
+                    update_fields=[
+                        "match_notes",
+                    ]
+                )
+
+            created += 1
+
+    return {
+        "created": created,
+        "skipped": skipped,
+        "total_rows": len(dataframe.index),
+    }
+
+
 def process_bank_statement(statement_upload):
     filename = statement_upload.file.name.lower()
 
@@ -156,8 +581,20 @@ def process_bank_statement(statement_upload):
             statement_upload
         )
 
+    if filename.endswith(
+        (
+            ".csv",
+            ".xlsx",
+            ".xls",
+        )
+    ):
+        return process_tabular_statement(
+            statement_upload
+        )
+
     raise ValueError(
-        "Only PDF processing is active right now."
+        "Unsupported statement format. "
+        "Upload PDF, CSV, XLSX or XLS."
     )
 
 
