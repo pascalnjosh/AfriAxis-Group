@@ -316,3 +316,103 @@ def audit_workspace(request):
         "controls/audit_workspace.html",
         context,
     )
+
+@login_required
+def fairlane_management(request):
+    """
+    Fairlane executive/management structure.
+
+    This screen displays existing assignments only.
+    It does not manufacture users or passwords.
+    """
+
+    if not _allowed(
+        request.user,
+        {
+            "MD",
+            "CEO",
+            "GM",
+            "MANAGER",
+        },
+    ):
+        return render(
+            request,
+            "controls/access_denied.html",
+            {
+                "area": "Fairlane Management",
+            },
+            status=403,
+        )
+
+    CompanyAssignment = _model(
+        "accounts",
+        "CompanyAssignment",
+    )
+
+    assignments = []
+
+    if CompanyAssignment is not None:
+        assignments = list(
+            CompanyAssignment.objects
+            .filter(
+                active=True,
+                company__name__icontains="FAIRLANE",
+                role__in=[
+                    "MD",
+                    "CEO",
+                    "GM",
+                    "MANAGER",
+                ],
+            )
+            .select_related(
+                "user",
+                "company",
+            )
+            .order_by(
+                "role",
+                "user__username",
+            )
+        )
+
+    by_role = {}
+
+    for item in assignments:
+        by_role.setdefault(
+            item.role,
+            [],
+        ).append(item)
+
+    management_slots = [
+        {
+            "code": "MD",
+            "name": "Managing Director",
+            "people": by_role.get("MD", []),
+        },
+        {
+            "code": "CEO",
+            "name": "Chief Executive Officer",
+            "people": by_role.get("CEO", []),
+        },
+        {
+            "code": "GM",
+            "name": "General Manager",
+            "people": by_role.get("GM", []),
+        },
+        {
+            "code": "MANAGER",
+            "name": "Manager",
+            "people": by_role.get("MANAGER", []),
+        },
+    ]
+
+    return render(
+        request,
+        "controls/fairlane_management.html",
+        {
+            "management_slots":
+                management_slots,
+
+            "assignment_count":
+                len(assignments),
+        },
+    )

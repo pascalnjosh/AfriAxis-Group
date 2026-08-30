@@ -1,0 +1,159 @@
+{% extends "base/erp.html" %}
+
+{% block title %}
+Fairlane Management | AfriAxis V7
+{% endblock %}
+
+{% block content %}
+
+<div class="control-page">
+
+    <section class="control-hero">
+
+        <div>
+            <div class="control-kicker">
+                FAIRLANE AGRISERVICE AND SUPPLIERS
+            </div>
+
+            <h1>
+                Fairlane Management
+            </h1>
+
+            <p>
+                Executive leadership and management
+                structure for the Agriculture,
+                Manufacturing, Sales and Supply
+                operations workspace.
+            </p>
+        </div>
+
+        <div class="control-status">
+            <span class="control-dot"></span>
+            {{ assignment_count }} assigned
+        </div>
+
+    </section>
+
+
+    <section class="fas-management-grid">
+
+        {% for slot in management_slots %}
+
+        <article class="fas-manager-card">
+
+            <div class="fas-manager-code">
+                {{ slot.code }}
+            </div>
+
+            <h2>
+                {{ slot.name }}
+            </h2>
+
+            {% if slot.people %}
+
+                {% for person in slot.people %}
+
+                <div class="fas-manager-person">
+
+                    <strong>
+                        {% if person.user.get_full_name %}
+                            {{ person.user.get_full_name }}
+                        {% else %}
+                            {{ person.user.username }}
+                        {% endif %}
+                    </strong>
+
+                    <span>
+                        {{ person.job_title|default:slot.name }}
+                    </span>
+
+                    <small>
+                        User: {{ person.user.username }}
+                    </small>
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="fas-manager-empty">
+
+                    <strong>
+                        Not assigned
+                    </strong>
+
+                    <span>
+                        This management position
+                        is available for assignment.
+                    </span>
+
+                </div>
+
+            {% endif %}
+
+        </article>
+
+        {% endfor %}
+
+    </section>
+
+
+    {% if request.user.is_superuser %}
+
+    <section class="control-section">
+
+        <div class="control-section-head">
+
+            <div>
+                <span>
+                    ADMINISTRATION
+                </span>
+
+                <h2>
+                    Management Assignments
+                </h2>
+            </div>
+
+        </div>
+
+        <div class="control-actions">
+
+            <a
+                href="/admin/accounts/companyassignment/"
+                class="control-action"
+            >
+                <strong>
+                    Manage Company Assignments
+                </strong>
+
+                <span>
+                    Assign an existing ERP user
+                    to Fairlane as Manager, GM,
+                    CEO or MD.
+                </span>
+            </a>
+
+            <a
+                href="/admin/auth/user/"
+                class="control-action"
+            >
+                <strong>
+                    Manage ERP Users
+                </strong>
+
+                <span>
+                    Create or maintain staff
+                    user accounts.
+                </span>
+            </a>
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

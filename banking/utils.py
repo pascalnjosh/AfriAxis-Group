@@ -574,28 +574,54 @@ def process_tabular_statement(statement_upload):
 
 
 def process_bank_statement(statement_upload):
+    """
+    Process an uploaded bank statement.
+
+    Supported:
+    - PDF
+    - CSV
+    - XLSX
+    - XLS
+
+    The upload is marked processed only after the parser completes
+    successfully. Imported transactions remain subject to the normal
+    AfriAxis reconciliation/approval workflow.
+    """
+
     filename = statement_upload.file.name.lower()
 
     if filename.endswith(".pdf"):
-        return process_pdf_statement(
+        result = process_pdf_statement(
             statement_upload
         )
 
-    if filename.endswith(
+    elif filename.endswith(
         (
             ".csv",
             ".xlsx",
             ".xls",
         )
     ):
-        return process_tabular_statement(
+        result = process_tabular_statement(
             statement_upload
         )
 
-    raise ValueError(
-        "Unsupported statement format. "
-        "Upload PDF, CSV, XLSX or XLS."
-    )
+    else:
+        raise ValueError(
+            "Unsupported statement format. "
+            "Upload PDF, CSV, XLSX or XLS."
+        )
+
+    if not statement_upload.processed:
+        statement_upload.processed = True
+
+        statement_upload.save(
+            update_fields=[
+                "processed",
+            ]
+        )
+
+    return result
 
 
 def match_erp_bank_transaction(bank_transaction):

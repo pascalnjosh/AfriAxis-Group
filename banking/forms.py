@@ -29,7 +29,7 @@ class BankStatementUploadForm(forms.ModelForm):
         widgets = {
             "file": forms.ClearableFileInput(
                 attrs={
-                    "accept": ".csv,.xlsx,.xls",
+                    "accept": ".pdf,.csv,.xlsx,.xls",
                 }
             ),
         }

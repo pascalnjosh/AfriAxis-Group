@@ -1505,3 +1505,112 @@ table tbody tr:nth-child(even) td{
     color: #fff;
 }
 
+
+/* ==========================================================
+   FAIRLANE MANAGEMENT
+   ========================================================== */
+
+.fas-management-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.fas-manager-card {
+    min-height: 230px;
+    padding: 22px;
+    border:
+        1px solid rgba(16,185,129,.22);
+    border-radius: 19px;
+    background:
+        linear-gradient(
+            145deg,
+            #0d1f28,
+            #102c2c
+        );
+}
+
+.fas-manager-code {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    background: rgba(16,185,129,.13);
+    color: #6ee7b7;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.fas-manager-card h2 {
+    margin: 16px 0;
+    color: #f8fafc;
+    font-size: 16px;
+}
+
+.fas-manager-person {
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.05);
+}
+
+.fas-manager-person strong,
+.fas-manager-person span,
+.fas-manager-person small {
+    display: block;
+}
+
+.fas-manager-person strong {
+    color: #fff;
+    font-size: 13px;
+}
+
+.fas-manager-person span {
+    margin-top: 5px;
+    color: #a7f3d0;
+    font-size: 11px;
+}
+
+.fas-manager-person small {
+    margin-top: 7px;
+    color: #64748b;
+}
+
+.fas-manager-empty {
+    padding: 15px;
+    border:
+        1px dashed rgba(148,163,184,.22);
+    border-radius: 12px;
+}
+
+.fas-manager-empty strong {
+    display: block;
+    color: #94a3b8;
+}
+
+.fas-manager-empty span {
+    display: block;
+    margin-top: 7px;
+    color: #64748b;
+    font-size: 11px;
+}
+
+
+/* Mobile card contrast correction */
+
+@media (max-width: 700px) {
+
+    .fas-management-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .workspace-card,
+    .workspace-card h1,
+    .workspace-card h2,
+    .workspace-card h3 {
+        color: #0f172a;
+    }
+}
+

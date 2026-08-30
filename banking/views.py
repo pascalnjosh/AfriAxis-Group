@@ -303,11 +303,23 @@ def upload_statement(request):
             upload.save()
 
             try:
-                process_bank_statement(upload)
-                messages.success(
-                    request,
-                    "Bank statement uploaded and processed.",
-                )
+                result = process_bank_statement(upload)
+
+                if isinstance(result, dict):
+                    messages.success(
+                        request,
+                        (
+                            "Bank statement processed successfully. "
+                            f"Imported {result.get('created', 0)} "
+                            f"transaction(s); "
+                            f"skipped {result.get('skipped', 0)}."
+                        ),
+                    )
+                else:
+                    messages.success(
+                        request,
+                        "Bank statement uploaded and processed.",
+                    )
             except Exception as exc:
                 messages.error(
                     request,
